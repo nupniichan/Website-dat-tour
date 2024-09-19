@@ -1,0 +1,97 @@
+/* Center the login form on the page */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+
+  }
+  
+  /* Style the form */
+  .login-form {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 300px;
+    max-width: 800px;
+  }
+  
+  /* Heading style */
+  h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  /* Social media buttons */
+  .social-icons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .icon-btn {
+    background-color: #f5f5f5;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .icon-btn:hover {
+    background-color: #ddd;
+  }
+  
+  /* Input fields */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f5f5f5;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  
+  /* Text above inputs */
+  .email-password-text {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 15px;
+  }
+  
+  /* Forgot password link */
+  .forgot-password {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  
+  .forgot-password:hover {
+    text-decoration: underline;
+  }
+  
+  /* Sign-in button */
+  .btn-login {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .btn-login:hover {
+    background: linear-gradient(to right, #5b10b3, #1f68c4);
+  }

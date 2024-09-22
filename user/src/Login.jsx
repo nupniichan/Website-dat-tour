@@ -19,8 +19,8 @@ const Login = ({ onLogin }) => {
 
     const data = await response.json();
     if (response.ok) {
-      const { token, userName } = data; // Ensure your API returns these
-      onLogin(token, userName); // Call the passed in function
+      const { token, userName } = data; 
+      onLogin(token, userName); 
       alert(data.message);
     } else {
       alert(data.message);
@@ -29,8 +29,9 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="auth-container">
-      <h2>Login</h2>
+      <h2>Đăng nhập</h2>
       <form onSubmit={handleSubmit}>
+      <label htmlFor="fullname">Email:</label>
         <input
           type="email"
           placeholder="Email"
@@ -38,6 +39,7 @@ const Login = ({ onLogin }) => {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+        <label htmlFor="fullname">Mật khẩu:</label>
         <input
           type="password"
           placeholder="Password"
@@ -45,7 +47,7 @@ const Login = ({ onLogin }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit">Đăng nhập</button>
       </form>
     </div>
   );

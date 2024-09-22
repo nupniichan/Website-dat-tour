@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import './Auth.css';
@@ -42,61 +41,83 @@ const Register = () => {
 
   return (
     <div className="auth-container">
-      <h2>Register</h2>
+      <h2>Đăng ký</h2>
       <form onSubmit={handleSubmit}>
+        <label htmlFor="fullname">Họ tên:</label>
         <input
           type="text"
+          id="fullname"
           placeholder="Full Name"
           value={fullname}
           onChange={(e) => setFullname(e.target.value)}
           required
         />
+
+        <label htmlFor="phoneNumber">Số điện thoại:</label>
         <input
           type="text"
+          id="phoneNumber"
           placeholder="Phone Number"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           required
         />
+
+        <label htmlFor="email">Email:</label>
         <input
           type="email"
+          id="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
+        <label htmlFor="address">Địa chỉ:</label>
         <input
           type="text"
+          id="address"
           placeholder="Address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           required
         />
+
+        <label htmlFor="dayOfBirth">Ngày sinh:</label>
         <input
           type="date"
+          id="dayOfBirth"
           placeholder="Date of Birth"
           value={dayOfBirth}
           onChange={(e) => setDayOfBirth(e.target.value)}
           required
         />
+
+        <label htmlFor="accountName">Tên tài khoản:</label>
         <input
           type="text"
+          id="accountName"
           placeholder="Account Name"
           value={accountName}
           onChange={(e) => setAccountName(e.target.value)}
           required
         />
+
+        <label htmlFor="password">Mật khẩu:</label>
         <input
           type="password"
+          id="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Register</button>
+
+        <button type="submit">Đăng ký</button>
       </form>
     </div>
   );
 };
 
 export default Register;
+

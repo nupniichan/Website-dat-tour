@@ -7,11 +7,11 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 
 const app = express();
-const port = 3000;
+const port = 5000;
 
 // Middleware CORS
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

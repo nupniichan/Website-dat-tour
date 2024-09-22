@@ -79,7 +79,7 @@ const ScheduleManagement = () => {
     <Box padding={3}>
       <h3>Quản lý lịch trình</h3>
 
-      <Button variant="contained" color="primary" onClick={handleAddScheduleClick}>
+      <Button variant="contained" style={{ backgroundColor: '#FFA500', color: 'white' }} onClick={handleAddScheduleClick}>
         Thêm lịch trình
       </Button>
 
@@ -112,8 +112,7 @@ const ScheduleManagement = () => {
               <TableCell>{new Date(schedule.NGAYVE).toLocaleDateString('vi-VN')}</TableCell>
               <TableCell>
                 <Button 
-                  variant="contained" 
-                  color="primary" 
+                  variant="outlined" 
                   onClick={() => handleViewDetails(schedule.ID)} 
                 >
                   Xem Chi tiết

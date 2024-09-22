@@ -93,8 +93,8 @@ const TourManagement = () => {
 
   return (
     <>
-      <h3>Quản lý tour</h3>
       <Box padding={3}>
+      <h3>Quản lý tour</h3>
         <TextField
           label="Tìm kiếm tour"
           variant="outlined"
@@ -121,7 +121,9 @@ const TourManagement = () => {
           </Box>
         </Box>
         <Box marginBottom={2}>
-          <Button variant="contained" color="primary" onClick={handleAddTour}>Thêm tour mới</Button>
+          <Button  variant="contained" style={{ backgroundColor: '#FFA500', color: 'white' }} onClick={handleAddTour}>
+            Thêm tour mới
+          </Button>
         </Box>
         <Table>
           <TableHead>
@@ -145,7 +147,7 @@ const TourManagement = () => {
                 <TableCell>{formatDate(tour.NGAYVE)}</TableCell>
                 <TableCell>{tour.TRANGTHAI}</TableCell>
             <TableCell>
-                <Button variant="outlined" onClick={() => handleViewDetails(tour)}>Xem chi tiết</Button>
+                <Button variant="outlined"  onClick={() => handleViewDetails(tour)}>Xem chi tiết</Button>
                 <Button variant="outlined" onClick={() => handleEdit(tour)} style={{ marginLeft: '10px' }}>Sửa</Button>
                 <Button variant="outlined" onClick={() => handleDelete(tour.ID)} style={{ marginLeft: '10px' }}>Xoá</Button>
             </TableCell>

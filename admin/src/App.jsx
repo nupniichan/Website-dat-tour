@@ -6,8 +6,8 @@ import Dashboard from './Dashboard.jsx';
 import AdminLogin from './AdminLogin.jsx';
 import TourManagement from './TourManagement.jsx';
 import ScheduleManagement from './ScheduleManagement.jsx';
-import AddSchedule from './AddSchedule.jsx'; // Import component thêm lịch trình
-import ScheduleDetail from './ScheduleDetail.jsx'; // Import component chi tiết lịch trình
+import AddSchedule from './AddSchedule.jsx'; 
+import ScheduleDetail from './ScheduleDetail.jsx'; 
 import AddTour from './Addtour.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';

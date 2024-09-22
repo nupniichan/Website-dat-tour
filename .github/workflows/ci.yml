@@ -69,7 +69,7 @@ jobs:
         working-directory: ./server
         run: |
           echo "install dependencies"
-          npm install
+          npm install --legacy-peer-deps
           echo "Install ESlint"
           npm install --save-dev eslint@latest @eslint/js@latest eslint-plugin-react@latest eslint-plugin-react-hooks@latest eslint-plugin-react-refresh@latest globals@latest --legacy-peer-deps
 

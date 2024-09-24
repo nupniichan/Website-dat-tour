@@ -1,10 +1,38 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { ConfigProvider } from "antd";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import App from "./App.jsx";
+import "./index.css";
+
+createRoot(document.getElementById("root")).render(
+    <StrictMode>
+        <ConfigProvider
+            theme={{
+                components: {
+                    Radio: {
+                        colorPrimary: "transparent",
+                    },
+                    DatePicker: {
+                        activeBorderColor: "#f97316",
+                        hoverBorderColor: "#f97316",
+                        activeShadow: "#f97316",
+                    },
+                    Select: {
+                        activeBorderColor: "#f97316",
+                        hoverBorderColor: "#f97316",
+                        optionSelectedBg: "rgba(201, 121, 42, 0.4)",
+                    },
+                    Calendar: {
+                        
+                    },
+                },
+            }}
+        >
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
+        </ConfigProvider>
+    </StrictMode>
+);

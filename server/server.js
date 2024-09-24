@@ -57,19 +57,19 @@ app.post('/loginAdmin', (req, res) => {
 
 app.post('/add-schedule', (req, res) => {
     const { name, startDate, endDate, details } = req.body;
-  
+
     // Kiểm tra dữ liệu
     if (!name || !startDate || !endDate || !details || details.length === 0) {
       return res.status(400).json({ message: 'Tên, ngày đi, ngày về và chi tiết là bắt buộc' });
     }
-  
+
     // Thêm lịch trình vào cơ sở dữ liệu
     const scheduleQuery = 'INSERT INTO LichTrinh (tenlichtrinh, NGAYDI, NGAYVE) VALUES (?, ?, ?)';
     db.query(scheduleQuery, [name, startDate, endDate], (err, result) => {
       if (err) return res.status(500).json({ message: 'Error adding schedule: ' + err.message });
-  
+
       const scheduleId = result.insertId; // Lấy ID của lịch trình đã thêm
-  
+
       // Thêm chi tiết vào bảng ChiTietLichTrinh
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
@@ -80,13 +80,13 @@ app.post('/add-schedule', (req, res) => {
           });
         });
       });
-  
+
       Promise.all(detailQueries)
         .then(() => res.json({ message: 'Schedule added successfully!' }))
         .catch(err => res.status(500).json({ message: 'Error adding schedule details: ' + err.message }));
     });
   });
-  
+
   // Lấy danh sách lịch trình
   app.get('/schedules', (req, res) => {
     const query = 'SELECT * FROM LichTrinh';
@@ -95,7 +95,7 @@ app.post('/add-schedule', (req, res) => {
       res.json(results);
     });
   });
-  
+
   // Lấy chi tiết lịch trình theo ID
   app.get('/schedules/:id', (req, res) => {
     const { id } = req.params;
@@ -122,14 +122,14 @@ const storage = multer.diskStorage({
       cb(null, Date.now() + path.extname(file.originalname));
     },
   });
-  
+
   const upload = multer({ storage });
-  
+
   // Endpoints
   app.post('/upload-image', upload.single('image'), (req, res) => {
       res.json({ path: `src/img/tourImage/${req.file.filename}` });
   });
-  
+
   app.post('/add-tour', (req, res) => {
       const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen } = req.body;
       const query = 'INSERT INTO Tour (TENTOUR, LOAITOUR, GIA, SOVE, HINHANH, MOTA, TRANGTHAI, IDLICHTRINH, PHUONGTIENDICHUYEN) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
@@ -138,15 +138,15 @@ const storage = multer.diskStorage({
           res.json({ message: 'Tour added successfully', id: result.insertId });
       });
   });
-  
+
   // Endpoint lấy danh sách tour
 // Endpoint lấy danh sách tour với thông tin lịch trình
 app.get('/tours', (req, res) => {
     const query = `
-        SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
-        FROM Tour 
+        SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE
+        FROM Tour
         JOIN LichTrinh ON Tour.IDLICHTRINH = LichTrinh.ID`;
-    
+
     db.query(query, (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Error fetching tours: ' + err.message });
@@ -188,9 +188,9 @@ app.delete('/delete-tour/:id', (req, res) => {
 
 app.delete('/delete-schedule/:id', (req, res) => {
     const { id } = req.params;
-    
+
     const query = 'DELETE FROM LichTrinh WHERE ID = ?';
-    
+
     db.query(query, [id], (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });

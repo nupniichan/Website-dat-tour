@@ -3,7 +3,7 @@ const PagesNames = {
     ABOUT: '/About',
     REGISTRATION: '/Registration',
     CHECKOUT: '/Checkout',
-    SEARCH_RESULTS: '/search/:searchTerm', //TODO: needs revision to match search modal's options on homepage
+    SEARCH_RESULTS: '/search/:searchTerm/:departureDate', 
     TOUR_DETAILS: '/:tourName',
     SCHEDULE: '/Schedule',
     CONTACT: '/Contact'

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import "../App.css";
 import "./Registration.css";
 
-
 const Registration = ({ onLogin }) => {
     const navigate = useNavigate();
     const [isLoginForm, setIsLoginForm] = useState(true); // Toggle between Login and Register
@@ -44,16 +43,17 @@ const Registration = ({ onLogin }) => {
 
         const data = await response.json();
         if (response.ok) {
-            alert(data.message);
+            alert("Đăng nhập thành công!");
             if (isLoginForm) {
                 const { token, userName } = data;
-                onLogin(token, userName);
+                onLogin(token, userName); // Pass the userName (fullname) to App
+                navigate('/'); // Redirect to homepage after successful login
             } else {
                 navigate("/login"); // Redirect to login on successful registration
                 setIsLoginForm(true); // Switch to login form after registration
             }
         } else {
-            alert(data.message);
+            alert("Đăng nhập thất bại");
         }
     };
 
@@ -145,11 +145,16 @@ const Registration = ({ onLogin }) => {
                     {isLoginForm ? "Đăng nhập" : "Đăng ký"}
                 </button>
             </form>
-            <button onClick={() => setIsLoginForm(!isLoginForm)}>
-                {isLoginForm
-                    ? "Chưa có tài khoản? Đăng ký"
-                    : "Đã có tài khoản? Đăng nhập"}
-            </button>
+            <div style={{ textAlign: "center", marginTop: "15px" }}>
+                <button 
+                    onClick={() => setIsLoginForm(!isLoginForm)} 
+                    className="button-spacing"
+                >
+                    {isLoginForm
+                        ? "Chưa có tài khoản? Đăng ký"
+                        : "Đã có tài khoản? Đăng nhập"}
+                </button>
+            </div>
         </div>
     );
 };

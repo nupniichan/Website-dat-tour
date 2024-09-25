@@ -19,8 +19,8 @@ const Login = ({ onLogin }) => {
 
     const data = await response.json();
     if (response.ok) {
-      const { token, userName } = data; 
-      onLogin(token, userName); 
+      const { token, userName } = data;
+      onLogin(token, userName);
       alert(data.message);
     } else {
       alert(data.message);

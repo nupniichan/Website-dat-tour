@@ -2,11 +2,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
-const Sidebar = ({ selectedContent }) => {
+const Sidebar = ({ selectedContent, onLogout }) => {
   const navigate = useNavigate();
 
   const handleNavigation = (path) => {
     navigate(path);
+  };
+
+  const handleLogout = () => {
+    onLogout(); // Gọi hàm logout
+    navigate('/login'); // Chuyển hướng về trang đăng nhập
   };
 
   return (
@@ -52,7 +57,7 @@ const Sidebar = ({ selectedContent }) => {
             <img className="menu-icon" src="src/img/icon/settings.png" alt="Settings" />
             <span>Settings</span>
           </li>
-          <li className="menu-item">
+          <li className="menu-item" onClick={handleLogout}>
             <img className="menu-icon" src="src/img/icon/logout.png" alt="Logout" />
             <span>Logout</span>
           </li>

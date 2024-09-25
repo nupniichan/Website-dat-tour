@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import './SearchResult.css';
@@ -6,7 +6,6 @@ import './SearchResult.css';
 const SearchResults = () => {
     const location = useLocation();
     const { results: initialResults } = location.state || {};
-
     const [filteredResults, setFilteredResults] = useState(initialResults || []);
     const [transportation, setTransportation] = useState('');
     const [tourType, setTourType] = useState('');
@@ -15,7 +14,7 @@ const SearchResults = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    const filterResults = () => {
+    const filterResults = useCallback(() => {
         const filtered = initialResults.filter(item => {
             const price = parseFloat(item.GIA);
             const isTransportationMatch = transportation ? item.PHUONGTIENDICHUYEN === transportation : true;
@@ -29,11 +28,11 @@ const SearchResults = () => {
         });
 
         setFilteredResults(filtered);
-    };
+    }, [initialResults, transportation, tourType, minPrice, maxPrice, startDate, endDate]);
 
     useEffect(() => {
         filterResults();
-    }, [transportation, tourType, minPrice, maxPrice, startDate, endDate]);
+    }, [filterResults]);
 
     return (
         <div className="search-results-container">
@@ -82,7 +81,7 @@ const SearchResults = () => {
                                 </div>
                             </div>
                             <div className="button-container">
-                                <button >Đặt ngay</button>
+                                <button>Đặt ngay</button>
                             </div>
                         </div>
                     ))

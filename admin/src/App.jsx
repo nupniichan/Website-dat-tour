@@ -18,9 +18,12 @@ import './index.css';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Hàm xử lý khi đăng nhập thành công
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false); // Đặt trạng thái đăng nhập thành false
   };
 
   return (
@@ -35,7 +38,7 @@ function App() {
           <div className="container-fluid flex-grow-1">
             <div className="row">
               <nav className="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <Sidebar />
+                <Sidebar onLogout={handleLogout} /> {/* Truyền hàm logout */}
               </nav>
               <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div className="main-content">
@@ -47,13 +50,12 @@ function App() {
                     <Route path="/edit-schedule/:id" element={<EditSchedule />} />
                     <Route path="/add-tour" element={<AddTour />} />
                     <Route path="/edit-tour/:id" element={<EditTour />} />
-                    <Route path="/schedule/:id" element={<ScheduleDetail />} /> 
+                    <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<h1>Quản lý danh sách đặt</h1>} />
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
                     <Route path="/user" element={<h1>Quản lý người dùng</h1>} />
                     <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
-                    {/* Thêm các route khác nếu cần */}
                   </Routes>
                 </div>
               </main>

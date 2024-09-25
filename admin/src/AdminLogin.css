@@ -84,7 +84,7 @@
   .btn-login {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
+    background: linear-gradient(to right, #cb7711, #fc2525);
     color: white;
     border: none;
     border-radius: 5px;
@@ -93,5 +93,5 @@
   }
   
   .btn-login:hover {
-    background: linear-gradient(to right, #5b10b3, #1f68c4);
+    background: linear-gradient(to right, #fc2525, #cb7711);
   }

@@ -264,23 +264,77 @@ app.get('/user-info', authenticateToken, (req, res) => {
 
 // API tìm kiếm dữ liệu
 app.get('/search', (req, res) => {
-  const searchTerm = req.query.q || '';
+  const searchTerm = req.query.q || ''; // Tên tour
+  const departureDate = req.query.date; // Ngày đi từ query
 
+  // Câu truy vấn SQL
   const sql = `
-    SELECT * FROM tour 
-    WHERE TENTOUR LIKE ? 
-    OR LOAITOUR LIKE ?
+      SELECT t.*, l.NGAYDI, l.NGAYVE
+      FROM tour t
+      INNER JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+      WHERE t.TENTOUR LIKE ? 
+      ${departureDate ? 'AND l.NGAYDI = ?' : ''}
   `;
-  const values = [`%${searchTerm}%`, `%${searchTerm}%`];
+
+  // Tạo mảng giá trị cho truy vấn
+  const values = [`%${searchTerm}%`];
+  if (departureDate) {
+      values.push(departureDate); // Thêm ngày đi nếu có
+  }
 
   db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Lỗi truy vấn:', err);
-      return res.status(500).json({ error: 'Lỗi truy vấn' });
-    }
-    res.json(results);
+      if (err) {
+          console.error('Lỗi truy vấn:', err);
+          return res.status(500).json({ error: 'Lỗi truy vấn' });
+      }
+      res.json(results);
   });
 });
+
+// API tìm kiếm tour theo tên
+app.get('/search/tour', (req, res) => {
+  const searchTerm = req.query.q || ''; // Tên tour
+
+  // Câu truy vấn SQL
+  const sql = `
+      SELECT t.*, l.NGAYDI, l.NGAYVE
+      FROM Tour t
+      INNER JOIN LichTrinh l ON t.IDLICHTRINH = l.ID
+      WHERE t.TENTOUR LIKE ?
+  `;
+
+  db.query(sql, [`%${searchTerm}%`], (err, results) => {
+      if (err) {
+          console.error('Lỗi truy vấn:', err);
+          return res.status(500).json({ error: 'Lỗi truy vấn' });
+      }
+      res.json(results);
+  });
+});
+
+// API tìm kiếm tour theo tên và ngày đi
+app.get('/search/tour-with-date', (req, res) => {
+  const searchTerm = req.query.q || ''; // Tên tour
+  const departureDate = req.query.date; // Ngày đi từ query
+
+  // Câu truy vấn SQL
+  const sql = `
+      SELECT t.*, l.NGAYDI, l.NGAYVE
+      FROM Tour t
+      INNER JOIN LichTrinh l ON t.IDLICHTRINH = l.ID
+      WHERE t.TENTOUR LIKE ? 
+      AND l.NGAYDI = ?
+  `;
+
+  db.query(sql, [`%${searchTerm}%`, departureDate], (err, results) => {
+      if (err) {
+          console.error('Lỗi truy vấn:', err);
+          return res.status(500).json({ error: 'Lỗi truy vấn' });
+      }
+      res.json(results);
+  });
+});
+
 
 // Start Server
 app.listen(port, () => {

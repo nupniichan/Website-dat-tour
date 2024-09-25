@@ -4,7 +4,7 @@ const Footer = () => {
     const footerNavs = [
         {
             href: `${PagesNames.ABOUT}`,
-            name: "About",
+            name: "Về chúng tôi",
         },
         {
             href: null,
@@ -12,15 +12,15 @@ const Footer = () => {
         },
         {
             href: null,
-            name: "Terms of Service",
+            name: "Điều khoản - dịch vụ",
         },
         {
             href: null,
-            name: "FAQ",
+            name: "Các câu hỏi thường gặp",
         },
         {
             href: null,
-            name: "Support",
+            name: "Hỗ trợ",
         },
     ];
 
@@ -34,11 +34,11 @@ const Footer = () => {
                         alt="Company Logo"
                     />
                     <p className="leading-relaxed mt-2 text-[15px]">
-                        More than just booking tours, we create personalized
-                        travel experiences tailored to your unique desires. Our
-                        dedicated team is committed to finding the perfect
-                        adventure for you, ensuring exceptional value and
-                        unforgettable memories.
+                        Không chỉ đặt tour, chúng tôi còn tạo ra những trải nghiệm cá nhân hóa
+                        trải nghiệm du lịch phù hợp với mong muốn riêng của bạn. Của chúng tôi
+                        đội ngũ tận tâm cam kết tìm kiếm sự hoàn hảo
+                        cuộc phiêu lưu dành cho bạn, đảm bảo giá trị đặc biệt và
+                        kỷ niệm khó quên.
                     </p>
                 </div>
                 <ul className="items-center justify-center mt-8 space-y-5 sm:flex sm:space-x-4 sm:space-y-0">
@@ -56,7 +56,7 @@ const Footer = () => {
                 </ul>
                 <div className="mt-8 items-center justify-between sm:flex">
                     <div className="mt-4 sm:mt-0">
-                        &copy; 2024 La Voyage All rights reserved.
+                        &copy; 2024 Nhóm 1 thứ 4 ca 4.
                     </div>
                     <div className="mt-6 sm:mt-0">
                         <ul className="flex items-center space-x-4">

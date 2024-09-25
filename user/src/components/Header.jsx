@@ -37,7 +37,7 @@ const Header = () => {
     const BrandLogo = () => (
         <div className="flex items-center justify-between py-2 md:block">
             <button onClick={() => handleHomepageClick()} className="h-[96px] w-[96px]">
-                <img src="/images/Logo3.png" alt="La Voyage brand logo" />
+                <img src="/images/Logo3.png" alt="VietTourLogo" />
             </button>
             <div className="md:hidden">
                 <button className="menu-btn text-gray-400 hover:text-gray-300" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>

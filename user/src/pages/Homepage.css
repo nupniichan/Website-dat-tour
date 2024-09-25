@@ -29,3 +29,7 @@
 .ant-picker-now-btn:hover {
     color: #f97316;
 }
+
+.ant-picker-cell-today .ant-picker-cell-inner {
+    border-color: #f97316 !important;
+}

@@ -74,11 +74,11 @@ const SearchResults = () => {
                             <div className="tour-info">
                                 <h3 className="tour-name">{item.TENTOUR}</h3>
                                 <div>
-                                    <p className='tour-price'>{item.GIA ? parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}</p>
-                                    <p className='tour-di'>{dayjs(item.NGAYDI).format("DD-MM-YYYY")} {'->'} {dayjs(item.NGAYVE).format("DD-MM-YYYY")}</p>
-                                    <p className='tour-vehicle'>Phương tiện di chuyển: {item.PHUONGTIENDICHUYEN} - Xe Buýt</p>
-                                    <p className='tour-ticket-available'>{item.SOVECONLAI} vé còn lại</p>
                                     <p className='tour-type'>Loại tour: {item.LOAITOUR}</p>
+                                    <p className='tour-di'>Ngày: {dayjs(item.NGAYDI).format("DD-MM-YYYY")} {'->'} {dayjs(item.NGAYVE).format("DD-MM-YYYY")}</p>
+                                    <p className='tour-vehicle'>Phương tiện di chuyển: {item.PHUONGTIENDICHUYEN} - Xe Buýt</p>
+                                    <p className='tour-ticket-available'>Còn lại: {item.SOVECONLAI} vé</p>
+                                    <p className='tour-price'>{item.GIA ? parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}</p>
                                 </div>
                             </div>
                             <div className="button-container">
@@ -87,7 +87,7 @@ const SearchResults = () => {
                         </div>
                     ))
                 ) : (
-                    <p>No results found.</p>
+                    <p>Không tìm thấy kết quả.</p>
                 )}
             </div>
         </div>

@@ -83,7 +83,7 @@ const Homepage = () => {
                             <div className="search-form absolute z-30 font-normal xl:w-[1128px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6">
                                 <div className="grid grid-cols-2 pb-4 pt-4">
                                     <div className="mr-4 flex flex-1 flex-col">
-                                        <label className="text-left ml-5 mb-1 text-sm">Điểm đi</label>
+                                        <label className="text-left mb-1 text-sm">Điểm đi</label>
                                         <Select
                                             showSearch
                                             placeholder="Bạn muốn tham quan ở đâu?"
@@ -100,7 +100,7 @@ const Homepage = () => {
                                         </Select>
                                     </div>
                                     <div className="mr-4 flex flex-1 flex-col">
-                                        <label className="text-left ml-5 mb-1 text-sm">Ngày đi</label>
+                                        <label className="text-left mb-1 text-sm">Ngày đi</label>
                                         <DatePicker
                                             format="DD-MM-YYYY"
                                             size="large"

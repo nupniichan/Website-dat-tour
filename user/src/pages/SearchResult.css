@@ -83,7 +83,7 @@ button:hover {
 
 .tour-price {
   font-size: 16px;
-  color: #d84141; /* Red for prices, attracting attention */
+  color: green; /* Red for prices, attracting attention */
 }
 
 .tour-di, .tour-vehicle, .tour-type, .tour-ticket-available {

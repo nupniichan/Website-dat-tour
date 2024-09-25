@@ -34,7 +34,7 @@
   }
   
   .menu-item:hover {
-    background-color: #8F99FB;
+    background-color: #f88329;
     border-radius: 5px;
   }
   
@@ -45,7 +45,7 @@
   }
   
   .active {
-    background-color: #CCCCFF;
+    background-color: #FF6E00;
     border-radius: 5px;
   }
   

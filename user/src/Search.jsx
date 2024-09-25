@@ -46,7 +46,7 @@ function Search() {
                                 {item.GIA ? parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}
                             </p>
                             <p className='tour-di'>{formatDate(item.NGAYDI)} {'->'} {formatDate(item.NGAYVE)}</p>
-                            <p className='tour-vehicle'>Phương tiện di chuyển: {item.PHUONGTIENDICHUYEN} - Xe Buýt</p>
+                            <p className='tour-vehicle'>{item.PHUONGTIENDICHUYEN}</p>
                             <p className='tour-ticket-available'>{item.SOVECONLAI} vé còn lại</p>
                             <p className='tour-type'>{item.LOAITOUR}</p>
                         </div>

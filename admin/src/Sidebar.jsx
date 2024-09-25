@@ -49,7 +49,7 @@ const Sidebar = ({ selectedContent }) => {
       <div className="sidebar-footer">
         <ul className="sidebar-footer-menu">
           <li className="menu-item">
-            <img className="menu-icon" src="src/img/icon/setting.png" alt="Settings" />
+            <img className="menu-icon" src="src/img/icon/settings.png" alt="Settings" />
             <span>Settings</span>
           </li>
           <li className="menu-item">

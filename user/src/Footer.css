@@ -1,0 +1,60 @@
+.footer {
+    background-color: #000;
+    color: #fff;
+    width: 100%;
+    padding: 15px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap; /* Cho phép phần tử gói lại khi không đủ chỗ */
+    justify-content: space-between;
+    border-bottom: 2px solid #ccc; 
+    padding-bottom: 40px; 
+}
+.container a {
+    color: #ccc; 
+    font-weight: normal;
+    
+}
+
+.section {
+    flex: 1 1 200px; /* Căn chỉnh chiều rộng, cho phép phần tử co dãn */
+    margin: 10px; /* Khoảng cách giữa các section */
+}
+
+.section ul {
+    list-style-type: none; /* Bỏ đánh dấu (marker) */
+    padding: 0; /* Bỏ padding */
+    margin: 0; /* Bỏ margin */
+    text-align: left; /* Căn lề trái cho ul */
+}
+
+.section li {
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+.copyright {
+    text-align: center; 
+    margin-top: 50px;
+    color: #ccc;
+}
+
+.copyright p {
+    color: #ccc; 
+}
+
+.section p {
+    color: #ccc; 
+}
+
+h3 {
+    text-align: left;
+}
+
+p {
+    text-align: left;
+}

@@ -6,7 +6,7 @@ const Header = () => {
   return (
     <Navbar bg="white" expand="lg" className="border-bottom">
       <Navbar.Brand href="#home" className="d-flex align-items-center" style={{ marginLeft: '20px' }}>
-        <span className="text-primary fw-bold fs-4">Trang quản lý</span>
+        <span style={{ color: 'orange' }} className="fw-bold fs-4">Trang quản lý</span>
         <span className="ms-2 fw-bold">VietTour</span>
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />

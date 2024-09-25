@@ -18,7 +18,7 @@ function Search() {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-  
+
       const filteredResults = data.filter(item => {
         const price = parseFloat(item.GIA);
         const isTransportationMatch = transportation ? item.PHUONGTIENDICHUYEN === transportation : true;
@@ -27,15 +27,15 @@ function Search() {
         const isEndDateMatch = endDate ? new Date(item.NGAYVE).toDateString() === new Date(endDate).toDateString() : true;
         const isMinPriceMatch = minPrice ? price >= parseFloat(minPrice) : true;
         const isMaxPriceMatch = maxPrice ? price <= parseFloat(maxPrice) : true;
-  
+
         return isTransportationMatch && isTypeMatch && isStartDateMatch && isEndDateMatch && isMinPriceMatch && isMaxPriceMatch;
       });
-  
+
       setResults(filteredResults);
     } catch (error) {
       console.error('Lỗi khi tìm kiếm:', error);
     }
-  };  
+  };
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -53,7 +53,7 @@ function Search() {
           placeholder="Nhập từ khóa tìm kiếm"
         />
       </div>
-      
+
       <div className="filter-bar">
         <select value={transportation} onChange={(e) => setTransportation(e.target.value)}>
           <option value="">Chọn phương tiện</option>
@@ -75,7 +75,7 @@ function Search() {
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
         />
-        
+
         <input
           type="date"
           placeholder="Ngày về"
@@ -89,7 +89,7 @@ function Search() {
           value={minPrice}
           onChange={(e) => setMinPrice(e.target.value)}
         />
-        
+
         <input
           type="number"
           placeholder="Giá tối đa"

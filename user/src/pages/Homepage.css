@@ -1,0 +1,31 @@
+/* The search form container */
+.search-form {
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ANT DESIGN CLASSES */
+.ant-radio-checked .ant-radio-inner {
+    border-color: #f97316 !important;
+}
+
+.ant-radio-checked .ant-radio-inner:after {
+    background-color: #f97316;
+}
+
+.ant-radio:hover .ant-radio-inner {
+    border-color: #f97316;
+}
+
+.ant-radio-wrapper:hover .ant-radio-inner {
+    border-color: #f97316;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner {
+    background-color: #f97316 !important;
+}
+
+.ant-picker-now-btn:hover {
+    color: #f97316;
+}

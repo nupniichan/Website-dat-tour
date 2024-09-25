@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
-const jwt = require('jsonwebtoken'); // Import jsonwebtoken
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 5000;
@@ -17,6 +17,9 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
+
+// Middleware phục vụ tệp tĩnh
+app.use('/src/img/tourImage', express.static(path.join(__dirname, 'src/img/tourImage')));
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -221,13 +224,13 @@ app.post('/register', (req, res) => {
 
 // User Login
 app.post('/login', (req, res) => {
-  const { email, password } = req.body; // Update to match the React component
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'All fields are required!' });
   }
 
-  const query = 'SELECT * FROM USER WHERE EMAIL = ? AND PASSWORD = ?'; // Use EMAIL
+  const query = 'SELECT * FROM USER WHERE EMAIL = ? AND PASSWORD = ?';
   db.query(query, [email, password], (err, results) => {
     if (err) {
       return res.status(500).json({ message: 'Database error: ' + err.message });
@@ -238,11 +241,10 @@ app.post('/login', (req, res) => {
     }
 
     const user = results[0];
-    const token = jwt.sign({ id: user.ID }, 'your_secret_key'); // Replace with your secret key
-    res.json({ message: 'Login successful!', token, userName: user.FULLNAME }); // Include userName
+    const token = jwt.sign({ id: user.ID }, 'your_secret_key');
+    res.json({ message: 'Login successful!', token, userName: user.FULLNAME });
   });
 });
-
 
 // Get User Info
 app.get('/user-info', authenticateToken, (req, res) => {
@@ -257,6 +259,26 @@ app.get('/user-info', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(results[0]);
+  });
+});
+
+// API tìm kiếm dữ liệu
+app.get('/search', (req, res) => {
+  const searchTerm = req.query.q || '';
+
+  const sql = `
+    SELECT * FROM tour 
+    WHERE TENTOUR LIKE ? 
+    OR LOAITOUR LIKE ?
+  `;
+  const values = [`%${searchTerm}%`, `%${searchTerm}%`];
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Lỗi truy vấn:', err);
+      return res.status(500).json({ error: 'Lỗi truy vấn' });
+    }
+    res.json(results);
   });
 });
 

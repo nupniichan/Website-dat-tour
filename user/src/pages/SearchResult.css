@@ -71,10 +71,6 @@
   transition: background-color 0.3s;
 }
 
-button:hover {
-  background-color: #ff7000; /* Slightly darker orange on hover */
-}
-
 .tour-name {
   font-size: 18px;
   font-weight: bold;

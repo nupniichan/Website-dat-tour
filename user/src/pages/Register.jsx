@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import PagesNames from "../Router/PagesNames";
+import "../pages/Registration.css"
 
 const Register = () => {
     const navigate = useNavigate();

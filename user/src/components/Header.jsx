@@ -31,7 +31,7 @@ const Header = ({ user, onLogout }) => {
   };
 
   const handleSignUpClick = () => {
-    navigate(PagesNames.REGISTRATION);
+    navigate(PagesNames.LOGIN);
   };
 
   const BrandLogo = () => (

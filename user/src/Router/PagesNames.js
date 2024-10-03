@@ -1,7 +1,8 @@
 const PagesNames = {
     HOMEPAGE: '/',
     ABOUT: '/About',
-    REGISTRATION: '/Registration',
+    REGISTRATION: '/Register',
+    LOGIN: '/Login',
     CHECKOUT: '/Checkout',
     SEARCH_RESULTS: '/search/:searchTerm/:departureDate', 
     TOUR_DETAILS: '/:tourName',

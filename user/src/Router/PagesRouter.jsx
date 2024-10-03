@@ -6,9 +6,9 @@ import Checkout from "../pages/Checkout.jsx";
 import SearchResults from "../pages/SearchResults.jsx";
 import TourDetails from "../pages/TourDetails.jsx";
 import Schedule from "../pages/Schedule.jsx";
-import Registration from "../pages/Registration.jsx";
+import Registration from "../pages/Register.jsx";
 import Contact from "../pages/Contact.jsx";
-import Login from "../pages/Registration.jsx"; // Make sure to import Login if it's used
+import Login from "../pages/Login.jsx"; 
 
 const PageRouter = ({ onLogin }) => {
     return (
@@ -21,9 +21,9 @@ const PageRouter = ({ onLogin }) => {
             <Route path={PagesNames.TOUR_DETAILS} element={<TourDetails />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />
-            <Route path="/login" element={<Login onLogin={onLogin} />} /> {/* Ensure you have a Login component if used */}
+            <Route path={PagesNames.LOGIN} element={<Login onLogin={onLogin} />} /> {/* Sử dụng PagesNames.LOGIN để điều hướng */}
         </Routes>
-    )
-}
+    );
+};
 
 export default PageRouter;

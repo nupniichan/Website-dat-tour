@@ -21,7 +21,7 @@ function App() {
   return (
     <>
       <Header user={currentUser} onLogout={handleLogout} />
-      <PagesRouter onLogin={handleLogin} />
+        <PagesRouter onLogin={handleLogin} />
       <Footer />
     </>
   );

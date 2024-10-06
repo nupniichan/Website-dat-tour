@@ -206,6 +206,7 @@ const EditBookingManagement = () => {
           onChange={handleChange}
           required
           style={{ marginBottom: '10px' }}
+          inputProps={{ min: 0 }} // Prevent negative values
         />
 
         <TextField
@@ -217,6 +218,7 @@ const EditBookingManagement = () => {
           onChange={handleChange}
           required
           style={{ marginBottom: '10px' }}
+          inputProps={{ min: 0 }} // Prevent negative values
         />
 
         <TextField
@@ -228,7 +230,9 @@ const EditBookingManagement = () => {
           onChange={handleChange}
           required
           style={{ marginBottom: '10px' }}
+          inputProps={{ min: 0 }} // Prevent negative values
         />
+
 
         <TextField
           label="Tình Trạng"

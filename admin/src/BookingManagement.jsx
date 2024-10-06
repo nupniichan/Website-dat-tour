@@ -78,10 +78,11 @@ const BookingManagement = () => {
     setSelectedBooking(null);
   };
 
-  // Helper function to format currency with commas and "đ" at the end
-  const formatCurrency = (amount) => {
-    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
-  };
+  // Helper function to format currency with commas and "đ" at the end, without decimals
+const formatCurrency = (amount) => {
+  return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
+};
+
 
   return (
     <Box padding={3}>

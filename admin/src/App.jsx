@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Sidebar from './Sidebar.jsx';
 import Header from './Header.jsx';
@@ -6,17 +6,25 @@ import Dashboard from './Dashboard.jsx';
 import AdminLogin from './AdminLogin.jsx';
 import TourManagement from './TourManagement.jsx';
 import ScheduleManagement from './ScheduleManagement.jsx';
-import AddSchedule from './AddSchedule.jsx'; 
-import ScheduleDetail from './ScheduleDetail.jsx'; 
+import AddSchedule from './AddSchedule.jsx';
+import ScheduleDetail from './ScheduleDetail.jsx';
 import AddTour from './Addtour.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
+import BookingManagement from './BookingManagement.jsx';
+import EditBookingManagement from './EditBookingManagement.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Kiểm tra trạng thái đăng nhập từ localStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+
+  useEffect(() => {
+    // Cập nhật trạng thái đăng nhập vào localStorage khi trạng thái thay đổi
+    localStorage.setItem('isLoggedIn', isLoggedIn);
+  }, [isLoggedIn]);
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
@@ -24,6 +32,7 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false); // Đặt trạng thái đăng nhập thành false
+    localStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập khỏi localStorage
   };
 
   return (
@@ -51,7 +60,8 @@ function App() {
                     <Route path="/add-tour" element={<AddTour />} />
                     <Route path="/edit-tour/:id" element={<EditTour />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
-                    <Route path="/ticket" element={<h1>Quản lý danh sách đặt</h1>} />
+                    <Route path="/ticket" element={<BookingManagement />} />
+                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} /> {/* Điều chỉnh */}
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
                     <Route path="/user" element={<h1>Quản lý người dùng</h1>} />

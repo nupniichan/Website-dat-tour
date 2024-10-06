@@ -9,6 +9,9 @@ import Schedule from "../pages/Schedule.jsx";
 import Registration from "../pages/Register.jsx";
 import Contact from "../pages/Contact.jsx";
 import Login from "../pages/Login.jsx"; 
+import PaymentResult from "../pages/PaymentResult.jsx";
+import PaymentFailed from "../pages/PaymentFailed.jsx";
+import PaymentSuccess from "../pages/PaymentSuccess.jsx";
 
 const PageRouter = ({ onLogin }) => {
     return (
@@ -22,6 +25,9 @@ const PageRouter = ({ onLogin }) => {
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />
             <Route path={PagesNames.LOGIN} element={<Login onLogin={onLogin} />} /> {/* Sử dụng PagesNames.LOGIN để điều hướng */}
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-failed" element={<PaymentFailed />} />
+            <Route path="/payment-result" element={<PaymentResult />} />
         </Routes>
     );
 };

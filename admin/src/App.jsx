@@ -55,7 +55,7 @@ function App() {
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
                     <Route path="/user" element={<h1>Quản lý người dùng</h1>} />
-                    <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />z
+                    <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
                   </Routes>
                 </div>
               </main>

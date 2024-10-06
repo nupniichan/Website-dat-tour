@@ -1,11 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const { urlencoded } = require('body-parser');
+const crypto = require('crypto');
+const axios = require('axios');
 const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-
+const config = require('./config');
+const session = require('express-session');
 const app = express();
 const port = 5000;
 
@@ -20,6 +24,12 @@ app.use(bodyParser.json());
 
 // Middleware phục vụ tệp tĩnh
 app.use('/src/img/tourImage', express.static(path.join(__dirname, 'src/img/tourImage')));
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } 
+}));
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -188,8 +198,8 @@ app.get('/tours/:id', (req, res) => {
 // Update Tour
 app.put('/update-tour/:id', (req, res) => {
   const { id } = req.params;
-  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; // Thêm khoihanh vào destructuring
-  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ?, KHOIHANH = ? WHERE ID = ?'; // Thêm KHOIHANH vào câu query
+  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; 
+  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ?, KHOIHANH = ? WHERE ID = ?'; 
   db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Tour updated successfully' });
@@ -254,9 +264,18 @@ app.post('/login', (req, res) => {
     }
 
     const user = results[0];
-    const token = jwt.sign({ id: user.ID }, 'your_secret_key');
-    res.json({ message: 'Login successful!', token, userName: user.FULLNAME });
+    req.session.userId = user.ID;
+    console.log(user.ID)
+    res.json({ message: 'Login successful!', userName: user.FULLNAME, ID: user.ID });
   });
+});
+
+app.get('/session', (req, res) => {
+  if (req.session.userId) {
+    res.json({ userId: req.session.userId });
+  } else {
+    res.status(404).json({ message: 'No session information found.' });
+  }
 });
 
 // Get User Info
@@ -272,6 +291,231 @@ app.get('/user-info', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(results[0]);
+  });
+});
+
+// Ticket
+app.post('/add-ticket', (req, res) => {
+  const { tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, note, status, bookingDate, ticketType, discountId } = req.body;
+
+  if (!tourId || !customerId || !amount || !paymentMethod) {
+    return res.status(400).json({ error: 'Thiếu thông tin cần thiết' });
+  }
+
+  // Lấy mã vé cuối cùng
+  const getLastTicketQuery = `SELECT ID FROM ve ORDER BY ID DESC LIMIT 1`;
+
+  db.query(getLastTicketQuery, (err, results) => {
+    if (err) {
+      console.error('Lỗi khi lấy mã vé cuối cùng:', err);
+      return res.status(500).json({ error: 'Lỗi khi thêm vé' });
+    }
+
+    let lastTicketId = results.length > 0 ? results[0].ID : 'TKD00000'; 
+    let lastTicketNumber = lastTicketId.match(/\d+/); 
+
+    if (!lastTicketNumber) {
+      lastTicketNumber = 0;
+    } else {
+      lastTicketNumber = parseInt(lastTicketNumber[0]);
+    }
+
+    let newTicketIdNumber = lastTicketNumber + 1;
+    let newTicketId = `TKOD${newTicketIdNumber.toString().padStart(5, '0')}`; 
+
+    const query = `
+      INSERT INTO ve (ID, IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, SOVE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(query, [
+      newTicketId, tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount,
+      (adultCount + childCount + infantCount), 
+      note, status, bookingDate, ticketType, discountId
+    ], (err, result) => {
+      if (err) {
+        console.error('Lỗi khi thêm vé:', err);
+        return res.status(500).json({ error: 'Lỗi khi thêm vé' });
+      }
+
+      // Cập nhật SOVE của tour sau khi thêm vé
+      const totalTickets = adultCount + childCount + infantCount;
+      const updateTourQuery = `
+        UPDATE tour 
+        SET SOVE = SOVE - ? 
+        WHERE ID = ?
+      `;
+
+      db.query(updateTourQuery, [totalTickets, tourId], (err, updateResult) => {
+        if (err) {
+          console.error('Lỗi khi cập nhật số vé của tour:', err);
+          return res.status(500).json({ error: 'Lỗi khi cập nhật số vé của tour' });
+        }
+
+        res.json({ message: 'Thêm vé thành công và số vé của tour đã được cập nhật', ticketId: newTicketId });
+      });
+    });
+  });
+});
+
+app.delete('/delete-ticket/:id', (req, res) => {
+  const { id } = req.params;
+
+  // First, retrieve the ticket details to get the number of tickets
+  const getTicketQuery = `
+    SELECT ID, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
+    FROM ve 
+    WHERE ID = ?
+  `;
+
+  db.query(getTicketQuery, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching ticket details:', err);
+      return res.status(500).json({ error: 'Error fetching ticket details' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    const { IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE } = results[0];
+    const totalTickets = SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE;
+
+    const deleteTicketQuery = 'DELETE FROM ve WHERE ID = ?';
+
+    db.query(deleteTicketQuery, [id], (err, result) => {
+      if (err) {
+        console.error('Error deleting ticket:', err);
+        return res.status(500).json({ error: 'Error deleting ticket' });
+      }
+
+      const updateTourQuery = `
+        UPDATE tour 
+        SET SOVE = SOVE + ?
+        WHERE ID = ?
+      `;
+
+      db.query(updateTourQuery, [totalTickets, IDTOUR], (err, result) => {
+        if (err) {
+          console.error('Error restoring tickets in tour:', err);
+          return res.status(500).json({ error: 'Error restoring tickets' });
+        }
+
+        res.json({ message: 'Ticket deleted and tickets restored successfully' });
+      });
+    });
+  });
+});
+
+
+app.put('/update-ticket/:id', (req, res) => {
+  const { id } = req.params;
+  const { tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, note, status, bookingDate, ticketType, discountId } = req.body;
+
+  if (status === 'Đã hủy') {
+    const getTicketQuery = `
+      SELECT IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
+      FROM ve 
+      WHERE ID = ?
+    `;
+
+    db.query(getTicketQuery, [id], (err, results) => {
+      if (err) {
+        console.error('Error fetching ticket details:', err);
+        return res.status(500).json({ error: 'Error fetching ticket details' });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Ticket not found' });
+      }
+
+      const { IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE } = results[0];
+      const totalTickets = SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE;
+
+      const updateTourQuery = `
+        UPDATE Tour 
+        SET SOVE = SOVE + ?
+        WHERE ID = ?
+      `;
+
+      db.query(updateTourQuery, [totalTickets, IDTOUR], (err, result) => {
+        if (err) {
+          console.error('Error restoring tickets:', err);
+          return res.status(500).json({ error: 'Error restoring tickets' });
+        }
+        const updateTicketQuery = `
+          UPDATE ve 
+          SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
+          WHERE ID = ?
+        `;
+
+        db.query(updateTicketQuery, [
+          tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, 
+          (adultCount + childCount + infantCount),
+          note, status, bookingDate, ticketType, discountId, id
+        ], (err, result) => {
+          if (err) {
+            console.error('Error updating ticket status:', err);
+            return res.status(500).json({ error: 'Error updating ticket status' });
+          }
+
+          res.json({ message: 'Ticket status updated and tickets restored successfully' });
+        });
+      });
+    });
+  } else {
+    const updateTicketQuery = `
+      UPDATE ve 
+      SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
+      WHERE ID = ?
+    `;
+
+    db.query(updateTicketQuery, [
+      tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, 
+      (adultCount + childCount + infantCount),
+      note, status, bookingDate, ticketType, discountId, id
+    ], (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error updating ticket' });
+      res.json({ message: 'Ticket updated successfully' });
+    });
+  }
+});
+
+app.put('/restore-tickets/:ticketId', (req, res) => {
+  const { ticketId } = req.params;
+  const findTicketQuery = `
+    SELECT IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
+    FROM ve 
+    WHERE ID = ?
+  `;
+
+  db.query(findTicketQuery, [ticketId], (err, results) => {
+    if (err) {
+      console.error('Error fetching ticket:', err);
+      return res.status(500).json({ error: 'Failed to retrieve ticket' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    const { IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE } = results[0];
+    const totalTickets = SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE;
+
+    const restoreTicketsQuery = `
+      UPDATE Tour 
+      SET SOVE = SOVE + ? 
+      WHERE ID = ?
+    `;
+
+    db.query(restoreTicketsQuery, [totalTickets, IDTOUR], (err, result) => {
+      if (err) {
+        console.error('Error restoring tickets:', err);
+        return res.status(500).json({ error: 'Failed to restore tickets' });
+      }
+
+      res.json({ message: 'Tickets restored successfully' });
+    });
   });
 });
 
@@ -367,6 +611,145 @@ app.get('/user/:id', (req, res) => {
   });
 });
 
+// API MOMO
+app.post('/payment', async (req, res) => {
+  const { amount, orderInfo, extraData } = req.body; // Nhận extraData từ request body
+  const orderId = config.partnerCode + new Date().getTime();
+  const requestId = orderId;
+
+  // Tạo chữ ký và xử lý thanh toán
+  const rawSignature = `accessKey=${config.accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${config.ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${config.partnerCode}&redirectUrl=${config.redirectUrl}&requestId=${requestId}&requestType=${config.requestType}`;
+  const signature = crypto.createHmac('sha256', config.secretKey).update(rawSignature).digest('hex');
+
+  const requestBody = {
+    partnerCode: config.partnerCode,
+    partnerName: 'Test',
+    storeId: 'MomoTestStore',
+    requestId: requestId,
+    amount: amount,
+    orderId: orderId,
+    orderInfo: orderInfo,
+    redirectUrl: config.redirectUrl,
+    ipnUrl: config.ipnUrl,
+    lang: config.lang,
+    requestType: config.requestType,
+    extraData: extraData, // Truyền extraData vào đây
+    signature: signature,
+  };
+
+  try {
+    const result = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', requestBody, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    res.json(result.data);
+  } catch (error) {
+    res.status(500).json({ statusCode: 500, message: error.message });
+  }
+});
+
+// Trả kết quả từ momo về
+// Trả kết quả từ momo về
+app.post('/callback', (req, res) => {
+  const { resultCode, extraData } = req.body;
+
+  // ResultCode == 0: Thanh toán thành công
+  // ResultCode != 0: Thanh toán thất bại
+  if (resultCode === 0) {
+    // Thanh toán thành công
+    try {
+      const paymentData = JSON.parse(extraData); // Lấy dữ liệu thanh toán từ extraData
+
+      // Lưu thông tin vé vào database
+      const ticketData = {
+        tourId: paymentData.tourId,
+        customerId: paymentData.customerId,
+        amount: paymentData.amount,
+        paymentMethod: paymentData.paymentMethod,
+        note: paymentData.customerNote,
+        adultCount: paymentData.adultCount,
+        childCount: paymentData.childCount,
+        infantCount: paymentData.infantCount,
+        status: 'Thanh toán thành công',
+        bookingDate: new Date(),
+        ticketType: paymentData.ticketType,
+        discountId: null
+      };
+
+      // Gọi API thêm vé vào cơ sở dữ liệu
+      axios.post('http://localhost:5000/add-ticket', ticketData)
+        .then(response => {
+          res.redirect(config.redirectUrl); // Redirect to success page
+        })
+        .catch(error => {
+          console.error('Lỗi khi lưu vé:', error);
+          res.redirect(config.failRedirectUrl); // Redirect to failed page
+        });
+
+    } catch (error) {
+      console.error('Lỗi khi xử lý callback:', error);
+      res.redirect(config.failRedirectUrl); // Redirect to failed page
+    }
+  } else {
+    // Thanh toán thất bại
+    res.redirect(config.failRedirectUrl); // Redirect to failed page
+  }
+});
+
+
+app.post('/check-status-transaction', async (req, res) => {
+  const { orderId } = req.body;
+
+  // const signature = accessKey=$accessKey&orderId=$orderId&partnerCode=$partnerCode
+  // &requestId=$requestId
+  var secretKey = config.secretKey;
+  var accessKey = config.accessKey;
+  const rawSignature = `accessKey=${accessKey}&orderId=${orderId}&partnerCode=MOMO&requestId=${orderId}`;
+
+  const signature = crypto
+    .createHmac('sha256', secretKey)
+    .update(rawSignature)
+    .digest('hex');
+
+  const requestBody = JSON.stringify({
+    partnerCode: 'MOMO',
+    requestId: orderId,
+    orderId: orderId,
+    signature: signature,
+    lang: 'vi',
+  });
+
+  // options for axios
+  const options = {
+    method: 'POST',
+    url: 'https://test-payment.momo.vn/v2/gateway/api/query',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: requestBody,
+  };
+
+  const result = await axios(options);
+
+  return res.status(200).json(result.data);
+});
+
+// Route prepare-payment - Lưu dữ liệu vào session trước khi thanh toán
+app.post('/prepare-payment', (req, res) => {
+  const { tourId, userId, adultCount, childCount, infantCount, customerNote, totalPrice, tourType } = req.body;
+
+  // Lưu thông tin vào session
+  req.session.tourId = tourId;
+  req.session.userId = userId;
+  req.session.adultCount = adultCount;
+  req.session.childCount = childCount;
+  req.session.infantCount = infantCount;
+  req.session.customerNote = customerNote;
+  req.session.totalPrice = totalPrice;
+  req.session.tourType = tourType;
+
+  console.log('Session saved:', req.session);
+  res.json({ message: 'Session data saved successfully' });
+});
 
 // Start Server
 app.listen(port, () => {

@@ -20,8 +20,9 @@ const Checkout = () => {
   const [childCount, setChildCount] = useState(0);
   const [infantCount, setInfantCount] = useState(0);
 
-  const tourId = 2; // Id tour 
-  const customerId = 4; // Id khách hàng
+  // Lấy tourId và customerId từ sessionStorage
+  const tourId = sessionStorage.getItem('tourId') || 2; 
+  const customerId = sessionStorage.getItem('userId');
 
   useEffect(() => {
     fetchTourDetails(tourId);
@@ -75,7 +76,7 @@ const Checkout = () => {
     setPromoCode(e.target.value);
   };
 
-  // Cái này để tui test thử thôi chứ chưa có làm
+  // Áp dụng mã giảm giá - Test tạm thời
   const applyPromoCode = () => {
     if (promoCode === 'DISCOUNT10' && tourDetails) {
       setFinalPrice(prevPrice => prevPrice * 0.9); 
@@ -118,6 +119,46 @@ const Checkout = () => {
     setCustomerNote(e.target.value);
   };
 
+  const handlePayment = async () => {
+    if (!termsAccepted) {
+      alert('Bạn cần đồng ý với các điều khoản trước khi tiếp tục!');
+      return;
+    }
+  
+    const paymentData = {
+      tourId: tourId,
+      customerId: customerId,
+      amount: finalPrice,
+      adultCount: adultCount,
+      childCount: childCount,
+      infantCount: infantCount,
+      paymentMethod: paymentMethod,
+      ticketType: tourDetails.LOAITOUR,
+      customerNote: customerNote || '',
+    };
+  
+    try {
+      const momoResponse = await fetch('http://localhost:5000/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: finalPrice,
+          orderInfo: `Thanh toán cho tour ${tourDetails.TENTOUR}`,
+          extraData: JSON.stringify(paymentData), 
+        }),
+      });
+  
+      const data = await momoResponse.json();
+      if (data.payUrl) {
+        window.location.href = data.payUrl;
+      }
+    } catch (error) {
+      console.error('Lỗi khi xử lý thanh toán:', error);
+    }
+  };  
+
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-red-500 text-center">Lỗi: {error}</div>;
   if (!tourDetails) return <div className="text-center">Không có thông tin tour.</div>;
@@ -143,7 +184,6 @@ const Checkout = () => {
         <div className="mt-4">
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
-        {          /* Tui đang khoá cái mã giảm giá lại để khi nào qua sprint 3 rồi làm */        }
         <div className="mt-6">
           <label className="block font-medium">Mã giảm giá</label>
           <input
@@ -154,13 +194,17 @@ const Checkout = () => {
             onChange={handlePromoCodeChange}
             disabled
           />
-          <button onClick={applyPromoCode} className="mt-2 w-full bg-blue-600 text-white py-2 rounded opacity-50 cursor-not-allowed" disabled="True" >Áp dụng</button>
+          <button onClick={applyPromoCode} className="mt-2 w-full bg-blue-600 text-white py-2 rounded opacity-50 cursor-not-allowed" disabled>Áp dụng</button>
         </div>
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
         </div>
-        <button className={`mt-4 w-full bg-green-600 text-white py-2 rounded-lg ${!termsAccepted ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!termsAccepted}>
-          Tiếp tục
+        <button
+          className={`mt-4 w-full bg-green-600 text-white py-2 rounded-lg ${!termsAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!termsAccepted}
+          onClick={handlePayment}
+        >
+          Tiếp tục thanh toán
         </button>
       </div>
 
@@ -184,13 +228,13 @@ const Checkout = () => {
           ))}
         </div>
 
-        {/* Thông tin giá vé ( tui set người lớn là 1, trẻ em giảm 80%, em bé giảm 50% ) */}
+        {/* Thông tin giá vé */}
         <div className="mb-6">
           <h4 className="text-xl font-semibold mb-4">Thông tin vé</h4>
           {[{ label: 'Người lớn', count: adultCount, increment: incrementAdults, decrement: decrementAdults },
             { label: 'Trẻ em', count: childCount, increment: incrementChildren, decrement: decrementChildren },
             { label: 'Em bé', count: infantCount, increment: incrementInfants, decrement: decrementInfants }].map(({ label, count, increment, decrement }, index) => (
-            <div key={index} className="flex items-center justify-between mb-4 border border-gray-300 p-4 rounded-md"> {/* Thêm border cho từng mục */}
+            <div key={index} className="flex items-center justify-between mb-4 border border-gray-300 p-4 rounded-md">
               <span>{label}</span>
               <div>
                 <button onClick={decrement} className="border p-2">-</button>
@@ -216,6 +260,7 @@ const Checkout = () => {
             <option value="momo">Thanh toán bằng Momo</option>
           </select>
         </div>
+
         <p className="text-gray-600 text-sm mt-2">
           Lưu ý: Vui lòng chọn phương thức thanh toán phù hợp. Bạn sẽ được chuyển hướng đến trang thanh toán tương ứng.
         </p>

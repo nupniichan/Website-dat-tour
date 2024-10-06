@@ -17,15 +17,6 @@ const Header = ({ user, onLogout }) => {
     navigate(path);
   };
 
-  useEffect(() => {
-    document.onclick = (e) => {
-      const target = e.target;
-      if (!target.closest(".menu-btn")) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-  }, []);
-
   const handleHomepageClick = () => {
     navigate(PagesNames.HOMEPAGE);
   };
@@ -96,5 +87,6 @@ const Header = ({ user, onLogout }) => {
     </header>
   );
 };
+
 
 export default Header;

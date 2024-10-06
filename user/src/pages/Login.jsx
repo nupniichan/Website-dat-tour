@@ -3,7 +3,7 @@ import PropTypes from "prop-types"; // Import PropTypes
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import PagesNames from "../Router/PagesNames";
-import "../pages/Registration.css"
+import "../pages/Registration.css";
 
 const Login = ({ onLogin }) => {
     const navigate = useNavigate();
@@ -12,6 +12,7 @@ const Login = ({ onLogin }) => {
         password: "",
     });
 
+    // Hàm xử lý khi nhập dữ liệu
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -19,24 +20,33 @@ const Login = ({ onLogin }) => {
         });
     };
 
+    // Hàm xử lý khi submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch("http://localhost:5000/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email: formData.email, password: formData.password }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            alert("Đăng nhập thành công!");
-            const { token, userName } = data;
-            onLogin(token, userName);
-            navigate('/');
-        } else {
-            alert("Đăng nhập thất bại");
+        try {
+            const response = await fetch("http://localhost:5000/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: formData.email, password: formData.password }),
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok) {
+                alert("Đăng nhập thành công!");
+                console.log(data);
+                const { ID, userName } = data;
+                sessionStorage.setItem('userId', ID); 
+                sessionStorage.setItem('userName', userName);  
+                onLogin(ID, userName);  
+                navigate('/');  
+            } else {
+                alert(data.message || "Đăng nhập thất bại");
+            }
+        } catch (error) {
+            alert("Lỗi kết nối: " + error.message);
         }
     };
 
@@ -77,7 +87,7 @@ const Login = ({ onLogin }) => {
     );
 };
 
-// Add PropTypes validation for login callback
+// Thêm PropTypes validation cho hàm onLogin
 Login.propTypes = {
     onLogin: PropTypes.func.isRequired,
 };

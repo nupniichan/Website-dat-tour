@@ -55,6 +55,47 @@
   justify-content: space-between;
 }
 
+.tour-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tour-name {
+  font-size: 20px; /* Tăng kích thước font chữ */
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.tour-dates-vehicle {
+  display: flex;
+  justify-content: space-between; /* Đặt "Phương tiện" và "Ngày" trên cùng một dòng */
+  align-items: center;
+}
+
+.tour-di, .tour-vehicle, .tour-ticket-available, .tour-price {
+  display: flex;
+  align-items: center;
+  font-size: 16px; /* Tăng kích thước font chữ để nổi bật hơn */
+  color: #666;
+}
+
+.icon {
+  width: 20px; /* Kích thước icon */
+  height: 20px;
+  margin-right: 10px; /* Khoảng cách giữa icon và nội dung */
+}
+
+.tour-price {
+  font-size: 18px; /* Font size lớn hơn cho giá */
+  color: green; /* Màu nổi bật cho giá */
+}
+
+.tour-ticket-available {
+  font-size: 16px;
+  color: #666;
+}
+
 .button-container {
   display: flex;
   align-items: end;
@@ -62,7 +103,7 @@
 }
 
 .button-container button {
-  background-color: #ff8c00; /* Vibrant orange color */
+  background-color: #ff8c00;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -71,19 +112,32 @@
   transition: background-color 0.3s;
 }
 
-.tour-name {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
+.button-container button:hover {
+  background-color: #e07a00;
 }
 
-.tour-price {
-  font-size: 16px;
-  color: green; /* Red for prices, attracting attention */
+/* Phân trang */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
-.tour-di, .tour-vehicle, .tour-type, .tour-ticket-available {
-  font-size: 14px;
-  color: #666;
+.prev-page, .next-page {
+  padding: 10px 20px;
+  background-color: #ff8c00;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
+.prev-page:hover, .next-page:hover {
+  background-color: #e07a00;
+}
+
+.prev-page:disabled, .next-page:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}

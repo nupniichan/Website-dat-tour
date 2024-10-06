@@ -10,12 +10,13 @@ const AddTour = () => {
         sove: '',
         hinhanh: '',
         mota: '',
+        khoihanh: '',  // Trường khởi hành mới
         trangthai: 'Còn vé',
         idlichtrinh: '',
         phuongtiendichuyen: ''
     });
     const [schedules, setSchedules] = useState([]);
-    const [imagePreview, setImagePreview] = useState(''); // Trạng thái để lưu URL hình ảnh tạm thời
+    const [imagePreview, setImagePreview] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,25 +28,22 @@ const AddTour = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setTour((prev) => ({ ...prev, [name]: value }));
+        setTour(prev => ({ ...prev, [name]: value }));
     };
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
         const formData = new FormData();
         formData.append('image', file);
-        
-        // Hiển thị hình ảnh tạm thời
-        const previewUrl = URL.createObjectURL(file);
-        setImagePreview(previewUrl); // Cập nhật URL hình ảnh để hiển thị
-
         fetch('http://localhost:5000/upload-image', {
             method: 'POST',
             body: formData,
         })
             .then(response => response.json())
             .then(data => {
-                setTour((prev) => ({ ...prev, hinhanh: data.path }));
+                setTour(prev => ({ ...prev, hinhanh: data.path }));
             })
             .catch(err => console.error('Error uploading image:', err));
     };
@@ -60,7 +58,7 @@ const AddTour = () => {
         .then(response => response.json())
         .then(data => {
             console.log('Tour added:', data);
-            navigate('/'); 
+            navigate('/');
         })
         .catch(err => console.error('Error adding tour:', err));
     };
@@ -75,16 +73,20 @@ const AddTour = () => {
                     fullWidth
                     onChange={handleChange}
                     required
-                    style={{ marginBottom: '10px' }} // Thêm khoảng cách dưới
+                    style={{ marginBottom: '10px' }} 
                 />
                 <TextField
+                    select
                     label="Loại tour"
                     name="loaitour"
                     fullWidth
                     onChange={handleChange}
                     required
                     style={{ marginBottom: '10px' }}
-                />
+                >
+                    <MenuItem value="Tour trong nước">Tour trong nước</MenuItem>
+                    <MenuItem value="Tour ngoài nước">Tour ngoài nước</MenuItem>
+                </TextField>
                 <TextField
                     label="Giá"
                     name="gia"
@@ -112,13 +114,21 @@ const AddTour = () => {
                     style={{ marginBottom: '10px' }}
                 />
                 <TextField
+                    label="Địa điểm khởi hành"
+                    name="khoihanh"
+                    fullWidth
+                    onChange={handleChange}
+                    required
+                    style={{ marginBottom: '10px' }}
+                />
+                <TextField
                     select
                     label="Trạng thái vé"
                     name="trangthai"
                     fullWidth
                     onChange={handleChange}
                     value={tour.trangthai}
-                    style={{ marginBottom: '10px' }} // Thêm khoảng cách dưới
+                    style={{ marginBottom: '10px' }}
                 >
                     <MenuItem value="Còn vé">Còn vé</MenuItem>
                     <MenuItem value="Hết vé">Hết vé</MenuItem>
@@ -130,7 +140,7 @@ const AddTour = () => {
                     fullWidth
                     onChange={handleChange}
                     required
-                    style={{ marginBottom: '10px' }} // Thêm khoảng cách dưới
+                    style={{ marginBottom: '10px' }}
                 >
                     {schedules.map(schedule => (
                         <MenuItem key={schedule.ID} value={schedule.ID}>
@@ -145,7 +155,7 @@ const AddTour = () => {
                     fullWidth
                     onChange={handleChange}
                     required
-                    style={{ marginBottom: '10px' }} // Thêm khoảng cách dưới
+                    style={{ marginBottom: '10px' }}
                 >
                     <MenuItem value="Xe Buýt">Xe Buýt</MenuItem>
                     <MenuItem value="Máy bay">Máy bay</MenuItem>
@@ -156,18 +166,15 @@ const AddTour = () => {
                     type="file"
                     onChange={handleImageUpload}
                     required
-                    style={{ marginBottom: '10px' }} // Thêm khoảng cách dưới
+                    style={{ marginBottom: '10px' }}
                 />
-                
-                {/* Hiển thị hình ảnh đã chọn */}
                 {imagePreview && (
                     <img
                         src={imagePreview}
                         alt="Preview"
-                        style={{ width: '100%', marginBottom: '10px' }} // Thay đổi kích thước và khoảng cách dưới
+                        style={{ width: '100%', marginBottom: '10px' }}
                     />
                 )}
-
                 <Button type="submit" variant="contained" color="primary" style={{ marginRight: '10px' }}>Lưu</Button>
                 <Button variant="outlined" color="secondary" onClick={() => navigate('/')}>Hủy</Button>
             </form>

@@ -120,11 +120,11 @@ app.get('/schedules/:id', (req, res) => {
   });
 });
 
-// Add Tour
+// Add tour
 app.post('/add-tour', (req, res) => {
-  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen } = req.body;
-  const query = 'INSERT INTO Tour (TENTOUR, LOAITOUR, GIA, SOVE, HINHANH, MOTA, TRANGTHAI, IDLICHTRINH, PHUONGTIENDICHUYEN) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen], (err, result) => {
+  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; // Thêm 'khoihanh' vào destructuring
+  const query = 'INSERT INTO Tour (TENTOUR, LOAITOUR, GIA, SOVE, HINHANH, MOTA, TRANGTHAI, IDLICHTRINH, PHUONGTIENDICHUYEN, KHOIHANH) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'; // Thêm KHOIHANH vào câu query
+  db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Tour added successfully', id: result.insertId });
   });
@@ -165,19 +165,32 @@ app.get('/tours', (req, res) => {
 // Get Tour by ID
 app.get('/tours/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM Tour WHERE ID = ?';
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(result[0]);
+  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trường cần thiết
+  const query = `
+    SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
+    FROM Tour 
+    JOIN LichTrinh ON Tour.IDLICHTRINH = LichTrinh.ID 
+    WHERE Tour.ID = ?
+  `;
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length > 0) {
+      res.json(results[0]); // Trả về thông tin tour đầu tiên, bao gồm ngày đi và ngày về
+    } else {
+      res.status(404).json({ message: 'Tour not found' }); // Không tìm thấy tour với ID được cung cấp
+    }
   });
 });
+
 
 // Update Tour
 app.put('/update-tour/:id', (req, res) => {
   const { id } = req.params;
-  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen } = req.body;
-  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ? WHERE ID = ?';
-  db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, id], (err, result) => {
+  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; // Thêm khoihanh vào destructuring
+  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ?, KHOIHANH = ? WHERE ID = ?'; // Thêm KHOIHANH vào câu query
+  db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Tour updated successfully' });
   });
@@ -332,6 +345,25 @@ app.get('/search/tour-with-date', (req, res) => {
           return res.status(500).json({ error: 'Lỗi truy vấn' });
       }
       res.json(results);
+  });
+});
+
+// User ( còn thiếu thêm, xoá, sửa )
+// Lấy thông tin người dùng theo ID
+app.get('/user/:id', (req, res) => {
+  const userId = req.params.id;
+  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS FROM USER WHERE ID = ?';
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Lỗi truy vấn cơ sở dữ liệu: ' + err.message });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    res.json(results[0]); // Trả về thông tin người dùng đầu tiên
   });
 });
 

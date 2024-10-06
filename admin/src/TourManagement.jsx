@@ -167,7 +167,7 @@ const TourManagement = () => {
               <Typography>Mô tả: {selectedTour.MOTA}</Typography>
               <Typography>ID lịch trình: {selectedTour.IDLICHTRINH}</Typography>
               <Typography>Phương tiện di chuyển: {selectedTour.PHUONGTIENDICHUYEN}</Typography>
-              
+              <Typography>Địa điểm khởi hành: {selectedTour.KHOIHANH}</Typography>
               {/* Hiển thị hình ảnh của tour */}
               <Box marginTop={2}>
               <Typography>Hình ảnh tour</Typography>

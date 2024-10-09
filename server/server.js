@@ -278,21 +278,7 @@ app.get('/session', (req, res) => {
   }
 });
 
-// Get User Info
-app.get('/user-info', authenticateToken, (req, res) => {
-  const userId = req.userId;
 
-  db.query('SELECT FULLNAME, PHONENUMBER, EMAIL FROM USER WHERE ID = ?', [userId], (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Database query error' });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(results[0]);
-  });
-});
 
 // Ticket
 app.post('/add-ticket', (req, res) => {
@@ -561,7 +547,7 @@ app.get('/search/tour-with-date', (req, res) => {
 // Lấy thông tin người dùng theo ID
 app.get('/user/:id', (req, res) => {
   const userId = req.params.id;
-  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS FROM USER WHERE ID = ?';
+  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH FROM USER WHERE ID = ?';
 
   db.query(query, [userId], (err, results) => {
     if (err) {
@@ -573,6 +559,38 @@ app.get('/user/:id', (req, res) => {
     }
 
     res.json(results[0]); // Trả về thông tin người dùng đầu tiên
+  });
+});
+// Cập nhật thông tin người dùng
+app.put('/update/user/:id', (req, res) => {
+  const userId = req.params.id;
+  const { FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH } = req.body;
+
+  const query = `
+    UPDATE USER
+    SET FULLNAME = ?, ADDRESS = ?, DAYOFBIRTH = ?
+    WHERE ID = ?
+  `;
+
+  db.query(query, [FULLNAME, ADDRESS, DAYOFBIRTH, userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Lỗi cập nhật cơ sở dữ liệu: ' + err.message });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    // Trả về thông tin người dùng đã cập nhật
+    const updatedUser = {
+      ID: userId,
+      FULLNAME,
+      PHONENUMBER,
+      EMAIL,
+      ADDRESS,
+      DAYOFBIRTH,
+    };
+    res.json(updatedUser);
   });
 });
 

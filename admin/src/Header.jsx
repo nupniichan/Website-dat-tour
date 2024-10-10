@@ -19,14 +19,13 @@ const Header = () => {
         <Nav>
           <Nav.Link href="#profile" className="d-flex align-items-center" style={{marginRight: '20px'}}>
             <img
-              src="https://via.placeholder.com/30"
+              src="public/avatar.jpg"
               alt="Profile"
               className="rounded-circle me-2"
               width="30"
               height="30"
             />
             <span>Chào mừng admin</span>
-            <ChevronDown size={16} className="ms-1" />
           </Nav.Link>
         </Nav>
       </Navbar.Collapse>

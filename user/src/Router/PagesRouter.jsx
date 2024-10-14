@@ -12,6 +12,7 @@ import Login from "../pages/Login.jsx";
 import PaymentResult from "../pages/PaymentResult.jsx";
 import PaymentFailed from "../pages/PaymentFailed.jsx";
 import PaymentSuccess from "../pages/PaymentSuccess.jsx";
+import TourHistory from "../pages/TourHistory.jsx";
 
 const PageRouter = ({ onLogin }) => {
     return (
@@ -22,6 +23,7 @@ const PageRouter = ({ onLogin }) => {
             <Route path={PagesNames.CHECKOUT} element={<Checkout />} />
             <Route path={PagesNames.SEARCH_RESULTS} element={<SearchResults />} />
             <Route path={PagesNames.TOUR_DETAILS} element={<TourDetails />} />
+            <Route path={PagesNames.TOUR_HISTORY} element={<TourHistory />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />
             <Route path={PagesNames.LOGIN} element={<Login onLogin={onLogin} />} /> {/* Sử dụng PagesNames.LOGIN để điều hướng */}

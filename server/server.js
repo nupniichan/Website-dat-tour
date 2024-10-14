@@ -56,6 +56,47 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+//Xem lịch sử tour
+app.get('/api/tour-history', (req, res) => {
+  console.log('Fetching tour history...'); 
+  const query = 'SELECT * FROM ve';
+
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Database query failed:', error);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    console.log('Results:', results); 
+    res.json(results || []);
+  });
+});
+
+// User Login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+
+  const query = 'SELECT * FROM USER WHERE EMAIL = ? AND PASSWORD = ?';
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error: ' + err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials!' });
+    }
+
+    const user = results[0];
+    req.session.userId = user.ID;
+    console.log(user.ID)
+    res.json({ message: 'Login successful!', userName: user.FULLNAME, ID: user.ID });
+  });
+});
+
+
 // Login Admin
 app.post('/loginAdmin', (req, res) => {
   const { email, password } = req.body;

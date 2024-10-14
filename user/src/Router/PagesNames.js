@@ -7,7 +7,8 @@ const PagesNames = {
     SEARCH_RESULTS: '/search/:searchTerm/:departureDate', 
     TOUR_DETAILS: '/:tourName',
     SCHEDULE: '/Schedule',
-    CONTACT: '/Contact'
+    CONTACT: '/Contact',
+    TOUR_HISTORY: '/TourHistory'
 }
 
 export default PagesNames;

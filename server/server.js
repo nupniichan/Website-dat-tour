@@ -71,6 +71,24 @@ app.get('/api/tour-history', (req, res) => {
   });
 });
 
+// Hủy vé
+app.post('/api/tour-history/cancel/:id', (req, res) => {
+ 
+  const ticketId = req.params.id; // Lấy ID vé từ URL
+  
+  const query = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
+  db.query(query, ['Đã hủy', ticketId], (error, results) => {
+    if (error) {
+      console.error('Database query failed:', error);
+      return res.status(500).json({ error: 'Hủy vé thất bại' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy vé để hủy' });
+    }
+    res.json({ message: 'Hủy vé thành công' });
+  });
+});
+
 // User Login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;

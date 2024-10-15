@@ -122,7 +122,7 @@ app.post('/loginAdmin', (req, res) => {
   });
 });
 
-// Add Schedule
+// thêm lịch trình
 app.post('/add-schedule', (req, res) => {
   const { name, startDate, endDate, details } = req.body;
 

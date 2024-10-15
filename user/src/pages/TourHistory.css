@@ -1,0 +1,42 @@
+.tour-history-container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .tour-history-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .tour-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .tour-history-table th, 
+  .tour-history-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .tour-history-table th {
+    background-color: #f2f2f2;
+    color: #333;
+  }
+  
+  .tour-history-table tr:hover {
+    background-color: #f1f1f1; /* Highlight row on hover */
+  }
+  
+  .tour-history-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Zebra stripes for even rows */
+  }
+  
+  .tour-history-table tr:nth-child(odd) {
+    background-color: #ffffff; /* Zebra stripes for odd rows */
+  }
+  

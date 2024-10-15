@@ -149,21 +149,48 @@ const formatCurrency = (amount) => {
 
       {/* Booking details dialog */}
       {selectedBooking && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
-          <DialogContent>
-            <Typography>Mã đặt chỗ: {selectedBooking.ID}</Typography>
-            <Typography>Mã Tour: {selectedBooking.IDTOUR}</Typography>
-            <Typography>Mã Người Dùng: {selectedBooking.IDNGUOIDUNG}</Typography>
-            <Typography>Ngày đặt: {new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</Typography>
-            <Typography>Số vé: {selectedBooking.SOVE}</Typography>
-            <Typography>Tình trạng: {selectedBooking.TINHTRANG}</Typography>
-            <Typography>
-              Tổng tiền: {formatCurrency(selectedBooking.TONGTIEN)}
+  <Dialog open={true} onClose={handleCloseDialog}>
+    <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
+    <DialogContent>
+      <Box padding={2}>
+
+        {/* Section: Booking Information */}
+        <Typography variant="h6" gutterBottom>
+          Thông tin đặt chỗ
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>Mã đặt chỗ: <strong>{selectedBooking.ID}</strong></Typography>
+          <Typography>Mã Tour: <strong>{selectedBooking.IDTOUR}</strong></Typography>
+          <Typography>Mã Người Dùng: <strong>{selectedBooking.IDNGUOIDUNG}</strong></Typography>
+          <Typography>Ngày đặt: <strong>{new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</strong></Typography>
+        </Box>
+
+        {/* Section: Ticket Information */}
+        <Typography variant="h6" gutterBottom>
+          Thông tin vé
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>Số vé: <strong>{selectedBooking.SOVE}</strong></Typography>
+          <Typography>Tình trạng: <strong>{selectedBooking.TINHTRANG}</strong></Typography>
+        </Box>
+
+        {/* Section: Payment Information */}
+        <Typography variant="h6" gutterBottom>
+          Thanh toán
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>
+            Tổng tiền: <Typography component="span" variant="body1" color="error" fontWeight="bold">
+              {formatCurrency(selectedBooking.TONGTIEN)}
             </Typography>
-          </DialogContent>
-        </Dialog>
-      )}
+          </Typography>
+        </Box>
+
+      </Box>
+    </DialogContent>
+  </Dialog>
+)}
+
     </Box>
   );
 };

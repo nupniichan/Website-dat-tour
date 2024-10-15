@@ -140,7 +140,7 @@ app.post('/loginAdmin', (req, res) => {
   });
 });
 
-// Add Schedule
+// thêm lịch trình
 app.post('/add-schedule', (req, res) => {
   const { name, startDate, endDate, details } = req.body;
 
@@ -179,13 +179,104 @@ app.get('/schedules', (req, res) => {
   });
 });
 
-// Get Schedule Details by ID
+// Lấy thông tin lịch trình và chi tiết lịch trình theo ID
 app.get('/schedules/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
-  db.query(query, [id], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
-    res.json(results);
+
+  // Truy vấn lấy thông tin lịch trình
+  const scheduleQuery = 'SELECT * FROM LichTrinh WHERE ID = ?';
+  const detailsQuery = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+
+  db.query(scheduleQuery, [id], (err, scheduleResults) => {
+    if (err) return res.status(500).json({ message: 'Error fetching schedule: ' + err.message });
+    if (scheduleResults.length === 0) return res.status(404).json({ message: 'Schedule not found' });
+
+    // Lấy chi tiết lịch trình
+    db.query(detailsQuery, [id], (err, detailsResults) => {
+      if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
+
+      // Trả về thông tin lịch trình và chi tiết
+      res.json({
+        schedule: scheduleResults[0],
+        details: detailsResults,
+      });
+    });
+  });
+});
+
+// Update Schedule
+// Update Schedule
+app.put('/update-schedule/:id', (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate, details } = req.body;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
+  }
+
+  // Cập nhật thông tin lịch trình
+  const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
+  db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
+
+    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [id], (err) => {
+      if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
+
+      // Bây giờ thêm các chi tiết mới
+      const detailQueries = details.map(detail => {
+        return new Promise((resolve, reject) => {
+          const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
+          db.query(insertDetailQuery, [id, detail.NGAY, detail.SUKIEN, detail.MOTA, detail.GIO], (err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+      });
+
+      Promise.all(detailQueries)
+        .then(() => res.json({ message: 'Schedule updated successfully!' }))
+        .catch(err => res.status(500).json({ message: 'Error adding new schedule details: ' + err.message }));
+    });
+  });
+});
+
+// Delete Schedule
+// Update Schedule
+app.put('/update-schedule/:id', (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate, details } = req.body;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
+  }
+
+  // Cập nhật thông tin lịch trình
+  const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
+  db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
+
+    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [id], (err) => {
+      if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
+
+      // Bây giờ thêm các chi tiết mới
+      const detailQueries = details.map(detail => {
+        return new Promise((resolve, reject) => {
+          const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
+          db.query(insertDetailQuery, [id, detail.NGAY, detail.SUKIEN, detail.MOTA, detail.GIO], (err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+      });
+
+      Promise.all(detailQueries)
+        .then(() => res.json({ message: 'Schedule updated successfully!' }))
+        .catch(err => res.status(500).json({ message: 'Error adding new schedule details: ' + err.message }));
+    });
   });
 });
 

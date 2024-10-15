@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import PagesRouter from './Router/PagesRouter';
+import PageRouter from './Router/PagesRouter'; // Cập nhật đường dẫn cho PageRouter
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -32,8 +32,7 @@ function App() {
   return (
     <>
       <Header user={currentUser} onLogout={handleLogout} />
-      
-      <PagesRouter onLogin={handleLogin} />
+      <PageRouter onLogin={handleLogin} user={currentUser} /> {/* Truyền user nếu cần */}
       <Footer />
     </>
   );

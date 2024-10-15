@@ -12,6 +12,7 @@ import Login from "../pages/Login.jsx";
 import PaymentResult from "../pages/PaymentResult.jsx";
 import PaymentFailed from "../pages/PaymentFailed.jsx";
 import PaymentSuccess from "../pages/PaymentSuccess.jsx";
+import Profile from "../pages/Profile.jsx"
 import TourHistory from "../pages/TourHistory.jsx";
 
 const PageRouter = ({ onLogin }) => {
@@ -30,6 +31,8 @@ const PageRouter = ({ onLogin }) => {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
             <Route path="/payment-result" element={<PaymentResult />} />
+            <Route path="/user-profile/" element={<Profile />} />
+
         </Routes>
     );
 };

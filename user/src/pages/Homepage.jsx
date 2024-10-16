@@ -40,7 +40,7 @@ const Homepage = () => {
                 <section className="relative">
                     <div className="relative z-10 max-w-screen-xl mx-auto px-4 py-28 md:px-8">
                         <div className="home-search space-y-5 max-w-4xl mx-auto text-center">
-                            <h2 className="text-4xl text-white font-extrabold mx-auto md:text-5xl">
+                            <h2 className="text-4xl text-white font-extrabold mx-auto md:text-5xl pb-3">
                                 Your dream vacation, tailored to perfection
                             </h2>
 

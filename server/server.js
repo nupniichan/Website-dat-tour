@@ -428,15 +428,13 @@ app.get('/session', (req, res) => {
   }
 });
 
-
-
 // Ticket
 app.post('/add-ticket', (req, res) => {
   const {
     IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
     SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
   } = req.body;
-
+  console.log(req.body)
   // Lấy mã vé cuối cùng
   const getLastTicketQuery = `SELECT ID FROM ve ORDER BY ID DESC LIMIT 1`;
 

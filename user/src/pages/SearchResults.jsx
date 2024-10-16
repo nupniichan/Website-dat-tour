@@ -59,7 +59,33 @@ const SearchResults = () => {
     return (
         <div className="search-results-container">
             <div className="filter-bar">
-                {/* Các bộ lọc ở đây */}
+                <label htmlFor="transportation">Phương tiện:</label>
+                <select id="transportation" value={transportation} onChange={(e) => setTransportation(e.target.value)}>
+                    <option value="">Chọn phương tiện</option>
+                    <option value="Xe Buýt">Xe Buýt</option>
+                    <option value="Máy bay">Máy bay</option>
+                    <option value="Thuyền">Thuyền</option>
+                    <option value="Tàu hoả">Tàu hoả</option>
+                </select>
+
+                <label htmlFor="tourType">Loại tour:</label>
+                <select id="tourType" value={tourType} onChange={(e) => setTourType(e.target.value)}>
+                    <option value="">Chọn loại tour</option>
+                    <option value="Tour trong nước">Tour trong nước</option>
+                    <option value="Tour quốc tế">Tour quốc tế</option>
+                </select>
+
+                <label htmlFor="startDate">Ngày đi:</label>
+                <input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+
+                <label htmlFor="endDate">Ngày về:</label>
+                <input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+
+                <label htmlFor="minPrice">Giá tối thiểu:</label>
+                <input id="minPrice" type="number" placeholder="Giá tối thiểu" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+
+                <label htmlFor="maxPrice">Giá tối đa:</label>
+                <input id="maxPrice" type="number" placeholder="Giá tối đa" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
             </div>
 
             <div className="results">
@@ -91,7 +117,12 @@ const SearchResults = () => {
                                 </div>
                             </div>
                             <div className="button-container">
-                                <button onClick={() => goToCheckout(item)}>Đặt ngay</button> {/* Nút đặt ngay trỏ trực tiếp đến trang checkout */}
+                                <button onClick={(e) => { 
+                                    e.stopPropagation(); // Ngăn chặn sự kiện nổi lên thẻ cha
+                                    goToCheckout(item); // Điều hướng đến trang checkout
+                                }}>
+                                    Đặt ngay
+                                </button>
                             </div>
                         </div>
                     ))

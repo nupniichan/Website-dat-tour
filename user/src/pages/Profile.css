@@ -104,3 +104,23 @@
   margin-left: 10px; /* Space between the label and user data */
   font-weight: normal; /* Optional: To differentiate the data from the label */
 }
+.tour-history-button-container {
+  display: flex;
+  justify-content: center; /* Centers the button horizontally */
+  width: 100%; /* Makes sure the container spans the full width */
+  margin-top: 20px; /* Adds some space between the form and the button */
+}
+
+.tour-history-button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.tour-history-button:hover {
+  background-color: #45a049;
+}
+

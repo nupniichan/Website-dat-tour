@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import './TourDetails.css';
 
 const TourDetails = () => {
-    const { id } = useParams(); // Lấy tourId từ URL
+    const { id } = useParams(); // Lấy id từ URL
     const location = useLocation();
     const navigate = useNavigate(); // Khởi tạo navigate để điều hướng
     const [tour, setTour] = useState(location.state?.tour || null); // Lấy từ state nếu có

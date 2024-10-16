@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 const Checkout = () => {
+  const { id } = useParams(); // Lấy tourId từ URL params
   const [tourDetails, setTourDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,7 +23,6 @@ const Checkout = () => {
   const [infantCount, setInfantCount] = useState(0);
 
   // Lấy id và customerId từ sessionStorage
-  const id = sessionStorage.getItem('id') || 2; 
   const customerId = sessionStorage.getItem('userId');
 
   useEffect(() => {

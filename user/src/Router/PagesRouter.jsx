@@ -23,7 +23,7 @@ const PageRouter = ({ onLogin }) => {
             <Route path={PagesNames.ABOUT} element={<About />} />
             <Route path={PagesNames.CHECKOUT} element={<Checkout />} /> {/* Không cần thêm `/:tourId` vì đã có trong PagesNames */}
             <Route path={PagesNames.SEARCH_RESULTS} element={<SearchResults />} />
-            <Route path={`${PagesNames.TOUR_DETAILS}/:tourId`} element={<TourDetails />} /> {/* Route cho trang tour details */}
+            <Route path={PagesNames.TOUR_DETAILS} element={<TourDetails />} /> {/* Route cho trang tour details */}
             <Route path={PagesNames.TOUR_HISTORY} element={<TourHistory />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />

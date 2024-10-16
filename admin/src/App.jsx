@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar.jsx';
 import Header from './Header.jsx';
 import Dashboard from './Dashboard.jsx';
@@ -52,7 +52,8 @@ function App() {
               <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div className="main-content">
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Navigate to="/dashboard" />} /> {/* Default route */}
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/tour" element={<TourManagement />} />
                     <Route path="/schedule" element={<ScheduleManagement />} />
                     <Route path="/add-schedule" element={<AddSchedule />} />
@@ -61,11 +62,12 @@ function App() {
                     <Route path="/edit-tour/:id" element={<EditTour />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<BookingManagement />} />
-                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} /> {/* Điều chỉnh */}
+                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
                     <Route path="/user" element={<h1>Quản lý người dùng</h1>} />
                     <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
+                    <Route path="*" element={<Navigate to="/dashboard" />} /> {/* Catch-all route */}
                   </Routes>
                 </div>
               </main>

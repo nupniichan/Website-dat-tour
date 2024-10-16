@@ -1,12 +1,14 @@
 const PagesNames = {
     HOMEPAGE: '/',
     ABOUT: '/About',
-    REGISTRATION: '/Registration',
-    CHECKOUT: '/Checkout',
-    SEARCH_RESULTS: '/search/:searchTerm', //TODO: needs revision to match search modal's options on homepage
-    TOUR_DETAILS: '/:tourName',
+    REGISTRATION: '/Register',
+    LOGIN: '/Login',
+    CHECKOUT: '/checkout/:id',
+    SEARCH_RESULTS: '/search/:searchTerm/:departureDate', 
+    TOUR_DETAILS: '/tour-details/:id',
     SCHEDULE: '/Schedule',
-    CONTACT: '/Contact'
+    CONTACT: '/Contact',
+    TOUR_HISTORY: '/TourHistory'
 }
 
 export default PagesNames;

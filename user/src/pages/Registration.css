@@ -43,3 +43,7 @@
 .auth-container button:hover {
   background-color: #faa935;
 }
+
+.button-spacing {
+  margin-top: 15px; /* Adjust the value as needed */
+}

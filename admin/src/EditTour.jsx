@@ -11,6 +11,7 @@ const EditTour = () => {
         sove: '',
         hinhanh: '',
         mota: '',
+        khoihanh: '', // Thêm trường khởi hành
         trangthai: 'Còn vé',
         idlichtrinh: '',
         phuongtiendichuyen: ''
@@ -30,6 +31,7 @@ const EditTour = () => {
                     sove: data.SOVE,
                     hinhanh: data.HINHANH,
                     mota: data.MOTA,
+                    khoihanh: data.KHOIHANH, // Nhớ thêm trường khoihanh
                     trangthai: data.TRANGTHAI,
                     idlichtrinh: data.IDLICHTRINH,
                     phuongtiendichuyen: data.PHUONGTIENDICHUYEN
@@ -96,6 +98,7 @@ const EditTour = () => {
                     style={{ marginBottom: '10px' }}
                 />
                 <TextField
+                    select
                     label="Loại tour"
                     name="loaitour"
                     fullWidth
@@ -103,7 +106,10 @@ const EditTour = () => {
                     onChange={handleChange}
                     required
                     style={{ marginBottom: '10px' }}
-                />
+                >
+                    <MenuItem value="Tour trong nước">Tour trong nước</MenuItem>
+                    <MenuItem value="Tour ngoài nước">Tour ngoài nước</MenuItem>
+                </TextField>
                 <TextField
                     label="Giá"
                     name="gia"
@@ -129,6 +135,15 @@ const EditTour = () => {
                     name="mota"
                     fullWidth
                     value={tour.mota}
+                    onChange={handleChange}
+                    required
+                    style={{ marginBottom: '10px' }}
+                />
+                <TextField
+                    label="Địa điểm khởi hành"
+                    name="khoihanh"
+                    fullWidth
+                    value={tour.khoihanh}
                     onChange={handleChange}
                     required
                     style={{ marginBottom: '10px' }}
@@ -176,7 +191,6 @@ const EditTour = () => {
                     <MenuItem value="Thuyền">Thuyền</MenuItem>
                     <MenuItem value="Tàu hoả">Tàu hoả</MenuItem>
                 </TextField>
-
                 <input
                     type="file"
                     onChange={handleImageUpload}

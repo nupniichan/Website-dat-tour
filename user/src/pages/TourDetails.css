@@ -1,0 +1,102 @@
+.tour-details-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #fff;
+    gap: 40px; /* Thêm khoảng cách giữa 2 khung */
+}
+
+.tour-left {
+    flex: 8; /* Chiếm 8 phần */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f4f4f4; /* Màu nền nhạt cho khung bên trái */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ */
+}
+
+.tour-right {
+    flex: 2; /* Chiếm 2 phần */
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9; /* Màu nền khác cho khung bên phải */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ */
+    text-align: left; /* Căn văn bản về phía trái */
+}
+
+.tour-right h2 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.tour-right p {
+    font-size: 1rem;
+    margin: 10px 0;
+    color: #555;
+    text-align: left; /* Căn trái cho các đoạn văn */
+}
+
+.tour-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.tour-title {
+    font-size: 2rem;
+    margin: 10px 0;
+    color: #333;
+    text-align: center;
+}
+
+.tour-description {
+    font-size: 1.1rem;
+    margin: 20px 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.tour-itinerary {
+    margin-top: 30px;
+}
+
+.tour-itinerary h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.tour-itinerary ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.tour-itinerary li {
+    background-color: #eef;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #444;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.book-now-button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.book-now-button:hover {
+    background-color: #218838;
+}

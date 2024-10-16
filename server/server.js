@@ -71,6 +71,24 @@ app.get('/api/tour-history', (req, res) => {
   });
 });
 
+// Hủy vé
+app.post('/api/tour-history/cancel/:id', (req, res) => {
+ 
+  const ticketId = req.params.id; // Lấy ID vé từ URL
+  
+  const query = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
+  db.query(query, ['Đã hủy', ticketId], (error, results) => {
+    if (error) {
+      console.error('Database query failed:', error);
+      return res.status(500).json({ error: 'Hủy vé thất bại' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy vé để hủy' });
+    }
+    res.json({ message: 'Hủy vé thành công' });
+  });
+});
+
 // User Login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
@@ -410,15 +428,13 @@ app.get('/session', (req, res) => {
   }
 });
 
-
-
 // Ticket
 app.post('/add-ticket', (req, res) => {
   const {
     IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
     SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
   } = req.body;
-
+  console.log(req.body)
   // Lấy mã vé cuối cùng
   const getLastTicketQuery = `SELECT ID FROM ve ORDER BY ID DESC LIMIT 1`;
 

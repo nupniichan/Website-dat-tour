@@ -90,17 +90,13 @@ const EditBookingManagement = () => {
     const { name, value } = e.target;
     setBooking((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      SOVE: parseInt(booking.SOVE_NGUOILON || 0) + parseInt(booking.SOVE_TREM || 0) + parseInt(booking.SOVE_EMBE || 0)
     }));
 
     // If the Tour ID changes, fetch the tour price
     if (name === 'IDTOUR') {
       fetchTourPrice(value);
-    }
-
-    // Recalculate total money when ticket numbers change
-    if (name === 'SOVE_NGUOILON' || name === 'SOVE_TREM' || name === 'SOVE_EMBE') {
-      calculateTotal(tourPrice); // Use the fetched tour price
     }
   };
 
@@ -111,22 +107,38 @@ const EditBookingManagement = () => {
     const infantPrice = adultPrice * 0.5; // 50% for infants
 
     const total =
-      (booking.SOVE_NGUOILON * adultPrice) +
-      (booking.SOVE_TREM * childPrice) +
-      (booking.SOVE_EMBE * infantPrice);
+      (parseInt(booking.SOVE_NGUOILON || 0) * adultPrice) +
+      (parseInt(booking.SOVE_TREM || 0) * childPrice) +
+      (parseInt(booking.SOVE_EMBE || 0) * infantPrice);
 
     setBooking((prev) => ({
       ...prev,
       TONGTIEN: total,
-      SOVE: (parseInt(booking.SOVE_NGUOILON) + parseInt(booking.SOVE_TREM) + parseInt(booking.SOVE_EMBE))
+      SOVE: parseInt(booking.SOVE_NGUOILON || 0) + parseInt(booking.SOVE_TREM || 0) + parseInt(booking.SOVE_EMBE || 0)
     }));
   };
+
+  // UseEffect to recalculate the total price when tickets or price change
+  useEffect(() => {
+    calculateTotal(tourPrice);
+  }, [booking.SOVE_NGUOILON, booking.SOVE_TREM, booking.SOVE_EMBE, tourPrice]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    // Chuyển đổi các giá trị số thành số nguyên
+    const updatedBooking = {
+      ...booking,
+      IDTOUR: parseInt(booking.IDTOUR) || 0, // Chuyển IDTOUR thành số
+      IDNGUOIDUNG: parseInt(booking.IDNGUOIDUNG) || 0, // Chuyển IDNGUOIDUNG thành số
+      SOVE_NGUOILON: parseInt(booking.SOVE_NGUOILON) || 0, // Chuyển số vé người lớn thành số
+      SOVE_TREM: parseInt(booking.SOVE_TREM) || 0, // Chuyển số vé trẻ em thành số
+      SOVE_EMBE: parseInt(booking.SOVE_EMBE) || 0, // Chuyển số vé em bé thành số
+      SOVE: parseInt(booking.SOVE) || 0 // Tổng số vé thành số
+    };
 
     const requestUrl = id === 'new'
       ? 'http://localhost:5000/add-ticket'
@@ -140,11 +152,12 @@ const EditBookingManagement = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(booking)
+        body: JSON.stringify(updatedBooking) // Gửi booking với các giá trị số nguyên
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${id === 'new' ? 'create' : 'update'} ticket`);
+        const errorText = await response.text(); // Lấy chi tiết lỗi từ server
+        throw new Error(`Failed to ${id === 'new' ? 'create' : 'update'} ticket: ${errorText}`);
       }
 
       const result = await response.json();
@@ -233,7 +246,6 @@ const EditBookingManagement = () => {
           inputProps={{ min: 0 }} // Prevent negative values
         />
 
-
         <TextField
           label="Tình Trạng"
           name="TINHTRANG"
@@ -247,6 +259,7 @@ const EditBookingManagement = () => {
           <MenuItem value="Đã thanh toán">Đã thanh toán</MenuItem>
           <MenuItem value="Đã xác nhận">Đã xác nhận</MenuItem>
           <MenuItem value="Đã hủy">Đã hủy</MenuItem>
+          <MenuItem value="Đã hoàn tiền">Đã hoàn tiền</MenuItem>
         </TextField>
 
         <TextField

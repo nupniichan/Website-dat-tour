@@ -74,6 +74,10 @@ const Profile = () => {
     }
   };
 
+  const handleTourHistoryClick = () => {
+    navigate('/TourHistory');
+  };
+
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -165,6 +169,18 @@ const Profile = () => {
           </div>
         )}
       </form>
+
+      {/* Add the "Xem lịch sử đặt tour" button */}
+      <div className="tour-history-button-container">
+        <button 
+          type="button" 
+          className="tour-history-button" 
+          onClick={handleTourHistoryClick}
+        >
+          Xem lịch sử đặt tour
+        </button>
+      </div>
+
     </div>
   );
 };

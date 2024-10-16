@@ -104,15 +104,21 @@ const EditBookingManagement = () => {
           required
           style={{ marginBottom: '10px' }}
         />
-        <TextField
-          label="Tình Trạng"
+      <FormControl fullWidth style={{ marginBottom: '10px' }} required>
+        <InputLabel id="status-label">Tình Trạng</InputLabel>
+        <Select
+          labelId="status-label"
           name="TINHTRANG"
-          fullWidth
           value={booking.TINHTRANG}
           onChange={handleChange}
-          required
-          style={{ marginBottom: '10px' }}
-        />
+          label="Tình Trạng"
+        >
+          <MenuItem value="pending">Đang xử lý</MenuItem>
+          <MenuItem value="confirmed">Đã xác nhận</MenuItem>
+          <MenuItem value="cancelled">Đã hủy</MenuItem>
+          <MenuItem value="refunded">Đã hoàn tiền</MenuItem>
+        </Select>
+      </FormControl>
         <TextField
           label="Tổng Tiền"
           name="TONGTIEN"

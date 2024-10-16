@@ -56,6 +56,65 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+//Xem lịch sử tour
+app.get('/api/tour-history', (req, res) => {
+  console.log('Fetching tour history...'); 
+  const query = 'SELECT * FROM ve';
+
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Database query failed:', error);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    console.log('Results:', results); 
+    res.json(results || []);
+  });
+});
+
+// Hủy vé
+app.post('/api/tour-history/cancel/:id', (req, res) => {
+ 
+  const ticketId = req.params.id; // Lấy ID vé từ URL
+  
+  const query = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
+  db.query(query, ['Đã hủy', ticketId], (error, results) => {
+    if (error) {
+      console.error('Database query failed:', error);
+      return res.status(500).json({ error: 'Hủy vé thất bại' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy vé để hủy' });
+    }
+    res.json({ message: 'Hủy vé thành công' });
+  });
+});
+
+// User Login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+
+  const query = 'SELECT * FROM USER WHERE EMAIL = ? AND PASSWORD = ?';
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error: ' + err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials!' });
+    }
+
+    const user = results[0];
+    req.session.userId = user.ID;
+    console.log(user.ID)
+    res.json({ message: 'Login successful!', userName: user.FULLNAME, ID: user.ID });
+  });
+});
+
+
 // Login Admin
 app.post('/loginAdmin', (req, res) => {
   const { email, password } = req.body;
@@ -81,7 +140,7 @@ app.post('/loginAdmin', (req, res) => {
   });
 });
 
-// Add Schedule
+// thêm lịch trình
 app.post('/add-schedule', (req, res) => {
   const { name, startDate, endDate, details } = req.body;
 
@@ -120,13 +179,104 @@ app.get('/schedules', (req, res) => {
   });
 });
 
-// Get Schedule Details by ID
+// Lấy thông tin lịch trình và chi tiết lịch trình theo ID
 app.get('/schedules/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
-  db.query(query, [id], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
-    res.json(results);
+
+  // Truy vấn lấy thông tin lịch trình
+  const scheduleQuery = 'SELECT * FROM LichTrinh WHERE ID = ?';
+  const detailsQuery = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+
+  db.query(scheduleQuery, [id], (err, scheduleResults) => {
+    if (err) return res.status(500).json({ message: 'Error fetching schedule: ' + err.message });
+    if (scheduleResults.length === 0) return res.status(404).json({ message: 'Schedule not found' });
+
+    // Lấy chi tiết lịch trình
+    db.query(detailsQuery, [id], (err, detailsResults) => {
+      if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
+
+      // Trả về thông tin lịch trình và chi tiết
+      res.json({
+        schedule: scheduleResults[0],
+        details: detailsResults,
+      });
+    });
+  });
+});
+
+// Update Schedule
+// Update Schedule
+app.put('/update-schedule/:id', (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate, details } = req.body;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
+  }
+
+  // Cập nhật thông tin lịch trình
+  const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
+  db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
+
+    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [id], (err) => {
+      if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
+
+      // Bây giờ thêm các chi tiết mới
+      const detailQueries = details.map(detail => {
+        return new Promise((resolve, reject) => {
+          const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
+          db.query(insertDetailQuery, [id, detail.NGAY, detail.SUKIEN, detail.MOTA, detail.GIO], (err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+      });
+
+      Promise.all(detailQueries)
+        .then(() => res.json({ message: 'Schedule updated successfully!' }))
+        .catch(err => res.status(500).json({ message: 'Error adding new schedule details: ' + err.message }));
+    });
+  });
+});
+
+// Delete Schedule
+// Update Schedule
+app.put('/update-schedule/:id', (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate, details } = req.body;
+
+  if (!startDate || !endDate) {
+    return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
+  }
+
+  // Cập nhật thông tin lịch trình
+  const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
+  db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
+
+    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [id], (err) => {
+      if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
+
+      // Bây giờ thêm các chi tiết mới
+      const detailQueries = details.map(detail => {
+        return new Promise((resolve, reject) => {
+          const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
+          db.query(insertDetailQuery, [id, detail.NGAY, detail.SUKIEN, detail.MOTA, detail.GIO], (err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+      });
+
+      Promise.all(detailQueries)
+        .then(() => res.json({ message: 'Schedule updated successfully!' }))
+        .catch(err => res.status(500).json({ message: 'Error adding new schedule details: ' + err.message }));
+    });
   });
 });
 
@@ -278,29 +428,14 @@ app.get('/session', (req, res) => {
   }
 });
 
-// Get User Info
-app.get('/user-info', authenticateToken, (req, res) => {
-  const userId = req.userId;
 
-  db.query('SELECT FULLNAME, PHONENUMBER, EMAIL FROM USER WHERE ID = ?', [userId], (err, results) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).json({ message: 'Database query error' });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(results[0]);
-  });
-});
 
 // Ticket
 app.post('/add-ticket', (req, res) => {
-  const { tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, note, status, bookingDate, ticketType, discountId } = req.body;
-
-  if (!tourId || !customerId || !amount || !paymentMethod) {
-    return res.status(400).json({ error: 'Thiếu thông tin cần thiết' });
-  }
+  const {
+    IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
+    SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
+  } = req.body;
 
   // Lấy mã vé cuối cùng
   const getLastTicketQuery = `SELECT ID FROM ve ORDER BY ID DESC LIMIT 1`;
@@ -311,17 +446,11 @@ app.post('/add-ticket', (req, res) => {
       return res.status(500).json({ error: 'Lỗi khi thêm vé' });
     }
 
-    let lastTicketId = results.length > 0 ? results[0].ID : 'TKD00000'; 
+    let lastTicketId = results.length > 0 ? results[0].ID : 'TKOD00000'; 
     let lastTicketNumber = lastTicketId.match(/\d+/); 
 
-    if (!lastTicketNumber) {
-      lastTicketNumber = 0;
-    } else {
-      lastTicketNumber = parseInt(lastTicketNumber[0]);
-    }
-
-    let newTicketIdNumber = lastTicketNumber + 1;
-    let newTicketId = `TKOD${newTicketIdNumber.toString().padStart(5, '0')}`; 
+    lastTicketNumber = lastTicketNumber ? parseInt(lastTicketNumber[0]) : 0;
+    const newTicketId = `TKOD${(lastTicketNumber + 1).toString().padStart(5, '0')}`;
 
     const query = `
       INSERT INTO ve (ID, IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, SOVE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA)
@@ -329,34 +458,21 @@ app.post('/add-ticket', (req, res) => {
     `;
 
     db.query(query, [
-      newTicketId, tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount,
-      (adultCount + childCount + infantCount), 
-      note, status, bookingDate, ticketType, discountId
+      newTicketId, IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
+      SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, (SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE),
+      GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
     ], (err, result) => {
       if (err) {
         console.error('Lỗi khi thêm vé:', err);
         return res.status(500).json({ error: 'Lỗi khi thêm vé' });
       }
 
-      // Cập nhật SOVE của tour sau khi thêm vé
-      const totalTickets = adultCount + childCount + infantCount;
-      const updateTourQuery = `
-        UPDATE tour 
-        SET SOVE = SOVE - ? 
-        WHERE ID = ?
-      `;
-
-      db.query(updateTourQuery, [totalTickets, tourId], (err, updateResult) => {
-        if (err) {
-          console.error('Lỗi khi cập nhật số vé của tour:', err);
-          return res.status(500).json({ error: 'Lỗi khi cập nhật số vé của tour' });
-        }
-
-        res.json({ message: 'Thêm vé thành công và số vé của tour đã được cập nhật', ticketId: newTicketId });
-      });
+      res.json({ message: 'Thêm vé thành công', ticketId: newTicketId });
     });
   });
 });
+
+
 
 app.delete('/delete-ticket/:id', (req, res) => {
   const { id } = req.params;
@@ -410,75 +526,29 @@ app.delete('/delete-ticket/:id', (req, res) => {
 
 app.put('/update-ticket/:id', (req, res) => {
   const { id } = req.params;
-  const { tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, note, status, bookingDate, ticketType, discountId } = req.body;
+  const {
+    IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN, 
+    SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
+  } = req.body;
 
-  if (status === 'Đã hủy') {
-    const getTicketQuery = `
-      SELECT IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
-      FROM ve 
-      WHERE ID = ?
-    `;
+  const query = `
+    UPDATE ve 
+    SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
+    WHERE ID = ?
+  `;
 
-    db.query(getTicketQuery, [id], (err, results) => {
-      if (err) {
-        console.error('Error fetching ticket details:', err);
-        return res.status(500).json({ error: 'Error fetching ticket details' });
-      }
+  db.query(query, [
+    IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
+    SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, (SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE),
+    GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA, id
+  ], (err, result) => {
+    if (err) {
+      console.error('Lỗi khi cập nhật vé:', err);
+      return res.status(500).json({ error: 'Lỗi khi cập nhật vé' });
+    }
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: 'Ticket not found' });
-      }
-
-      const { IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE } = results[0];
-      const totalTickets = SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE;
-
-      const updateTourQuery = `
-        UPDATE Tour 
-        SET SOVE = SOVE + ?
-        WHERE ID = ?
-      `;
-
-      db.query(updateTourQuery, [totalTickets, IDTOUR], (err, result) => {
-        if (err) {
-          console.error('Error restoring tickets:', err);
-          return res.status(500).json({ error: 'Error restoring tickets' });
-        }
-        const updateTicketQuery = `
-          UPDATE ve 
-          SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
-          WHERE ID = ?
-        `;
-
-        db.query(updateTicketQuery, [
-          tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, 
-          (adultCount + childCount + infantCount),
-          note, status, bookingDate, ticketType, discountId, id
-        ], (err, result) => {
-          if (err) {
-            console.error('Error updating ticket status:', err);
-            return res.status(500).json({ error: 'Error updating ticket status' });
-          }
-
-          res.json({ message: 'Ticket status updated and tickets restored successfully' });
-        });
-      });
-    });
-  } else {
-    const updateTicketQuery = `
-      UPDATE ve 
-      SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
-      WHERE ID = ?
-    `;
-
-    db.query(updateTicketQuery, [
-      tourId, customerId, amount, paymentMethod, adultCount, childCount, infantCount, 
-      (adultCount + childCount + infantCount),
-      note, status, bookingDate, ticketType, discountId, id
-    ], (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error updating ticket' });
-      res.json({ message: 'Ticket updated successfully' });
-    });
-  }
+    res.json({ message: 'Cập nhật vé thành công' });
+  });
 });
 
 app.put('/restore-tickets/:ticketId', (req, res) => {
@@ -516,6 +586,37 @@ app.put('/restore-tickets/:ticketId', (req, res) => {
 
       res.json({ message: 'Tickets restored successfully' });
     });
+  });
+});
+
+app.get('/tickets', (req,res) =>{
+  const sql = `select * from ve`
+  db.query(sql,(err, results) => {
+    if(err){
+      console.error("lỗi truy vấn", err)
+      return res.status(500).json({error:'Lỗi truy vấn'})
+    }
+    res.json(results)
+  })
+})
+
+// API lấy thông tin vé theo ID
+app.get('/tickets/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = `SELECT * FROM ve WHERE ID = ?`;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Lỗi khi lấy thông tin vé:', err);
+      return res.status(500).json({ error: 'Lỗi khi lấy thông tin vé' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Vé không tồn tại' });
+    }
+
+    res.json(results[0]); // Trả về thông tin vé đầu tiên
   });
 });
 
@@ -596,7 +697,7 @@ app.get('/search/tour-with-date', (req, res) => {
 // Lấy thông tin người dùng theo ID
 app.get('/user/:id', (req, res) => {
   const userId = req.params.id;
-  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS FROM USER WHERE ID = ?';
+  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH FROM USER WHERE ID = ?';
 
   db.query(query, [userId], (err, results) => {
     if (err) {
@@ -608,6 +709,38 @@ app.get('/user/:id', (req, res) => {
     }
 
     res.json(results[0]); // Trả về thông tin người dùng đầu tiên
+  });
+});
+// Cập nhật thông tin người dùng
+app.put('/update/user/:id', (req, res) => {
+  const userId = req.params.id;
+  const { FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH } = req.body;
+
+  const query = `
+    UPDATE USER
+    SET FULLNAME = ?, ADDRESS = ?, DAYOFBIRTH = ?
+    WHERE ID = ?
+  `;
+
+  db.query(query, [FULLNAME, ADDRESS, DAYOFBIRTH, userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Lỗi cập nhật cơ sở dữ liệu: ' + err.message });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    // Trả về thông tin người dùng đã cập nhật
+    const updatedUser = {
+      ID: userId,
+      FULLNAME,
+      PHONENUMBER,
+      EMAIL,
+      ADDRESS,
+      DAYOFBIRTH,
+    };
+    res.json(updatedUser);
   });
 });
 

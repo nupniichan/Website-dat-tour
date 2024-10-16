@@ -180,7 +180,7 @@ CREATE TABLE `ve` (
 --
 -- Dumping data for table `ve`
 --
-
+  
 INSERT INTO `ve` (`ID`, `NGAYDAT`, `SOVE`, `LOAIVE`, `TINHTRANG`, `TONGTIEN`, `PHUONGTHUCTHANHTOAN`, `IDMAGIAMGIA`, `IDNGUOIDUNG`, `IDTOUR`, `GHICHU`, `SOVE_NGUOILON`, `SOVE_TREM`, `SOVE_EMBE`) VALUES
 ('TKOD00001', '2024-10-06', 4, 'Tour trong nước', 'Thanh toán thành công', 33000000.00, 'momo', NULL, 3, 2, '', 2, 1, 1),
 ('TKOD00002', '2024-10-06', 4, 'Tour trong nước', 'Thanh toán thành công', 33000000.00, 'momo', NULL, 3, 2, '', 2, 1, 1),

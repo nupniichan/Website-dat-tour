@@ -67,7 +67,7 @@ const ScheduleManagement = () => {
 
   // Handle view details button click
   const handleViewDetails = (id) => {
-    navigate(`/schedule/${id}`);
+    navigate(`/schedules/${id}`);
   };
 
   // Handle dialog close

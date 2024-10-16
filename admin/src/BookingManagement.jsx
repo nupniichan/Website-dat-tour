@@ -15,7 +15,7 @@ const BookingManagement = () => {
   }, []);
 
   const fetchBookings = () => {
-    fetch('http://localhost:5000/bookings')
+    fetch('http://localhost:5000/tickets')
       .then(response => response.json())
       .then(data => {
         setBookings(data);
@@ -27,10 +27,12 @@ const BookingManagement = () => {
   // Filter bookings based on search term
   useEffect(() => {
     if (searchTerm) {
-      setFilteredBookings(bookings.filter(booking =>
-        booking.ID.toString().includes(searchTerm) ||
-        booking.IDTOUR.toString().includes(searchTerm)
-      ));
+      setFilteredBookings(
+        bookings.filter((booking) =>
+          booking.ID.toString().includes(searchTerm) ||
+          booking.IDTOUR.toString().includes(searchTerm)
+        )
+      );
     } else {
       setFilteredBookings(bookings);
     }
@@ -49,21 +51,26 @@ const BookingManagement = () => {
   // Handle delete button click
   const handleDelete = (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xoá đặt chỗ này không?')) {
-      fetch(`http://localhost:5000/delete-booking/${id}`, {
+      fetch(`http://localhost:5000/delete-ticket/${id}`, {
         method: 'DELETE',
       })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Error deleting booking');
-        }
-      })
-      .then(data => {
-        fetchBookings(); // Cập nhật lại danh sách đặt chỗ
-      })
-      .catch(err => console.error('Error deleting booking:', err));
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Error deleting booking');
+          }
+        })
+        .then(() => {
+          fetchBookings(); // Refresh the list after deletion
+        })
+        .catch((err) => console.error('Error deleting booking:', err));
     }
+  };
+
+  // Handle view details button click
+  const handleViewDetails = (booking) => {
+    setSelectedBooking(booking);
   };
 
   // Handle dialog close
@@ -71,11 +78,21 @@ const BookingManagement = () => {
     setSelectedBooking(null);
   };
 
+  // Helper function to format currency with commas and "đ" at the end, without decimals
+const formatCurrency = (amount) => {
+  return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
+};
+
+
   return (
     <Box padding={3}>
       <h3>Quản lý đặt chỗ</h3>
 
-      <Button variant="contained" style={{ backgroundColor: '#FFA500', color: 'white' }} onClick={handleAddBookingClick}>
+      <Button
+        variant="contained"
+        style={{ backgroundColor: '#FFA500', color: 'white', marginBottom: '15px' }}
+        onClick={handleAddBookingClick}
+      >
         Thêm đặt chỗ
       </Button>
 
@@ -98,7 +115,7 @@ const BookingManagement = () => {
             <TableCell>Ngày Đặt</TableCell>
             <TableCell>Số Vé</TableCell>
             <TableCell>Tình Trạng</TableCell>
-            <TableCell>Tổng Tiền</TableCell>
+            <TableCell>Tổng Tiền (VNĐ)</TableCell>
             <TableCell>Chức năng</TableCell>
           </TableRow>
         </TableHead>
@@ -111,19 +128,17 @@ const BookingManagement = () => {
               <TableCell>{new Date(booking.NGAYDAT).toLocaleDateString('vi-VN')}</TableCell>
               <TableCell>{booking.SOVE}</TableCell>
               <TableCell>{booking.TINHTRANG}</TableCell>
-              <TableCell>{booking.TONGTIEN.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</TableCell>
               <TableCell>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => handleEdit(booking.ID)} 
-                >
+                {formatCurrency(booking.TONGTIEN)}
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" onClick={() => handleViewDetails(booking)}>
+                  Xem Chi tiết
+                </Button>
+                <Button variant="outlined" onClick={() => handleEdit(booking.ID)} style={{ marginLeft: '10px' }}>
                   Sửa
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => handleDelete(booking.ID)} 
-                  style={{ marginLeft: '10px' }}
-                >
+                <Button variant="outlined" onClick={() => handleDelete(booking.ID)} style={{ marginLeft: '10px' }}>
                   Xoá
                 </Button>
               </TableCell>
@@ -132,20 +147,50 @@ const BookingManagement = () => {
         </TableBody>
       </Table>
 
+      {/* Booking details dialog */}
       {selectedBooking && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
-          <DialogContent>
-            <Typography>Mã đặt chỗ: {selectedBooking.ID}</Typography>
-            <Typography>Mã Tour: {selectedBooking.IDTOUR}</Typography>
-            <Typography>Mã Người Dùng: {selectedBooking.IDNGUOIDUNG}</Typography>
-            <Typography>Ngày đặt: {new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</Typography>
-            <Typography>Số vé: {selectedBooking.SOVE}</Typography>
-            <Typography>Tình trạng: {selectedBooking.TINHTRANG}</Typography>
-            <Typography>Tổng tiền: {selectedBooking.TONGTIEN.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</Typography>
-          </DialogContent>
-        </Dialog>
-      )}
+  <Dialog open={true} onClose={handleCloseDialog}>
+    <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
+    <DialogContent>
+      <Box padding={2}>
+
+        {/* Section: Booking Information */}
+        <Typography variant="h6" gutterBottom>
+          Thông tin đặt chỗ
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>Mã đặt chỗ: <strong>{selectedBooking.ID}</strong></Typography>
+          <Typography>Mã Tour: <strong>{selectedBooking.IDTOUR}</strong></Typography>
+          <Typography>Mã Người Dùng: <strong>{selectedBooking.IDNGUOIDUNG}</strong></Typography>
+          <Typography>Ngày đặt: <strong>{new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</strong></Typography>
+        </Box>
+
+        {/* Section: Ticket Information */}
+        <Typography variant="h6" gutterBottom>
+          Thông tin vé
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>Số vé: <strong>{selectedBooking.SOVE}</strong></Typography>
+          <Typography>Tình trạng: <strong>{selectedBooking.TINHTRANG}</strong></Typography>
+        </Box>
+
+        {/* Section: Payment Information */}
+        <Typography variant="h6" gutterBottom>
+          Thanh toán
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+          <Typography>
+            Tổng tiền: <Typography component="span" variant="body1" color="error" fontWeight="bold">
+              {formatCurrency(selectedBooking.TONGTIEN)}
+            </Typography>
+          </Typography>
+        </Box>
+
+      </Box>
+    </DialogContent>
+  </Dialog>
+)}
+
     </Box>
   );
 };

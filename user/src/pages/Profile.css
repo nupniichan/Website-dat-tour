@@ -1,0 +1,126 @@
+.profile-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.profile-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.profile-container h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.profile-container p {
+  font-size: 18px;
+  margin: 10px 0;
+  color: #555;
+}
+
+.profile-container button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  margin-top: 10px; /* Add margin to separate buttons from content */
+}
+
+.profile-container button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.profile-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.profile-container label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px; /* Add spacing below labels */
+}
+
+.profile-container input {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.profile-container input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.profile-container .cancel-button {
+  background-color: #dc3545;
+  font-weight: bold;
+}
+
+.profile-container .cancel-button:hover {
+  background-color: #c82333;
+}
+
+.edit-buttons {
+  display: flex;
+  justify-content: space-between; /* Space between Save and Cancel buttons */
+}
+
+@media (max-width: 600px) {
+  .profile-container {
+    padding: 20px;
+  }
+
+  .profile-container h1 {
+    font-size: 24px;
+  }
+
+  .profile-container p {
+    font-size: 16px;
+  }
+
+  .profile-container button {
+    font-size: 14px;
+  }
+}
+.user-data {
+  margin-left: 10px; /* Space between the label and user data */
+  font-weight: normal; /* Optional: To differentiate the data from the label */
+}
+.tour-history-button-container {
+  display: flex;
+  justify-content: center; /* Centers the button horizontally */
+  width: 100%; /* Makes sure the container spans the full width */
+  margin-top: 20px; /* Adds some space between the form and the button */
+}
+
+.tour-history-button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.tour-history-button:hover {
+  background-color: #45a049;
+}
+

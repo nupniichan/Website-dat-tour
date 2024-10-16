@@ -1,0 +1,128 @@
+.tour-history-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.tour-history-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tour-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tour-history-table th, 
+.tour-history-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.tour-history-table th {
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+.tour-history-table tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
+}
+
+.tour-history-table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Zebra stripes for even rows */
+}
+
+.tour-history-table tr:nth-child(odd) {
+  background-color: #ffffff; /* Zebra stripes for odd rows */
+}
+
+/* CSS cho nút Hủy vé */
+.cancel-button {
+  background-color: #ff4d4d; /* Màu đỏ nổi bật */
+  color: white; /* Màu chữ trắng */
+  padding: 10px 15px; /* Khoảng cách trong nút */
+  border: none; /* Loại bỏ viền */
+  border-radius: 4px; /* Bo góc nút */
+  cursor: pointer; /* Con trỏ dạng bàn tay khi hover */
+  font-size: 14px; /* Kích thước chữ */
+  transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu */
+  white-space: nowrap; /* Ngăn không cho chữ bị xuống dòng */
+  min-width: 100px; /* Đặt chiều rộng tối thiểu cho nút */
+  text-align: center; /* Canh giữa chữ trong nút */
+}
+
+.cancel-button:hover {
+  background-color: #ff1a1a; /* Màu đậm hơn khi hover */
+}
+
+.cancel-button:disabled {
+  background-color: #ddd; /* Màu xám khi nút bị disabled */
+  cursor: not-allowed; /* Con trỏ không cho phép bấm */
+}
+
+/* Dialog form styling */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Màu nền tối */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dialog-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+}
+
+.dialog-form h2 {
+  margin-bottom: 20px;
+}
+
+.dialog-form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dialog-confirm, .dialog-cancel {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dialog-confirm {
+  background-color: #4CAF50; /* Xanh lá cây cho nút xác nhận */
+  color: white;
+}
+
+.dialog-confirm:hover {
+  background-color: #45a049;
+}
+
+.dialog-cancel {
+  background-color: #f44336; /* Đỏ cho nút hủy */
+  color: white;
+}
+
+.dialog-cancel:hover {
+  background-color: #da190b;
+}

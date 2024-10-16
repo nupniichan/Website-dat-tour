@@ -19,20 +19,20 @@ const EditSchedule = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch schedule data from the server
     fetch(`http://localhost:5000/schedules/${id}`)
       .then(response => response.json())
       .then(data => {
-        // Set schedule state with details from the fetched data
+        console.log('Dữ liệu nhận được:', data);
         setSchedule({
-          name: data[0].ID_LICH_TRINH || '',
-          startDate: data[0].NGAY || '',
-          endDate: data[0].NGAY || '',
-          details: data || [], // Assuming data is an array of details
+          name: data.schedule.tenlichtrinh || '',
+          startDate: data.schedule.NGAYDI || '',
+          endDate: data.schedule.NGAYVE || '',
+          details: data.details || [],  // Sử dụng chi tiết từ dữ liệu mới
         });
       })
       .catch(err => console.error('Error fetching schedule:', err));
   }, [id]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +50,6 @@ const EditSchedule = () => {
   const handleAddDetail = () => {
     if (eventDate && eventContent && eventTime) {
       if (editingDetailIndex !== null) {
-        // Update existing detail
         const updatedDetails = schedule.details.map((detail, index) =>
           index === editingDetailIndex
             ? { NGAY: eventDate, SUKIEN: eventContent, MOTA: descriptionContent, GIO: eventTime }
@@ -59,7 +58,6 @@ const EditSchedule = () => {
         setSchedule(prev => ({ ...prev, details: updatedDetails }));
         setEditingDetailIndex(null);
       } else {
-        // Add new detail
         setSchedule(prev => ({
           ...prev,
           details: [
@@ -68,7 +66,6 @@ const EditSchedule = () => {
           ],
         }));
       }
-      // Reset form
       setEventDate('');
       setEventContent('');
       setEventTime('');
@@ -94,17 +91,34 @@ const EditSchedule = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Dữ liệu gửi đi:', schedule);
     fetch(`http://localhost:5000/update-schedule/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(schedule),
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
-        console.log('Schedule updated:', data);
+        console.log('Cập nhật thành công:', data);
         navigate('/schedule-management');
       })
       .catch(err => console.error('Error updating schedule:', err));
+  };
+  
+  const handleDeleteSchedule = () => {
+    fetch(`http://localhost:5000/delete-schedule/${id}`, {
+      method: 'DELETE',
+    })
+      .then(response => response.json())
+      .then(data => {
+        navigate('/schedule-management');
+      })
+      .catch(err => console.error('Error deleting schedule:', err));
   };
 
   const formattedStartDate = schedule.startDate ? schedule.startDate.slice(0, 10) : '';
@@ -188,7 +202,7 @@ const EditSchedule = () => {
           {schedule.details.length ? (
             schedule.details.map((detail, index) => (
               <li key={index}>
-                {`Ngày ${detail.NGAY.slice(0, 10)} ${detail.GIO ? `- Giờ ${detail.GIO}` : ''}: ${detail.SUKIEN} - Mô tả: ${detail.MOTA}`}
+                {`Ngày ${detail.NGAY ? detail.NGAY.slice(0, 10) : 'Chưa có ngày'} ${detail.GIO ? `- Giờ ${detail.GIO}` : ''}: ${detail.SUKIEN || 'Chưa có sự kiện'} - Mô tả: ${detail.MOTA || 'Chưa có mô tả'}`}
                 <IconButton color="primary" onClick={() => handleEditDetail(index)}>
                   Sửa
                 </IconButton>
@@ -207,6 +221,9 @@ const EditSchedule = () => {
         </Button>
         <Button variant="outlined" color="secondary" onClick={() => navigate('/schedule')}>
           Hủy
+        </Button>
+        <Button variant="outlined" color="error" onClick={handleDeleteSchedule}>
+          Xoá lịch trình
         </Button>
       </form>
     </Box>

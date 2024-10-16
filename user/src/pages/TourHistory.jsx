@@ -135,7 +135,7 @@ const TourHistory = () => {
                   <button
                     className={`cancel-button ${item.TINHTRANG === 'Đã hủy' ? 'disabled' : ''}`}
                     onClick={item.TINHTRANG === 'Đã hủy' ? null : () => openCancelDialog(item)}
-                    disabled={item.TINHTRANG === 'Đã hủy'} // Vô hiệu hóa nút khi vé đã hủy
+                    disabled={item.TINHTRANG === 'Đã yêu cầu huỷ'} // Vô hiệu hóa nút khi vé đã hủy
                   >
                     {item.TINHTRANG === 'Đã hủy' ? 'Đã hủy' : 'Hủy vé'}
                   </button>

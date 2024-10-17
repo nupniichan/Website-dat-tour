@@ -61,7 +61,7 @@ function App() {
                     <Route path="/edit-tour/:id" element={<EditTour />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<BookingManagement />} />
-                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} /> {/* Điều chỉnh */}
+                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
                     <Route path="/user" element={<h1>Quản lý người dùng</h1>} />

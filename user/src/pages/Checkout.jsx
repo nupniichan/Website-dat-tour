@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Thêm useParams
+import { useParams } from 'react-router-dom';
 
 const Checkout = () => {
-  const { tourId } = useParams(); // Lấy tourId từ URL
+  const { id } = useParams(); // Lấy tourId từ URL params
   const [tourDetails, setTourDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -22,13 +22,13 @@ const Checkout = () => {
   const [childCount, setChildCount] = useState(0);
   const [infantCount, setInfantCount] = useState(0);
 
-  // Lấy customerId từ sessionStorage
+  // Lấy id và customerId từ sessionStorage
   const customerId = sessionStorage.getItem('userId');
 
   useEffect(() => {
-    fetchTourDetails(tourId); // Gọi API để lấy thông tin chi tiết tour
-    fetchCustomerInfo(customerId); // Gọi API để lấy thông tin khách hàng
-  }, [tourId]);
+    fetchTourDetails(id);
+    fetchCustomerInfo(customerId);
+  }, [id]);
 
   const fetchTourDetails = async (id) => {
     try {
@@ -77,6 +77,7 @@ const Checkout = () => {
     setPromoCode(e.target.value);
   };
 
+  // Áp dụng mã giảm giá - Test tạm thời
   const applyPromoCode = () => {
     if (promoCode === 'DISCOUNT10' && tourDetails) {
       setFinalPrice(prevPrice => prevPrice * 0.9); 
@@ -126,7 +127,7 @@ const Checkout = () => {
     }
   
     const paymentData = {
-      tourId: tourId,
+      id: id,
       customerId: customerId,
       amount: finalPrice,
       adultCount: adultCount,
@@ -162,6 +163,12 @@ const Checkout = () => {
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-red-500 text-center">Lỗi: {error}</div>;
   if (!tourDetails) return <div className="text-center">Không có thông tin tour.</div>;
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return date.toLocaleDateString('vi-VN', options);
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 grid grid-cols-12 gap-6">

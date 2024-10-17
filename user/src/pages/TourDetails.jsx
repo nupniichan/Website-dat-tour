@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import './TourDetails.css';
 
 const TourDetails = () => {
-    const { tourId } = useParams(); // Lấy tourId từ URL
+    const { id } = useParams(); // Lấy id từ URL
     const location = useLocation();
     const navigate = useNavigate(); // Khởi tạo navigate để điều hướng
     const [tour, setTour] = useState(location.state?.tour || null); // Lấy từ state nếu có
@@ -12,12 +12,12 @@ const TourDetails = () => {
     useEffect(() => {
         if (!tour) {
             // Nếu không có tour trong state, gọi API để lấy thông tin
-            fetch(`http://localhost:5000/tours/${tourId}`)
+            fetch(`http://localhost:5000/tours/${id}`)
                 .then((response) => response.json())
                 .then((data) => setTour(data))
                 .catch((error) => console.error('Error fetching tour details:', error));
         }
-    }, [tourId, tour]);
+    }, [id, tour]);
 
     // Hàm điều hướng đến trang checkout
     const handleCheckout = () => {

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route } from "react-router-dom";
 import PagesNames from "./PagesNames.js";
 import Homepage from "../pages/Homepage";
 import About from "../pages/About.jsx";
@@ -8,7 +8,7 @@ import TourDetails from "../pages/TourDetails.jsx";
 import Schedule from "../pages/Schedule.jsx";
 import Registration from "../pages/Register.jsx";
 import Contact from "../pages/Contact.jsx";
-import Login from "../pages/Login.jsx"; 
+import Login from "../pages/Login.jsx";
 import PaymentResult from "../pages/PaymentResult.jsx";
 import PaymentFailed from "../pages/PaymentFailed.jsx";
 import PaymentSuccess from "../pages/PaymentSuccess.jsx";

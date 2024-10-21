@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
+import Temp from './Temp.jsx';
 import './TourDetails.css';
 
 const TourDetails = () => {
@@ -50,12 +51,13 @@ const TourDetails = () => {
                 <p><strong>Phương tiện:</strong> {tour.PHUONGTIENDICHUYEN}</p>
                 <p><strong>Giá:</strong> {tour.GIA ? parseFloat(tour.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}</p>
                 <p><strong>Còn lại:</strong> {tour.SOVECONLAI} vé</p>
-                
+
                 {/* Thêm nút "Đặt ngay" */}
                 <div className="button-container">
                     <button className="book-now-button" onClick={handleCheckout}>Đặt ngay</button>
                 </div>
             </div>
+            <Temp />
         </div>
     );
 };

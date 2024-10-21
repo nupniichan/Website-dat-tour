@@ -23,8 +23,8 @@ const Homepage = () => {
     const onSearch = (value) => {
         const filtered = value
             ? cities.filter((city) =>
-                  city.city.toLowerCase().includes(value.toLowerCase())
-              )
+                city.city.toLowerCase().includes(value.toLowerCase())
+            )
             : cities;
         setFilteredCities(filtered);
     };
@@ -39,7 +39,9 @@ const Homepage = () => {
             return;
         }
 
-        const formattedDate = departureDate ? dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD") : '';
+        const formattedDate = departureDate
+            ? dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+            : "";
         const apiUrl = departureDate
             ? `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`
             : `http://localhost:5000/search/tour?q=${selectedCity}`;
@@ -47,14 +49,16 @@ const Homepage = () => {
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error('Lỗi mạng.');
+                throw new Error("Lỗi mạng.");
             }
 
             const data = await response.json();
             const filteredResults = data;
-            navigate(`/search/${selectedCity}/${formattedDate}`, { state: { results: filteredResults } });
+            navigate(`/search/${selectedCity}/${formattedDate}`, {
+                state: { results: filteredResults },
+            });
         } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error);
+            console.error("Lỗi khi lấy dữ liệu:", error);
         }
     };
 
@@ -66,10 +70,9 @@ const Homepage = () => {
                         <div className="home-search space-y-5 max-w-4xl mx-auto text-center">
                             <h2 className="text-4xl text-white font-extrabold mx-auto md:text-5xl pb-3">
                                 Your dream vacation, tailored to perfection
-
                             </h2>
 
-                            <div className="search-form absolute z-30 font-normal xl:w-[1128px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)]">
+                            <div className="search-form top-full left-1/2 transform -translate-x-1/2 -translate-y-1/2 absolute z-30 font-normal xl:w-[1128px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)]">
                                 <div className="grid grid-cols-2 pb-4 pt-4">
                                     <div className="mr-4 flex flex-1 flex-col">
                                         <label className="text-left mb-1 text-sm">
@@ -81,13 +84,21 @@ const Homepage = () => {
                                             onChange={onCityChange}
                                             onSearch={onSearch}
                                             filterOption={false}
-                                            style={{ textAlign: "left", height: "4rem" }}
+                                            style={{
+                                                textAlign: "left",
+                                                height: "4rem",
+                                            }}
                                         >
-                                            {filteredCities.map((city, index) => (
-                                                <Select.Option key={index} value={city.city}>
-                                                    {city.city}
-                                                </Select.Option>
-                                            ))}
+                                            {filteredCities.map(
+                                                (city, index) => (
+                                                    <Select.Option
+                                                        key={index}
+                                                        value={city.city}
+                                                    >
+                                                        {city.city}
+                                                    </Select.Option>
+                                                )
+                                            )}
                                         </Select>
                                     </div>
 
@@ -107,7 +118,10 @@ const Homepage = () => {
                                 </div>
 
                                 <div className="search-btn relative flex w-full justify-center">
-                                    <button onClick={handleSearch} className="absolute z-10 h-12 rounded-full bg-orange-500 hover:bg-orange-400 px-20 text-base text-white transition duration-200">
+                                    <button
+                                        onClick={handleSearch}
+                                        className="absolute z-10 h-12 rounded-full bg-orange-500 hover:bg-orange-400 px-20 text-base text-white transition duration-200"
+                                    >
                                         Tìm kiếm
                                     </button>
                                 </div>

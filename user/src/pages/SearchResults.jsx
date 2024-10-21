@@ -72,20 +72,20 @@ const SearchResults = () => {
                                 <div className="tour-details">
                                     <div className="tour-dates-vehicle">
                                         <div className="tour-di">
-                                            <img src="/public/images/calendar_icon.png" alt="calendar icon" className="icon" />
+                                            <img src="../assets/images/calendar_icon.png" alt="calendar icon" className="icon" />
                                             Ngày: {dayjs(item.NGAYDI).format("DD-MM-YYYY")} {'->'} {dayjs(item.NGAYVE).format("DD-MM-YYYY")}
                                         </div>
                                         <div className="tour-vehicle">
-                                            <img src="/public/images/vehicle_icon.png" alt="vehicle icon" className="icon" />
+                                            <img src="../assets/images/vehicle_icon.png" alt="vehicle icon" className="icon" />
                                             Phương tiện: {item.PHUONGTIENDICHUYEN}
                                         </div>
                                     </div>
                                     <div className="tour-ticket-available">
-                                        <img src="/public/images/ticket_icon.png" alt="ticket icon" className="icon" />
+                                        <img src="../assets/images/ticket_icon.png" alt="ticket icon" className="icon" />
                                         Còn lại: {item.SOVECONLAI} vé
                                     </div>
                                     <div className="tour-price">
-                                        <img src="/public/images/price_icon.png" alt="price icon" className="icon" />
+                                        <img src="../assets/images/price_icon.png" alt="price icon" className="icon" />
                                         {item.GIA ? parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}
                                     </div>
                                 </div>

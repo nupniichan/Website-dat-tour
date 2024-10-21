@@ -28,7 +28,7 @@ app.use(session({
   secret: 'your_secret_key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } 
+  cookie: { secure: false }
 }));
 
 const db = mysql.createConnection({
@@ -58,7 +58,7 @@ const authenticateToken = (req, res, next) => {
 
 //Xem lịch sử tour
 app.get('/api/tour-history', (req, res) => {
-  console.log('Fetching tour history...'); 
+  console.log('Fetching tour history...');
   const query = 'SELECT * FROM ve';
 
   db.query(query, (error, results) => {
@@ -66,16 +66,16 @@ app.get('/api/tour-history', (req, res) => {
       console.error('Database query failed:', error);
       return res.status(500).json({ error: 'Database query failed' });
     }
-    console.log('Results:', results); 
+    console.log('Results:', results);
     res.json(results || []);
   });
 });
 
 // Hủy vé
 app.post('/api/tour-history/cancel/:id', (req, res) => {
- 
+
   const ticketId = req.params.id; // Lấy ID vé từ URL
-  
+
   const query = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
   db.query(query, ['Đã hủy', ticketId], (error, results) => {
     if (error) {
@@ -310,10 +310,10 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
 // Get Tours
 app.get('/tours', (req, res) => {
   const query = `
-      SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
-      FROM Tour 
+      SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE
+      FROM Tour
       JOIN LichTrinh ON Tour.IDLICHTRINH = LichTrinh.ID`;
-  
+
   db.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({ message: 'Error fetching tours: ' + err.message });
@@ -327,9 +327,9 @@ app.get('/tours/:id', (req, res) => {
   const { id } = req.params;
   // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trường cần thiết
   const query = `
-    SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
-    FROM Tour 
-    JOIN LichTrinh ON Tour.IDLICHTRINH = LichTrinh.ID 
+    SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE
+    FROM Tour
+    JOIN LichTrinh ON Tour.IDLICHTRINH = LichTrinh.ID
     WHERE Tour.ID = ?
   `;
   db.query(query, [id], (err, results) => {
@@ -348,8 +348,8 @@ app.get('/tours/:id', (req, res) => {
 // Update Tour
 app.put('/update-tour/:id', (req, res) => {
   const { id } = req.params;
-  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; 
-  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ?, KHOIHANH = ? WHERE ID = ?'; 
+  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body;
+  const query = 'UPDATE Tour SET TENTOUR = ?, LOAITOUR = ?, GIA = ?, SOVE = ?, HINHANH = ?, MOTA = ?, TRANGTHAI = ?, IDLICHTRINH = ?, PHUONGTIENDICHUYEN = ?, KHOIHANH = ? WHERE ID = ?';
   db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh, id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Tour updated successfully' });
@@ -446,8 +446,8 @@ app.post('/add-ticket', (req, res) => {
       return res.status(500).json({ error: 'Lỗi khi thêm vé' });
     }
 
-    let lastTicketId = results.length > 0 ? results[0].ID : 'TKOD00000'; 
-    let lastTicketNumber = lastTicketId.match(/\d+/); 
+    let lastTicketId = results.length > 0 ? results[0].ID : 'TKOD00000';
+    let lastTicketNumber = lastTicketId.match(/\d+/);
 
     lastTicketNumber = lastTicketNumber ? parseInt(lastTicketNumber[0]) : 0;
     const newTicketId = `TKOD${(lastTicketNumber + 1).toString().padStart(5, '0')}`;
@@ -479,8 +479,8 @@ app.delete('/delete-ticket/:id', (req, res) => {
 
   // First, retrieve the ticket details to get the number of tickets
   const getTicketQuery = `
-    SELECT ID, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
-    FROM ve 
+    SELECT ID, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE
+    FROM ve
     WHERE ID = ?
   `;
 
@@ -506,7 +506,7 @@ app.delete('/delete-ticket/:id', (req, res) => {
       }
 
       const updateTourQuery = `
-        UPDATE tour 
+        UPDATE tour
         SET SOVE = SOVE + ?
         WHERE ID = ?
       `;
@@ -527,12 +527,12 @@ app.delete('/delete-ticket/:id', (req, res) => {
 app.put('/update-ticket/:id', (req, res) => {
   const { id } = req.params;
   const {
-    IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN, 
+    IDTOUR, IDNGUOIDUNG, TONGTIEN, PHUONGTHUCTHANHTOAN,
     SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE, GHICHU, TINHTRANG, NGAYDAT, LOAIVE, IDMAGIAMGIA
   } = req.body;
 
   const query = `
-    UPDATE ve 
+    UPDATE ve
     SET IDTOUR = ?, IDNGUOIDUNG = ?, TONGTIEN = ?, PHUONGTHUCTHANHTOAN = ?, SOVE_NGUOILON = ?, SOVE_TREM = ?, SOVE_EMBE = ?, SOVE = ?, GHICHU = ?, TINHTRANG = ?, NGAYDAT = ?, LOAIVE = ?, IDMAGIAMGIA = ?
     WHERE ID = ?
   `;
@@ -554,8 +554,8 @@ app.put('/update-ticket/:id', (req, res) => {
 app.put('/restore-tickets/:ticketId', (req, res) => {
   const { ticketId } = req.params;
   const findTicketQuery = `
-    SELECT IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE 
-    FROM ve 
+    SELECT IDTOUR, SOVE_NGUOILON, SOVE_TREM, SOVE_EMBE
+    FROM ve
     WHERE ID = ?
   `;
 
@@ -573,8 +573,8 @@ app.put('/restore-tickets/:ticketId', (req, res) => {
     const totalTickets = SOVE_NGUOILON + SOVE_TREM + SOVE_EMBE;
 
     const restoreTicketsQuery = `
-      UPDATE Tour 
-      SET SOVE = SOVE + ? 
+      UPDATE Tour
+      SET SOVE = SOVE + ?
       WHERE ID = ?
     `;
 
@@ -630,7 +630,7 @@ app.get('/search', (req, res) => {
       SELECT t.*, l.NGAYDI, l.NGAYVE
       FROM tour t
       INNER JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
-      WHERE t.TENTOUR LIKE ? 
+      WHERE t.TENTOUR LIKE ?
       ${departureDate ? 'AND l.NGAYDI = ?' : ''}
   `;
 
@@ -680,7 +680,7 @@ app.get('/search/tour-with-date', (req, res) => {
       SELECT t.*, l.NGAYDI, l.NGAYVE
       FROM Tour t
       INNER JOIN LichTrinh l ON t.IDLICHTRINH = l.ID
-      WHERE t.TENTOUR LIKE ? 
+      WHERE t.TENTOUR LIKE ?
       AND l.NGAYDI = ?
   `;
 
@@ -703,7 +703,7 @@ app.get('/user/:id', (req, res) => {
     if (err) {
       return res.status(500).json({ message: 'Lỗi truy vấn cơ sở dữ liệu: ' + err.message });
     }
-    
+
     if (results.length === 0) {
       return res.status(404).json({ message: 'Người dùng không tồn tại' });
     }

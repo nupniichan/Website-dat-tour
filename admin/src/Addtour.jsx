@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import './AddTour.css';  // Import CSS
+import './Addtour.css'
 
 const AddTour = () => {
     const [tour, setTour] = useState({

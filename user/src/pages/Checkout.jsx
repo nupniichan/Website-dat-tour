@@ -126,6 +126,21 @@ const Checkout = () => {
       return;
     }
   
+<<<<<<< Updated upstream
+=======
+    if (!paymentMethod) {
+      alert('Vui lòng chọn một phương thức thanh toán');
+      return;
+    }
+  
+    // Kiểm tra nếu phương thức thanh toán không phải là Momo
+    if (paymentMethod !== 'momo') {
+      alert('Hiện chúng tôi chưa hỗ trợ phương thức thanh toán này');
+      return;
+    }
+  
+    // Nếu phương thức thanh toán là Momo thì tiếp tục xử lý
+>>>>>>> Stashed changes
     const paymentData = {
       id: id,
       customerId: customerId,
@@ -185,7 +200,15 @@ const Checkout = () => {
         <div className="mt-4">
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
+<<<<<<< Updated upstream
         <div className="mt-6">
+=======
+
+
+        {/* Tui khoá lại tại vì cái này ở sprint 3. Khi nào tới sprint 3 thì mở ra */}
+        {/* Cho phép nhập mã giảm giá */}
+        {/* <div className="mt-6">
+>>>>>>> Stashed changes
           <label className="block font-medium">Mã giảm giá</label>
           <input
             type="text"
@@ -195,8 +218,19 @@ const Checkout = () => {
             onChange={handlePromoCodeChange}
             disabled
           />
+<<<<<<< Updated upstream
           <button onClick={applyPromoCode} className="mt-2 w-full bg-blue-600 text-white py-2 rounded opacity-50 cursor-not-allowed" disabled>Áp dụng</button>
         </div>
+=======
+          <button 
+            onClick={applyPromoCode} 
+            className="mt-2 w-full bg-blue-600 text-white py-2 rounded"
+          >
+            Áp dụng
+          </button>
+        </div> */}
+
+>>>>>>> Stashed changes
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
         </div>
@@ -257,7 +291,7 @@ const Checkout = () => {
           >
             <option value="" disabled>Chọn phương thức</option>
             <option value="cash">Tiền mặt</option>
-            <option value="bank_transfer">Chuyển khoản</option>
+            <option value="vnPay">Quét mã VNPay</option>
             <option value="momo">Thanh toán bằng Momo</option>
           </select>
         </div>
@@ -277,9 +311,9 @@ const Checkout = () => {
         />
 
         {/* Điều khoản và dịch vụ */}
-        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đăng ký online</h4>
+        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đặt tour online</h4>
         <div className="h-32 overflow-y-scroll border border-gray-300 p-4 rounded-md mb-4">
-          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán...</p>
+          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán tour online</p>
         </div>
 
         <label className="flex items-center mb-4">

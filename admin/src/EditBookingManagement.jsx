@@ -286,7 +286,7 @@ const EditBookingManagement = () => {
           required
           style={{ marginBottom: '10px' }}
         >
-          <MenuItem value="Visa">Visa</MenuItem>
+          <MenuItem value="VNPay">VNPay</MenuItem>
           <MenuItem value="Momo">Momo</MenuItem>
           <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
         </TextField>

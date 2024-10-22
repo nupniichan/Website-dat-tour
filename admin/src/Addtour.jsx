@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, TextField, Button, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import './Addtour.css'
+import './AddTour.css'
 
 const AddTour = () => {
     const [tour, setTour] = useState({
         tentour: '',
-        loaitour: 'Tour trong nước',  
+        loaitour: 'Tour trong nước',
         gia: '',
         sove: '',
         hinhanh: '',
         mota: '',
         khoihanh: '',
         trangthai: 'Còn vé',
-        idlichtrinh: '',  
-        phuongtiendichuyen: 'Xe Buýt' 
+        idlichtrinh: '',
+        phuongtiendichuyen: 'Xe Buýt'
     });
 
     const [schedules, setSchedules] = useState([]);
@@ -28,9 +28,9 @@ const AddTour = () => {
         mota: '',
         khoihanh: '',
         trangthai: '',
-        idlichtrinh: '',  
+        idlichtrinh: '',
         phuongtiendichuyen: ''
-    }); 
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -84,7 +84,7 @@ const AddTour = () => {
         if (typeof value !== 'string') {
             value = String(value);
         }
-        
+
         if (!value.trim()) {
             return fieldName === 'idlichtrinh' ? 'Không được để trống' : 'Trường bắt buộc nhập';
         }
@@ -140,7 +140,7 @@ const AddTour = () => {
             mota: validateRequiredField(tour.mota, 'mota'),
             khoihanh: validateRequiredField(tour.khoihanh, 'khoihanh'),
             trangthai: validateRequiredField(tour.trangthai, 'trangthai'),
-            idlichtrinh: validateRequiredField(tour.idlichtrinh, 'idlichtrinh'),  
+            idlichtrinh: validateRequiredField(tour.idlichtrinh, 'idlichtrinh'),
             phuongtiendichuyen: validateRequiredField(tour.phuongtiendichuyen, 'phuongtiendichuyen'),
             hinhanh: validateRequiredField(tour.hinhanh, 'hinhanh'),
         };
@@ -149,11 +149,11 @@ const AddTour = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const formErrors = validateFields(); 
-    
+        const formErrors = validateFields();
+
         if (Object.values(formErrors).every(error => !error)) {
             const isTourExists = await checkTourExists(tour.tentour);
-            
+
             if (isTourExists) {
                 setErrors(prev => ({ ...prev, tentour: 'This tour already exists' }));
             } else {
@@ -184,7 +184,7 @@ const AddTour = () => {
             setErrors(formErrors);
         }
     };
-    
+
 
     return (
         <Box className="form-container">
@@ -200,7 +200,7 @@ const AddTour = () => {
                     helperText={errors.tentour}
                     className="text-field"
                 />
-                
+
                 <TextField
                     select
                     label="Loại tour"
@@ -216,7 +216,7 @@ const AddTour = () => {
                     <MenuItem value="Tour trong nước">Tour trong nước</MenuItem>
                     <MenuItem value="Tour ngoài nước">Tour ngoài nước</MenuItem>
                 </TextField>
-                
+
                 <TextField
                     label="Giá"
                     name="gia"
@@ -329,19 +329,19 @@ const AddTour = () => {
                         className="image-preview"
                     />
                 )}
-                
-                <Button 
-                    type="submit" 
-                    variant="contained" 
-                    color="primary" 
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
                     className="submit-button"
                 >
                     Lưu
                 </Button>
 
-                <Button 
-                    variant="outlined" 
-                    color="secondary" 
+                <Button
+                    variant="outlined"
+                    color="secondary"
                     onClick={() => navigate('/')}
                 >
                     Hủy

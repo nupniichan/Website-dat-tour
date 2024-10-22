@@ -105,12 +105,32 @@ const Profile = () => {
           )}
         </p>
         <p>
-          <strong>Email:</strong> 
-          <span className="user-data">{user.EMAIL}</span>
+          <strong>Email:</strong>
+          {isEditing ? (
+            <input 
+              type="email" 
+              name="EMAIL" 
+              value={formData.EMAIL} 
+              onChange={handleChange} 
+              required 
+            />
+          ) : (
+            <span className="user-data">{user.EMAIL}</span>
+          )}
         </p>
         <p>
           <strong>Phone Number:</strong> 
-          <span className="user-data">{user.PHONENUMBER}</span>
+          {isEditing ? (
+            <input 
+              type="text" 
+              name="PHONENUMBER" 
+              value={formData.PHONENUMBER} 
+              onChange={handleChange} 
+              required 
+            />
+          ) : (
+            <span className="user-data">{user.PHONENUMBER}</span>
+          )}
         </p>
         <p>
           <strong>Address:</strong> 

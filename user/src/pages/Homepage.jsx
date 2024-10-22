@@ -38,11 +38,14 @@ const Homepage = () => {
             alert("Vui lòng chọn điểm đến.");
             return;
         }
+        
+        if (!departureDate) {
+            alert("Vui lòng chọn ngày khởi hành.");
+            return;
+        }
 
-        const formattedDate = departureDate ? dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD") : '';
-        const apiUrl = departureDate
-            ? `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`
-            : `http://localhost:5000/search/tour?q=${selectedCity}`;
+        const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD");
+        const apiUrl = `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`;
 
         try {
             const response = await fetch(apiUrl);

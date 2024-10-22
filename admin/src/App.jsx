@@ -8,7 +8,7 @@ import TourManagement from './TourManagement.jsx';
 import ScheduleManagement from './ScheduleManagement.jsx';
 import AddSchedule from './AddSchedule.jsx';
 import ScheduleDetail from './ScheduleDetail.jsx';
-import AddTour from './Addtour.jsx';
+import AddTour from './AddTour.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
 import BookingManagement from './BookingManagement.jsx';

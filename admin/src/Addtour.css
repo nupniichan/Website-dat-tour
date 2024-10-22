@@ -3,11 +3,11 @@
 .form-container {
     padding: 20px;
   }
-  
+
   .text-field {
     margin-bottom: 10px;
   }
-  
+
   .image-preview {
     width: auto;
     height: auto;
@@ -16,8 +16,7 @@
     display: block;
     margin-bottom: 10px;
   }
-  
+
   .submit-button {
     margin-right: 10px;
   }
-  

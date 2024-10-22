@@ -1,10 +1,8 @@
 name: Build and check code quality
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   build-react-vite:
@@ -13,46 +11,46 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.0.1
         with:
-          node-version: '20'
+          bun-version: latest
 
       - name: Install dependencies for admin
         working-directory: ./admin
-        run: npm install
+        run: bun install
 
       - name: Run ESLint for admin
         working-directory: ./admin
         run: |
           echo "Running ESLint in normal mode"
-          npx eslint .
+          bunx eslint .
           echo "Running ESLint in debug mode"
-          npx eslint . --debug
+          bunx eslint . --debug
           echo "Running ESLint with auto-fix"
-          npx eslint . --fix
+          bunx eslint . --fix
 
       - name: Build React app
         working-directory: ./admin
-        run: npm run build
+        run: bun run build
 
       - name: Install dependencies for user
         working-directory: ./user
-        run: npm install
+        run: bun install
 
       - name: Run ESLint for user
         working-directory: ./user
         run: |
           echo "Running ESLint in normal mode"
-          npx eslint .
+          bunx eslint .
           echo "Running ESLint in debug mode"
-          npx eslint . --debug
+          bunx eslint . --debug
           echo "Running ESLint with auto-fix"
-          npx eslint . --fix
+          bunx eslint . --fix
 
       - name: Build React user
         working-directory: ./user
-        run: npm run build
+        run: bun run build
 
   test-nodejs:
     runs-on: ubuntu-latest
@@ -60,25 +58,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.0.1
         with:
-          node-version: '20'
+          bun-version: latest
 
       - name: Install dependencies for server
         working-directory: ./server
-        run: |
-          echo "install dependencies"
-          npm install --legacy-peer-deps
-          echo "Install ESlint"
-          npm install --save-dev eslint@latest @eslint/js@latest eslint-plugin-react@latest eslint-plugin-react-hooks@latest eslint-plugin-react-refresh@latest globals@latest --legacy-peer-deps
+        run: bun install
 
       - name: Run ESLint for server
         working-directory: ./server
         run: |
           echo "Running ESLint in normal mode"
-          npx eslint .
+          bunx eslint .
           echo "Running ESLint in debug mode"
-          npx eslint . --debug
+          bunx eslint . --debug
           echo "Running ESLint with auto-fix"
-          npx eslint . --fix
+          bunx eslint . --fix

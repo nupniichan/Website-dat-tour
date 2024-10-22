@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router";
-import PagesNames from "../Router/PagesNames";
+import { useNavigate } from "react-router-dom";
+import pagesName from "../Router/PagesNames";
 
 const PaymentFailed = () => {
   const navigate = useNavigate();

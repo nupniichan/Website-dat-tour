@@ -6,7 +6,7 @@ const Checkout = () => {
   const [tourDetails, setTourDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [promoCode, setPromoCode] = useState('');
+  const [promoCode, setPromoCode] = useState(''); // Mã giảm giá
   const [finalPrice, setFinalPrice] = useState(0);
   const [termsAccepted, setTermsAccepted] = useState(false); 
   const [paymentMethod, setPaymentMethod] = useState(''); 
@@ -74,13 +74,16 @@ const Checkout = () => {
   }, [adultCount, childCount, infantCount, tourDetails]);
 
   const handlePromoCodeChange = (e) => {
-    setPromoCode(e.target.value);
+    setPromoCode(e.target.value); // Cập nhật mã giảm giá khi nhập
   };
 
-  // Áp dụng mã giảm giá - Test tạm thời
+  // Áp dụng mã giảm giá
   const applyPromoCode = () => {
     if (promoCode === 'DISCOUNT10' && tourDetails) {
-      setFinalPrice(prevPrice => prevPrice * 0.9); 
+      alert('Mã giảm giá hợp lệ! Bạn đã được giảm 10%.');
+      setFinalPrice(prevPrice => prevPrice * 0.9); // Giảm giá 10% nếu mã hợp lệ
+    } else {
+      alert('Mã giảm giá không hợp lệ.');
     }
   };
 
@@ -125,9 +128,7 @@ const Checkout = () => {
       alert('Bạn cần đồng ý với các điều khoản trước khi tiếp tục!');
       return;
     }
-  
-<<<<<<< Updated upstream
-=======
+
     if (!paymentMethod) {
       alert('Vui lòng chọn một phương thức thanh toán');
       return;
@@ -138,9 +139,7 @@ const Checkout = () => {
       alert('Hiện chúng tôi chưa hỗ trợ phương thức thanh toán này');
       return;
     }
-  
-    // Nếu phương thức thanh toán là Momo thì tiếp tục xử lý
->>>>>>> Stashed changes
+
     const paymentData = {
       id: id,
       customerId: customerId,
@@ -173,7 +172,7 @@ const Checkout = () => {
     } catch (error) {
       console.error('Lỗi khi xử lý thanh toán:', error);
     }
-  };  
+  };
 
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-red-500 text-center">Lỗi: {error}</div>;
@@ -200,28 +199,18 @@ const Checkout = () => {
         <div className="mt-4">
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
-<<<<<<< Updated upstream
-        <div className="mt-6">
-=======
-
 
         {/* Tui khoá lại tại vì cái này ở sprint 3. Khi nào tới sprint 3 thì mở ra */}
         {/* Cho phép nhập mã giảm giá */}
         {/* <div className="mt-6">
->>>>>>> Stashed changes
           <label className="block font-medium">Mã giảm giá</label>
           <input
             type="text"
             className="border border-gray-300 rounded-md w-full p-2 mt-2"
             placeholder="Nhập mã giảm giá"
-            value={promoCode}
-            onChange={handlePromoCodeChange}
-            disabled
+            value={promoCode}  // Giá trị hiện tại của mã giảm giá
+            onChange={handlePromoCodeChange}  // Sự kiện cập nhật mã giảm giá khi thay đổi
           />
-<<<<<<< Updated upstream
-          <button onClick={applyPromoCode} className="mt-2 w-full bg-blue-600 text-white py-2 rounded opacity-50 cursor-not-allowed" disabled>Áp dụng</button>
-        </div>
-=======
           <button 
             onClick={applyPromoCode} 
             className="mt-2 w-full bg-blue-600 text-white py-2 rounded"
@@ -230,7 +219,6 @@ const Checkout = () => {
           </button>
         </div> */}
 
->>>>>>> Stashed changes
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
         </div>
@@ -252,12 +240,18 @@ const Checkout = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {Object.entries(customerInfo).map(([key, value]) => (
             <div key={key}>
-              <label className="block font-medium">{key === 'fullname' ? 'Họ tên' : key === 'phoneNumber' ? 'Số điện thoại' : key === 'email' ? 'Email' : 'Địa chỉ'}</label>
+              <label className="block font-medium">
+                {key === 'fullname' ? 'Họ tên' : key === 'phoneNumber' ? 'Số điện thoại' : key === 'email' ? 'Email' : 'Địa chỉ'}
+              </label>
               <input 
                 type="text" 
                 className="border border-gray-300 rounded-md w-full p-2 mt-2" 
                 value={value} 
-                readOnly 
+                readOnly
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Bạn không thể thay đổi thông tin này!');
+                }}
               />
             </div>
           ))}

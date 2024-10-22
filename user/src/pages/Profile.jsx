@@ -154,10 +154,6 @@ const Profile = () => {
         </p>
 
         <p>
-<<<<<<< Updated upstream
-          <strong>Email:</strong> 
-          <span className="user-data">{user.EMAIL}</span>
-=======
           <strong>Email:</strong>
           {isEditing ? (
             <>
@@ -173,14 +169,9 @@ const Profile = () => {
           ) : (
             <span className="user-data">{user.EMAIL}</span>
           )}
->>>>>>> Stashed changes
         </p>
 
         <p>
-<<<<<<< Updated upstream
-          <strong>Phone Number:</strong> 
-          <span className="user-data">{user.PHONENUMBER}</span>
-=======
           <strong>Số điện thoại:</strong> 
           {isEditing ? (
             <>
@@ -196,7 +187,6 @@ const Profile = () => {
           ) : (
             <span className="user-data">{user.PHONENUMBER}</span>
           )}
->>>>>>> Stashed changes
         </p>
 
         <p>

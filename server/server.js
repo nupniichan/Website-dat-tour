@@ -223,7 +223,6 @@ app.get('/schedules/:id', (req, res) => {
 });
 
 // Update Schedule
-// Update Schedule
 app.put('/update-schedule/:id', (req, res) => {
   const { id } = req.params;
   const { startDate, endDate, details } = req.body;
@@ -260,7 +259,6 @@ app.put('/update-schedule/:id', (req, res) => {
   });
 });
 
-// Delete Schedule
 // Update Schedule
 app.put('/update-schedule/:id', (req, res) => {
   const { id } = req.params;
@@ -300,13 +298,31 @@ app.put('/update-schedule/:id', (req, res) => {
 
 // Add tour
 app.post('/add-tour', (req, res) => {
-  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body; // Thêm 'khoihanh' vào destructuring
-  const query = 'INSERT INTO Tour (TENTOUR, LOAITOUR, GIA, SOVE, HINHANH, MOTA, TRANGTHAI, IDLICHTRINH, PHUONGTIENDICHUYEN, KHOIHANH) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'; // Thêm KHOIHANH vào câu query
-  db.query(query, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Tour added successfully', id: result.insertId });
+  const { tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh } = req.body;
+
+  // Check if a tour with the same name exists
+  const checkQuery = 'SELECT * FROM Tour WHERE TENTOUR = ?';
+  db.query(checkQuery, [tentour], (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (results.length > 0) {
+          // If a tour with the same name exists, return an error
+          return res.status(400).json({ message: 'Tour with this name already exists' });
+      } else {
+          // If no duplicates, insert the new tour
+          const insertQuery = 'INSERT INTO Tour (TENTOUR, LOAITOUR, GIA, SOVE, HINHANH, MOTA, TRANGTHAI, IDLICHTRINH, PHUONGTIENDICHUYEN, KHOIHANH) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          db.query(insertQuery, [tentour, loaitour, gia, sove, hinhanh, mota, trangthai, idlichtrinh, phuongtiendichuyen, khoihanh], (err, result) => {
+              if (err) {
+                  return res.status(500).json({ error: err.message });
+              }
+              res.json({ message: 'Tour added successfully', id: result.insertId });
+          });
+      }
   });
 });
+
 
 // Image Upload
 const storage = multer.diskStorage({
@@ -339,6 +355,30 @@ app.get('/tours', (req, res) => {
     res.json(results);
   });
 });
+
+// Check if tour already exists
+app.get('/check-tour-exists', (req, res) => {
+  const { tentour } = req.query;
+
+  if (!tentour) {
+      return res.status(400).json({ exists: false, message: 'Tên tour là bắt buộc' });
+  }
+
+  const query = 'SELECT * FROM Tour WHERE TENTOUR = ?';
+  db.query(query, [tentour], (err, results) => {
+      if (err) {
+          return res.status(500).json({ exists: false, message: 'Database error' });
+      }
+
+      if (results.length > 0) {
+          return res.status(200).json({ exists: true, message: 'Tour đã tồn tại' });
+      } else {
+          return res.status(200).json({ exists: false, message: 'Tour không tồn tại' });
+      }
+  });
+});
+
+
 
 // Get Tour by ID
 app.get('/tours/:id', (req, res) => {

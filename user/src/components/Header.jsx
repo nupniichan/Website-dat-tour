@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import PagesNames from "../Router/PagesNames";
 import "../components/Header.css"; // Import the CSS file for styling
 

@@ -79,10 +79,9 @@ const BookingManagement = () => {
   };
 
   // Helper function to format currency with commas and "đ" at the end, without decimals
-const formatCurrency = (amount) => {
-  return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
-};
-
+  const formatCurrency = (amount) => {
+    return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
+  };
 
   return (
     <Box padding={3}>
@@ -111,7 +110,7 @@ const formatCurrency = (amount) => {
           <TableRow>
             <TableCell>ID</TableCell>
             <TableCell>Mã Tour</TableCell>
-            <TableCell>Mã Người Dùng</TableCell>
+            <TableCell>Tên Khách Hàng</TableCell>
             <TableCell>Ngày Đặt</TableCell>
             <TableCell>Số Vé</TableCell>
             <TableCell>Tình Trạng</TableCell>
@@ -124,13 +123,11 @@ const formatCurrency = (amount) => {
             <TableRow key={booking.ID}>
               <TableCell>{booking.ID}</TableCell>
               <TableCell>{booking.IDTOUR}</TableCell>
-              <TableCell>{booking.IDNGUOIDUNG}</TableCell>
+              <TableCell>{booking.FULLNAME}</TableCell>
               <TableCell>{new Date(booking.NGAYDAT).toLocaleDateString('vi-VN')}</TableCell>
               <TableCell>{booking.SOVE}</TableCell>
               <TableCell>{booking.TINHTRANG}</TableCell>
-              <TableCell>
-                {formatCurrency(booking.TONGTIEN)}
-              </TableCell>
+              <TableCell>{formatCurrency(booking.TONGTIEN)}</TableCell>
               <TableCell>
                 <Button variant="outlined" onClick={() => handleViewDetails(booking)}>
                   Xem Chi tiết
@@ -149,48 +146,45 @@ const formatCurrency = (amount) => {
 
       {/* Booking details dialog */}
       {selectedBooking && (
-  <Dialog open={true} onClose={handleCloseDialog}>
-    <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
-    <DialogContent>
-      <Box padding={2}>
+        <Dialog open={true} onClose={handleCloseDialog}>
+          <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
+          <DialogContent>
+            <Box padding={2}>
+              {/* Section: Booking Information */}
+              <Typography variant="h6" gutterBottom>
+                Thông tin đặt chỗ
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+                <Typography>Mã đặt chỗ: <strong>{selectedBooking.ID}</strong></Typography>
+                <Typography>Mã Tour: <strong>{selectedBooking.IDTOUR}</strong></Typography>
+                <Typography>Tên Người Dùng: <strong>{selectedBooking.FULLNAME}</strong></Typography>
+                <Typography>Ngày đặt: <strong>{new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</strong></Typography>
+              </Box>
 
-        {/* Section: Booking Information */}
-        <Typography variant="h6" gutterBottom>
-          Thông tin đặt chỗ
-        </Typography>
-        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-          <Typography>Mã đặt chỗ: <strong>{selectedBooking.ID}</strong></Typography>
-          <Typography>Mã Tour: <strong>{selectedBooking.IDTOUR}</strong></Typography>
-          <Typography>Mã Người Dùng: <strong>{selectedBooking.IDNGUOIDUNG}</strong></Typography>
-          <Typography>Ngày đặt: <strong>{new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</strong></Typography>
-        </Box>
+              {/* Section: Ticket Information */}
+              <Typography variant="h6" gutterBottom>
+                Thông tin vé
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+                <Typography>Số vé: <strong>{selectedBooking.SOVE}</strong></Typography>
+                <Typography>Tình trạng: <strong>{selectedBooking.TINHTRANG}</strong></Typography>
+              </Box>
 
-        {/* Section: Ticket Information */}
-        <Typography variant="h6" gutterBottom>
-          Thông tin vé
-        </Typography>
-        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-          <Typography>Số vé: <strong>{selectedBooking.SOVE}</strong></Typography>
-          <Typography>Tình trạng: <strong>{selectedBooking.TINHTRANG}</strong></Typography>
-        </Box>
-
-        {/* Section: Payment Information */}
-        <Typography variant="h6" gutterBottom>
-          Thanh toán
-        </Typography>
-        <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-          <Typography>
-            Tổng tiền: <Typography component="span" variant="body1" color="error" fontWeight="bold">
-              {formatCurrency(selectedBooking.TONGTIEN)}
-            </Typography>
-          </Typography>
-        </Box>
-
-      </Box>
-    </DialogContent>
-  </Dialog>
-)}
-
+              {/* Section: Payment Information */}
+              <Typography variant="h6" gutterBottom>
+                Thanh toán
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
+                <Typography>
+                  Tổng tiền: <Typography component="span" variant="body1" color="error" fontWeight="bold">
+                    {formatCurrency(selectedBooking.TONGTIEN)}
+                  </Typography>
+                </Typography>
+              </Box>
+            </Box>
+          </DialogContent>
+        </Dialog>
+      )}
     </Box>
   );
 };

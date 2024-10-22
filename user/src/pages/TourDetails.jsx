@@ -8,13 +8,21 @@ const TourDetails = () => {
     const location = useLocation();
     const navigate = useNavigate(); // Khởi tạo navigate để điều hướng
     const [tour, setTour] = useState(location.state?.tour || null); // Lấy từ state nếu có
+    const [scheduleDetails, setScheduleDetails] = useState([]);
 
     useEffect(() => {
         if (!tour) {
-            // Nếu không có tour trong state, gọi API để lấy thông tin
+            // Nếu không có tour trong state, gọi API để lấy thông tin tour
             fetch(`http://localhost:5000/tours/${id}`)
                 .then((response) => response.json())
-                .then((data) => setTour(data))
+                .then((data) => {
+                    setTour(data);
+                    // Gọi API để lấy chi tiết lịch trình
+                    fetch(`http://localhost:5000/schedules/${data.IDLICHTRINH}`)
+                        .then((response) => response.json())
+                        .then((scheduleData) => setScheduleDetails(scheduleData.details))
+                        .catch((error) => console.error('Error fetching schedule details:', error));
+                })
                 .catch((error) => console.error('Error fetching tour details:', error));
         }
     }, [id, tour]);
@@ -35,11 +43,18 @@ const TourDetails = () => {
                 <h1 className="tour-title">{tour.TENTOUR}</h1>
                 <p className="tour-description">{tour.MOTA || 'Chưa có mô tả.'}</p>
                 <div className="tour-itinerary">
-                    <h2>Chi tiết lịch trình</h2>
+                <h2>Chi tiết lịch trình</h2>
                     <ul>
-                        <li>Ngày 1: Lên xe lúc 22:05 - Lên xe đi Đà Lạt</li>
-                        <li>Ngày 1: Ăn tối tại nhà hàng bảy xạy lúc 21:05</li>
-                        <li>Ngày 2: Đi về TP.HCM lúc 12:11</li>
+                        {scheduleDetails.length > 0 ? (
+                            scheduleDetails.map((detail, index) => (
+                                <li key={index}>
+                                    <strong>Ngày {index + 1}:</strong> {dayjs(detail.NGAY).format('DD/MM/YYYY')} - {detail.GIO} - {detail.SUKIEN}
+                                    <p>{detail.MOTA}</p> {/* Mô tả xuống dòng */}
+                                </li>
+                            ))
+                        ) : (
+                            <p>Chưa có chi tiết lịch trình.</p>
+                        )}
                     </ul>
                 </div>
             </div>

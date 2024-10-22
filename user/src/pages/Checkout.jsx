@@ -128,18 +128,18 @@ const Checkout = () => {
       alert('Bạn cần đồng ý với các điều khoản trước khi tiếp tục!');
       return;
     }
-  
+
     if (!paymentMethod) {
-      alert('Please select a payment method');
+      alert('Vui lòng chọn một phương thức thanh toán');
       return;
     }
   
-    // Kiểm tra mã giảm giá khi nhấn thanh toán
-    if (promoCode && promoCode !== 'DISCOUNT10') {
-      alert('Invalid promo code');
+    // Kiểm tra nếu phương thức thanh toán không phải là Momo
+    if (paymentMethod !== 'momo') {
+      alert('Hiện chúng tôi chưa hỗ trợ phương thức thanh toán này');
       return;
     }
-  
+
     const paymentData = {
       id: id,
       customerId: customerId,
@@ -200,8 +200,9 @@ const Checkout = () => {
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
 
+        {/* Tui khoá lại tại vì cái này ở sprint 3. Khi nào tới sprint 3 thì mở ra */}
         {/* Cho phép nhập mã giảm giá */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <label className="block font-medium">Mã giảm giá</label>
           <input
             type="text"
@@ -216,7 +217,7 @@ const Checkout = () => {
           >
             Áp dụng
           </button>
-        </div>
+        </div> */}
 
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
@@ -284,7 +285,7 @@ const Checkout = () => {
           >
             <option value="" disabled>Chọn phương thức</option>
             <option value="cash">Tiền mặt</option>
-            <option value="bank_transfer">Chuyển khoản</option>
+            <option value="vnPay">Quét mã VNPay</option>
             <option value="momo">Thanh toán bằng Momo</option>
           </select>
         </div>
@@ -304,9 +305,9 @@ const Checkout = () => {
         />
 
         {/* Điều khoản và dịch vụ */}
-        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đăng ký online</h4>
+        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đặt tour online</h4>
         <div className="h-32 overflow-y-scroll border border-gray-300 p-4 rounded-md mb-4">
-          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán...</p>
+          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán tour online</p>
         </div>
 
         <label className="flex items-center mb-4">

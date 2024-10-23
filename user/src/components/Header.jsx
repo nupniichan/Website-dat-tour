@@ -70,7 +70,7 @@ const Header = ({ user, onLogout }) => {
       <div className={`md:hidden ${isMobileMenuOpen ? "mx-2 pb-5" : "hidden"}`}>
         <BrandLogo />
       </div>
-      <nav className={`md:text-sm bg-gray-900 ${isMobileMenuOpen ? "absolute z-20 top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent" : ""}`}>
+      <nav className={`md:text-sm bg-gray-900 ${isMobileMenuOpen ? "absolute z-20 top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-3" : ""}`}>
         <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex md:px-8">
           <BrandLogo />
           <div className={`flex-1 items-center mt-8 md:mt-0 md:flex ${isMobileMenuOpen ? "block" : "hidden"}`}>

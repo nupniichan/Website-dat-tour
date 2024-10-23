@@ -38,11 +38,14 @@ const Homepage = () => {
             alert("Vui lòng chọn điểm đến.");
             return;
         }
+        
+        if (!departureDate) {
+            alert("Vui lòng chọn ngày khởi hành.");
+            return;
+        }
 
-        const formattedDate = departureDate ? dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD") : '';
-        const apiUrl = departureDate
-            ? `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`
-            : `http://localhost:5000/search/tour?q=${selectedCity}`;
+        const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD");
+        const apiUrl = `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`;
 
         try {
             const response = await fetch(apiUrl);
@@ -64,8 +67,9 @@ const Homepage = () => {
                 <section className="relative">
                     <div className="relative z-10 max-w-screen-xl mx-auto px-4 py-28 md:px-8">
                         <div className="home-search space-y-5 max-w-4xl mx-auto text-center">
-                            <h2 className="text-4xl text-white font-extrabold mx-auto md:text-5xl">
-                                Hôm nay bạn muốn đi đâu?
+                            <h2 className="text-4xl text-white font-extrabold mx-auto md:text-5xl pb-3">
+                                Your dream vacation, tailored to perfection
+
                             </h2>
 
                             <div className="search-form absolute z-30 font-normal xl:w-[1128px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)]">

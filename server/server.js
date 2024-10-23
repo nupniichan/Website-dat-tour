@@ -77,7 +77,7 @@ app.get('/api/tour-history/:userId', (req, res) => {
   }
 
   const sql = `
-      SELECT * 
+      SELECT v.ID, v.NGAYDAT, v.SOVE, v.LOAIVE, v.TINHTRANG, v.TONGTIEN, v.PHUONGTHUCTHANHTOAN, v.IDMAGIAMGIA, v.IDNGUOIDUNG, v.IDTOUR, v.GHICHU, v.SOVE_NGUOILON, v.SOVE_TREM, v.SOVE_EMBE 
       FROM ve v 
       JOIN tour t ON v.IDTOUR = t.ID 
       WHERE v.IDNGUOIDUNG = ?`;
@@ -86,8 +86,9 @@ app.get('/api/tour-history/:userId', (req, res) => {
       if (err) {
           console.error('Error executing query:', err.stack);
           return res.status(500).json({ error: 'Database query failed' });
+          
       }
-      
+      console.log(results);
       res.json(results);
   });
 });

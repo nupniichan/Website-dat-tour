@@ -34,7 +34,7 @@ const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason
           <button
             className="dialog-confirm"
             onClick={onConfirm}
-            disabled={isProcessing} // Không cho nhấn khi đang xử lý
+            disabled={isProcessing} // Disable when processing
           >
             {isProcessing ? 'Đang xử lý...' : 'Xác nhận hủy vé'}
           </button>
@@ -56,10 +56,10 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
         <h2>Chi tiết vé</h2>
         <p><strong>Mã vé:</strong> {ticket.ID}</p>
         <p><strong>Ngày đặt:</strong> {formatDate(ticket.NGAYDAT)}</p>
-        <p><strong>Tổng Số vé:</strong> {ticket.SOVE}</p>
-        <p><strong>Số Vé Người lớn:</strong> {ticket.SOVE_NGUOILON}</p>
-        <p><strong>Số Vé Trẻ em:</strong> {ticket.SOVE_TREM}</p>
-        <p><strong>Số Vé Em bé:</strong> {ticket.SOVE_EMBE}</p>
+        <p><strong>Tổng số vé:</strong> {ticket.SOVE}</p>
+        <p><strong>Số vé người lớn:</strong> {ticket.SOVE_NGUOILON}</p>
+        <p><strong>Số vé trẻ em:</strong> {ticket.SOVE_TREM}</p>
+        <p><strong>Số vé em bé:</strong> {ticket.SOVE_EMBE}</p>
         <p><strong>Tình trạng:</strong> {ticket.TINHTRANG}</p>
         <p><strong>Tổng tiền:</strong> {formatCurrency(ticket.TONGTIEN)}</p>
         <p><strong>Phương thức thanh toán:</strong> {ticket.PHUONGTHUCTHANHTOAN}</p>
@@ -84,7 +84,6 @@ const TourHistory = () => {
   
   useEffect(() => {
     const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
-    console.log(userId);
     const fetchTourHistory = async () => {
       if (!userId) {
         console.error('User ID not found in session storage.');
@@ -96,6 +95,7 @@ const TourHistory = () => {
         setTourHistory(response.data);
       } catch (error) {
         console.error('Error fetching tour history:', error);
+        alert('Lỗi khi lấy lịch sử đặt tour.');
       }
     };
 
@@ -196,7 +196,7 @@ const TourHistory = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="8">Không có lịch sử đặt tour.</td>
+              <td colSpan="7">Không có lịch sử đặt tour.</td>
             </tr>
           )}
         </tbody>

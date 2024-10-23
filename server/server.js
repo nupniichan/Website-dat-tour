@@ -77,7 +77,7 @@ app.get('/api/tour-history/:userId', (req, res) => {
   }
 
   const sql = `
-      SELECT v.ID, v.NGAYDAT, v.SOVE, v.TONGTIEN, t.TENTOUR, t.GIA 
+      SELECT * 
       FROM ve v 
       JOIN tour t ON v.IDTOUR = t.ID 
       WHERE v.IDNGUOIDUNG = ?`;

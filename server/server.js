@@ -877,50 +877,58 @@ app.post('/payment', async (req, res) => {
 });
 
 // Trả kết quả từ momo về
-// Trả kết quả từ momo về
 app.post('/callback', (req, res) => {
   const { resultCode, extraData } = req.body;
 
-  // ResultCode == 0: Thanh toán thành công
-  // ResultCode != 0: Thanh toán thất bại
-  if (resultCode === 0) {
-    // Thanh toán thành công
+  if (resultCode === 0) { // Thanh toán thành công
     try {
-      const paymentData = JSON.parse(extraData); // Lấy dữ liệu thanh toán từ extraData
+      // Kiểm tra và parse extraData
+      if (!extraData) {
+        console.error('extraData không tồn tại');
+        return res.redirect(config.failRedirectUrl); // Chuyển hướng tới trang thất bại
+      }
+
+      const paymentData = JSON.parse(extraData); // Parse extraData JSON
+      
+      // Kiểm tra các trường trong paymentData
+      if (!paymentData || !paymentData.tourId || !paymentData.customerId) {
+        console.error('Thiếu dữ liệu quan trọng trong extraData:', paymentData);
+        return res.redirect(config.failRedirectUrl);
+      }
 
       // Lưu thông tin vé vào database
       const ticketData = {
-        tourId: paymentData.tourId,
-        customerId: paymentData.customerId,
-        amount: paymentData.amount,
-        paymentMethod: paymentData.paymentMethod,
-        note: paymentData.customerNote,
-        adultCount: paymentData.adultCount,
-        childCount: paymentData.childCount,
-        infantCount: paymentData.infantCount,
-        status: 'Thanh toán thành công',
-        bookingDate: new Date(),
-        ticketType: paymentData.ticketType,
-        discountId: null
+        IDTOUR: paymentData.tourId,
+        IDNGUOIDUNG: paymentData.customerId,
+        TONGTIEN: paymentData.amount,
+        PHUONGTHUCTHANHTOAN: paymentData.paymentMethod,
+        GHICHU: paymentData.customerNote || '',
+        SOVE_NGUOILON: paymentData.adultCount,
+        SOVE_TREM: paymentData.childCount,
+        SOVE_EMBE: paymentData.infantCount,
+        TINHTRANG: 'Đã thanh toán',
+        NGAYDAT: new Date().toISOString(),
+        LOAIVE: paymentData.ticketType,
+        IDMAGIAMGIA: paymentData.discountId || null,
       };
 
       // Gọi API thêm vé vào cơ sở dữ liệu
       axios.post('http://localhost:5000/add-ticket', ticketData)
         .then(response => {
-          res.redirect(config.redirectUrl); // Redirect to success page
+          res.redirect(config.redirectUrl); // Chuyển hướng tới trang thành công
         })
         .catch(error => {
           console.error('Lỗi khi lưu vé:', error);
-          res.redirect(config.failRedirectUrl); // Redirect to failed page
+          res.redirect(config.failRedirectUrl); // Chuyển hướng tới trang thất bại
         });
-
+      
     } catch (error) {
       console.error('Lỗi khi xử lý callback:', error);
       res.redirect(config.failRedirectUrl); // Redirect to failed page
     }
   } else {
     // Thanh toán thất bại
-    res.redirect(config.failRedirectUrl); // Redirect to failed page
+    res.redirect(config.failRedirectUrl); // Chuyển hướng tới trang thất bại
   }
 });
 
@@ -983,3 +991,4 @@ app.post('/prepare-payment', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+

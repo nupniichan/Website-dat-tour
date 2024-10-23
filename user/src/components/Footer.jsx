@@ -5,7 +5,7 @@ const Footer = () => {
     const footerNavs = [
         {
             href: `${PagesNames.ABOUT}`,
-            name: "Về chúng tôi",
+            name: "About Us",
         },
         {
             href: null,
@@ -13,15 +13,15 @@ const Footer = () => {
         },
         {
             href: null,
-            name: "Điều khoản - dịch vụ",
+            name: "Terms & Conditions",
         },
         {
             href: null,
-            name: "Các câu hỏi thường gặp",
+            name: "FAQ",
         },
         {
             href: null,
-            name: "Hỗ trợ",
+            name: "Support",
         },
     ];
 

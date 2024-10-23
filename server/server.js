@@ -68,7 +68,29 @@ app.get('/api/tour-history', (req, res) => {
     res.json(results || []);
   });
 });
+// API to get tour history for a specific user
+app.get('/api/tour-history/:userId', (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
 
+  if (!userId) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
+  const sql = `
+      SELECT * 
+      FROM ve v 
+      JOIN tour t ON v.IDTOUR = t.ID 
+      WHERE v.IDNGUOIDUNG = ?`;
+
+  db.query(sql, [userId], (err, results) => {
+      if (err) {
+          console.error('Error executing query:', err.stack);
+          return res.status(500).json({ error: 'Database query failed' });
+      }
+      
+      res.json(results);
+  });
+});
 // Hủy vé
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;

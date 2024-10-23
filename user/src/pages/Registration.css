@@ -47,3 +47,8 @@
 .button-spacing {
   margin-top: 15px; /* Adjust the value as needed */
 }
+.error-text {
+  color: red;
+  font-size: 0.9em;
+  margin-top: 5px;
+}

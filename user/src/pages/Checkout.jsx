@@ -141,7 +141,7 @@ const Checkout = () => {
     }
 
     const paymentData = {
-      id: id,
+      tourId: id,
       customerId: customerId,
       amount: finalPrice,
       adultCount: adultCount,
@@ -150,6 +150,10 @@ const Checkout = () => {
       paymentMethod: paymentMethod,
       ticketType: tourDetails.LOAITOUR,
       customerNote: customerNote || '',
+      bookingDate: new Date().toISOString(),
+      status: 'Đã thanh toán', // hoặc trạng thái phù hợp
+      totalTickets: adultCount + childCount + infantCount,
+      discountId: null // hoặc mã giảm giá nếu có
     };
   
     try {
@@ -160,7 +164,7 @@ const Checkout = () => {
         },
         body: JSON.stringify({
           amount: finalPrice,
-          orderInfo: `Thanh toán cho tour ${tourDetails.TENTOUR}`,
+          orderInfo: `Thanh toán tour ${tourDetails.TENTOUR}`,
           extraData: JSON.stringify(paymentData), 
         }),
       });

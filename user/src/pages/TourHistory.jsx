@@ -10,6 +10,10 @@ const formatDate = (isoDateString) => {
   return `${day}/${month}/${year}`;
 };
 
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
 const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason, setCancelReason, isProcessing }) => {
   if (!isOpen) return null;
 
@@ -57,7 +61,7 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
         <p><strong>Số Vé Trẻ em:</strong> {ticket.SOVE_TREM}</p>
         <p><strong>Số Vé Em bé:</strong> {ticket.SOVE_EMBE}</p>
         <p><strong>Tình trạng:</strong> {ticket.TINHTRANG}</p>
-        <p><strong>Tổng tiền:</strong> {ticket.TONGTIEN} VND</p>
+        <p><strong>Tổng tiền:</strong> {formatCurrency(ticket.TONGTIEN)}</p>
         <p><strong>Phương thức thanh toán:</strong> {ticket.PHUONGTHUCTHANHTOAN}</p>
         <p><strong>Ghi chú:</strong> {ticket.GHICHU || 'Không có ghi chú'}</p>
         <div className="dialog-actions">
@@ -163,7 +167,7 @@ const TourHistory = () => {
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
                 <td>{item.TINHTRANG}</td>
-                <td>{item.TONGTIEN} VND</td>
+                <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
                   <div className="button-group">

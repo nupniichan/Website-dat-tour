@@ -10,6 +10,10 @@ const formatDate = (isoDateString) => {
   return `${day}/${month}/${year}`;
 };
 
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
 const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason, setCancelReason, isProcessing }) => {
   if (!isOpen) return null;
 
@@ -57,7 +61,7 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
         <p><strong>Số Vé Trẻ em:</strong> {ticket.SOVE_TREM}</p>
         <p><strong>Số Vé Em bé:</strong> {ticket.SOVE_EMBE}</p>
         <p><strong>Tình trạng:</strong> {ticket.TINHTRANG}</p>
-        <p><strong>Tổng tiền:</strong> {ticket.TONGTIEN} VND</p>
+        <p><strong>Tổng tiền:</strong> {formatCurrency(ticket.TONGTIEN)}</p>
         <p><strong>Phương thức thanh toán:</strong> {ticket.PHUONGTHUCTHANHTOAN}</p>
         <p><strong>Ghi chú:</strong> {ticket.GHICHU || 'Không có ghi chú'}</p>
         <div className="dialog-actions">
@@ -77,11 +81,18 @@ const TourHistory = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-
+  
   useEffect(() => {
+    const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
+    console.log(userId);
     const fetchTourHistory = async () => {
+      if (!userId) {
+        console.error('User ID not found in session storage.');
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:5000/api/tour-history');
+        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`); // Update API endpoint with userId
         setTourHistory(response.data);
       } catch (error) {
         console.error('Error fetching tour history:', error);
@@ -163,7 +174,7 @@ const TourHistory = () => {
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
                 <td>{item.TINHTRANG}</td>
-                <td>{item.TONGTIEN} VND</td>
+                <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
                   <div className="button-group">

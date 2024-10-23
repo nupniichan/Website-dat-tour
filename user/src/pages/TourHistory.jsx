@@ -81,11 +81,18 @@ const TourHistory = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-
+  
   useEffect(() => {
+    const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
+    console.log(userId);
     const fetchTourHistory = async () => {
+      if (!userId) {
+        console.error('User ID not found in session storage.');
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:5000/api/tour-history');
+        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`); // Update API endpoint with userId
         setTourHistory(response.data);
       } catch (error) {
         console.error('Error fetching tour history:', error);

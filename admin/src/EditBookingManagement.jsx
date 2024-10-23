@@ -23,6 +23,7 @@ const EditBookingManagement = () => {
   const [tourPrice, setTourPrice] = useState(0); // To store fetched tour price
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({}); // New state for validation errors
 
   // Fetch ticket data when the component loads if ID is not "new"
   useEffect(() => {
@@ -128,9 +129,56 @@ const EditBookingManagement = () => {
     calculateTotal(tourPrice);
   }, [booking.SOVE_NGUOILON, booking.SOVE_TREM, booking.SOVE_EMBE, tourPrice]);
 
+  // Validate form fields
+  const validateForm = () => {
+    let tempErrors = {};
+    
+    // Validate IDTOUR
+    if (!booking.IDTOUR) {
+      tempErrors.IDTOUR = "Mã Tour không được để trống";
+    } else if (isNaN(booking.IDTOUR) || booking.IDTOUR <= 0) {
+      tempErrors.IDTOUR = "Mã Tour phải là số nguyên dương";
+    }
+
+    // Validate IDNGUOIDUNG
+    if (!booking.IDNGUOIDUNG) {
+      tempErrors.IDNGUOIDUNG = "Mã Người Dùng không được để trống";
+    } else if (isNaN(booking.IDNGUOIDUNG) || booking.IDNGUOIDUNG <= 0) {
+      tempErrors.IDNGUOIDUNG = "Mã Người Dùng phải là số nguyên dương";
+    }
+
+    // Validate NGAYDAT
+    if (!booking.NGAYDAT) {
+      tempErrors.NGAYDAT = "Ngày Đặt không được để trống";
+    } else {
+      const selectedDate = new Date(booking.NGAYDAT);
+      const currentDate = new Date();
+      if (selectedDate > currentDate) {
+        tempErrors.NGAYDAT = "Ngày Đặt không thể là ngày trong tương lai";
+      }
+    }
+
+    // Validate ticket numbers
+    if (booking.SOVE_NGUOILON < 1) {
+      tempErrors.SOVE_NGUOILON = "Phải có ít nhất 1 vé người lớn";
+    }
+    if (booking.SOVE_TREM < 0) {
+      tempErrors.SOVE_TREM = "Số vé trẻ em không thể âm";
+    }
+    if (booking.SOVE_EMBE < 0) {
+      tempErrors.SOVE_EMBE = "Số vé em bé không thể âm";
+    }
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0; // Return true if no errors
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return; // Stop submission if validation fails
+    }
     setIsLoading(true);
     setError(null);
 
@@ -190,6 +238,8 @@ const EditBookingManagement = () => {
           value={booking.IDTOUR}
           onChange={handleChange}
           required
+          error={!!errors.IDTOUR}
+          helperText={errors.IDTOUR}
           style={{ marginBottom: '10px' }}
         />
 
@@ -200,6 +250,8 @@ const EditBookingManagement = () => {
           value={booking.IDNGUOIDUNG}
           onChange={handleChange}
           required
+          error={!!errors.IDNGUOIDUNG}
+          helperText={errors.IDNGUOIDUNG}
           style={{ marginBottom: '10px' }}
         />
 
@@ -211,6 +263,8 @@ const EditBookingManagement = () => {
           value={booking.NGAYDAT}
           onChange={handleChange}
           required
+          error={!!errors.NGAYDAT}
+          helperText={errors.NGAYDAT}
           style={{ marginBottom: '10px' }}
           InputLabelProps={{ shrink: true }}
         />
@@ -223,8 +277,10 @@ const EditBookingManagement = () => {
           value={booking.SOVE_NGUOILON}
           onChange={handleChange}
           required
+          error={!!errors.SOVE_NGUOILON}
+          helperText={errors.SOVE_NGUOILON}
           style={{ marginBottom: '10px' }}
-          inputProps={{ min: 0 }} // Prevent negative values
+          inputProps={{ min: 1 }}
         />
 
         <TextField
@@ -235,8 +291,10 @@ const EditBookingManagement = () => {
           value={booking.SOVE_TREM}
           onChange={handleChange}
           required
+          error={!!errors.SOVE_TREM}
+          helperText={errors.SOVE_TREM}
           style={{ marginBottom: '10px' }}
-          inputProps={{ min: 0 }} // Prevent negative values
+          inputProps={{ min: 0 }}
         />
 
         <TextField
@@ -247,8 +305,10 @@ const EditBookingManagement = () => {
           value={booking.SOVE_EMBE}
           onChange={handleChange}
           required
+          error={!!errors.SOVE_EMBE}
+          helperText={errors.SOVE_EMBE}
           style={{ marginBottom: '10px' }}
-          inputProps={{ min: 0 }} // Prevent negative values
+          inputProps={{ min: 0 }}
         />
 
         <TextField

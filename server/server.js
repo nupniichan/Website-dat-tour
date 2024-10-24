@@ -467,14 +467,28 @@ app.post('/register', (req, res) => {
     return res.status(400).json({ message: 'All fields are required!' });
   }
 
-  const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [fullname, phoneNumber, email, address, dayOfBirth, accountName, password], (err, result) => {
+  // Kiểm tra email trùng lặp
+  const checkEmailQuery = 'SELECT * FROM USER WHERE EMAIL = ?';
+  db.query(checkEmailQuery, [email], (err, result) => {
     if (err) {
       return res.status(500).json({ message: 'Database error: ' + err.message });
     }
-    res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+    
+    if (result.length > 0) {
+      return res.status(400).json({ message: 'Email already exists!' });
+    }
+
+    // Chèn dữ liệu nếu email chưa tồn tại
+    const insertQuery = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(insertQuery, [fullname, phoneNumber, email, address, dayOfBirth, accountName, password], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: 'Database error: ' + err.message });
+      }
+      res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+    });
   });
 });
+
 
 // User Login
 app.post('/login', (req, res) => {

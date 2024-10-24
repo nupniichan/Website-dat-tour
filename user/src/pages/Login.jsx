@@ -41,7 +41,7 @@ const Login = ({ onLogin }) => {
                 sessionStorage.setItem('userId', ID); 
                 sessionStorage.setItem('userName', userName);  
                 onLogin(ID, userName);  
-                navigate('/TourHistory');  
+                navigate('/');  
             } else {
                 alert(data.message || "Đăng nhập thất bại");
             }

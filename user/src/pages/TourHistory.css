@@ -40,6 +40,19 @@
   background-color: #ffffff; /* Zebra stripes for odd rows */
 }
 
+/* Chi tiết vé người lớn, trẻ em, em bé */
+.ticket-details {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #fafafa;
+  border-radius: 5px;
+}
+
+.ticket-details strong {
+  font-weight: bold;
+}
+
 /* CSS cho nút Hủy vé */
 .cancel-button {
   background-color: #ff4d4d; /* Màu đỏ nổi bật */
@@ -125,4 +138,30 @@
 
 .dialog-cancel:hover {
   background-color: #da190b;
+}
+
+/* CSS cho chi tiết vé đầy đủ */
+.ticket-details-dialog {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 500px;
+  text-align: left;
+}
+
+.ticket-details-dialog h2 {
+  margin-bottom: 15px;
+}
+
+.ticket-details-dialog p {
+  margin: 5px 0;
+}
+
+.ticket-details-dialog strong {
+  font-weight: bold;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px; /* Khoảng cách giữa các nút */
 }

@@ -96,7 +96,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
 
-  // Query to get ticket details
   const getTicketQuery = 'SELECT * FROM ve WHERE ID = ?';
   db.query(getTicketQuery, [ticketId], (err, ticketResults) => {
     if (err) {
@@ -112,55 +111,25 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
     const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
     const tourId = ticket.IDTOUR;
 
-    // Query to get the tour's travel date
-    const getTourDateQuery = 'SELECT NGAYDI FROM Tour WHERE ID = ?';
-    db.query(getTourDateQuery, [tourId], (err, results) => {
-      if (err) {
-        console.error('Lỗi khi truy vấn ngày đi của tour:', err);
-        return res.status(500).json({ error: 'Lỗi khi truy vấn ngày đi của tour' });
+    const updateTicketQuery = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
+    db.query(updateTicketQuery, ['Đã hủy', ticketId], (error, results) => {
+      if (error) {
+        console.error('Lỗi khi cập nhật trạng thái vé:', error);
+        return res.status(500).json({ error: 'Hủy vé thất bại' });
       }
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: 'Không tìm thấy tour với ID đã cho' });
-      }
+      const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
+      db.query(updateTourQuery, [totalTickets, tourId], (err, result) => {
+        if (err) {
+          console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+          return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
+        }
 
-      const travelDate = results[0].NGAYDI ? new Date(results[0].NGAYDI) : null;
-      const currentDate = new Date();
-
-      // Check if travelDate is null
-      if (!travelDate) {
-        return res.status(400).json({ error: 'Ngày đi của tour không hợp lệ hoặc chưa được đặt.' });
-      }
-
-      // Check if the travel date is before or equal to the current date
-      if (travelDate <= currentDate) {
-        // Update ticket status to 'Đã hủy' if the travel date is in the past
-        const updateTicketQuery = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
-        db.query(updateTicketQuery, ['Đã hủy', ticketId], (error, results) => {
-          if (error) {
-            console.error('Lỗi khi cập nhật trạng thái vé:', error);
-            return res.status(500).json({ error: 'Hủy vé thất bại' });
-          }
-
-          // Update the number of available tickets in the tour
-          const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
-          db.query(updateTourQuery, [totalTickets, tourId], (err, result) => {
-            if (err) {
-              console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
-              return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
-            }
-
-            res.json({ message: 'Hủy vé thành công' });
-          });
-        });
-      } else {
-        // If travel date is not in the past, return an error
-        res.status(400).json({ error: 'Không thể hủy vé, ngày đi chưa đến.' });
-      }
+        res.json({ message: 'Hủy vé thành công' });
+      });
     });
   });
 });
-
 
 // User Login
 app.post('/login', (req, res) => {

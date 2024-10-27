@@ -14,12 +14,12 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
-const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason, setCancelReason, isProcessing }) => {
+const CancelDialog = ({ isOpen, onClose, onConfirm, cancelReason, setCancelReason, isProcessing }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-form">
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-form" onClick={(e) => e.stopPropagation()}>
         <h2>Chọn lý do hủy vé</h2>
         <select
           value={cancelReason}
@@ -34,7 +34,7 @@ const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason
           <button
             className="dialog-confirm"
             onClick={onConfirm}
-            disabled={isProcessing} // Disable when processing
+            disabled={isProcessing || !cancelReason} // Disable when processing or no reason selected
           >
             {isProcessing ? 'Đang xử lý...' : 'Xác nhận hủy vé'}
           </button>
@@ -51,8 +51,8 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
   if (!isOpen || !ticket) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="ticket-details-dialog">
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="ticket-details-dialog" onClick={(e) => e.stopPropagation()}>
         <h2>Chi tiết vé</h2>
         <p><strong>Mã vé:</strong> {ticket.ID}</p>
         <p><strong>Ngày đặt:</strong> {formatDate(ticket.NGAYDAT)}</p>
@@ -81,7 +81,7 @@ const TourHistory = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  
+
   useEffect(() => {
     const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
     const fetchTourHistory = async () => {
@@ -91,7 +91,7 @@ const TourHistory = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`); // Update API endpoint with userId
+        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`);
         setTourHistory(response.data);
       } catch (error) {
         console.error('Error fetching tour history:', error);
@@ -153,7 +153,7 @@ const TourHistory = () => {
 
   return (
     <div className="tour-history-container">
-      <h1>Lịch sử đặt tour</h1>
+      <h1 className="tour-history-title">Lịch sử đặt tour</h1>
       <table className="tour-history-table">
         <thead>
           <tr>
@@ -162,7 +162,7 @@ const TourHistory = () => {
             <th>Tổng số vé</th>
             <th>Tình trạng</th>
             <th>Tổng tiền</th>
-            <th>Phương thức thanh toán</th>
+            <th className="payment-method">Phương thức thanh toán</th>
             <th>Chức năng</th>
           </tr>
         </thead>
@@ -178,10 +178,15 @@ const TourHistory = () => {
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
                   <div className="button-group">
-                    <button onClick={() => openDetailsDialog(item)}>
+                    <button className="view-details-link" onClick={() => openDetailsDialog(item)}>
                       Xem chi tiết
                     </button>
-                    {(item.TINHTRANG !== 'Đã hủy' && item.TINHTRANG !== 'Đã hoàn tiền') && (
+                    
+                    {item.TINHTRANG === 'Đã hủy' ? (
+                      <button className="cancel-button" disabled>
+                        Đã hủy
+                      </button>
+                    ) : (
                       <button
                         className="cancel-button"
                         onClick={() => openCancelDialog(item)}
@@ -196,24 +201,21 @@ const TourHistory = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="7">Không có lịch sử đặt tour.</td>
+              <td colSpan="7" className="no-tours">Không có tour nào trong lịch sử.</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* Dialog form để chọn lý do hủy */}
       <CancelDialog
         isOpen={isDialogOpen}
         onClose={closeCancelDialog}
         onConfirm={handleCancelTicket}
-        selectedTicket={selectedTicket}
         cancelReason={cancelReason}
         setCancelReason={setCancelReason}
         isProcessing={isProcessing}
       />
 
-      {/* Dialog hiển thị chi tiết vé */}
       <TicketDetailsDialog
         isOpen={isDetailsDialogOpen}
         onClose={closeDetailsDialog}

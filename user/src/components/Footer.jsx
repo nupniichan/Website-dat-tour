@@ -1,11 +1,10 @@
 import PagesNames from "../Router/PagesNames";
-import Logo3 from '../assets/images/Logo3.png';
 
 const Footer = () => {
     const footerNavs = [
         {
             href: `${PagesNames.ABOUT}`,
-            name: "About Us",
+            name: "Về chúng tôi",
         },
         {
             href: null,
@@ -13,15 +12,15 @@ const Footer = () => {
         },
         {
             href: null,
-            name: "Terms & Conditions",
+            name: "Điều khoản - dịch vụ",
         },
         {
             href: null,
-            name: "FAQ",
+            name: "Các câu hỏi thường gặp",
         },
         {
             href: null,
-            name: "Support",
+            name: "Hỗ trợ",
         },
     ];
 
@@ -30,7 +29,7 @@ const Footer = () => {
             <div className="text-gray-500 bg-white px-4 py-3 max-w-screen-xl mx-auto md:px-8 mt-2">
                 <div className="max-w-lg sm:mx-auto sm:text-center">
                     <img
-                        src={Logo3}
+                        src="/images/Logo3.png"
                         className="w-32 sm:mx-auto"
                         alt="Company Logo"
                     />

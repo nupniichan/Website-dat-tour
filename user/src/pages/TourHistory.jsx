@@ -82,8 +82,15 @@ const TourHistory = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
+  const canCancelTicket = (ticket, tourDate) => {
+    const departureDate = new Date(tourDate);
+    const now = new Date();
+    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+    return hoursDifference >= 24;
+  };
+
   useEffect(() => {
-    const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
+    const userId = sessionStorage.getItem('userId');
     const fetchTourHistory = async () => {
       if (!userId) {
         console.error('User ID not found in session storage.');
@@ -92,7 +99,17 @@ const TourHistory = () => {
 
       try {
         const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`);
-        setTourHistory(response.data);
+        // Fetch tour dates for each ticket
+        const ticketsWithTourDates = await Promise.all(
+          response.data.map(async (ticket) => {
+            const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            return {
+              ...ticket,
+              NGAYDI: tourResponse.data.NGAYDI
+            };
+          })
+        );
+        setTourHistory(ticketsWithTourDates);
       } catch (error) {
         console.error('Error fetching tour history:', error);
         alert('Lỗi khi lấy lịch sử đặt tour.');
@@ -151,6 +168,13 @@ const TourHistory = () => {
     }
   };
 
+  const getTicketStatus = (ticket) => {
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return 'Đã hủy';
+    }
+    return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
+  };
+
   return (
     <div className="tour-history-container">
       <h1 className="tour-history-title">Lịch sử đặt tour</h1>
@@ -173,12 +197,15 @@ const TourHistory = () => {
                 <td>{item.ID}</td>
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
-                <td>{item.TINHTRANG}</td>
+                <td>{getTicketStatus(item)}</td>
                 <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
                   <div className="button-group">
-                    <button className="view-details-link" onClick={() => openDetailsDialog(item)}>
+                    <button 
+                      className="view-details-link" 
+                      onClick={() => openDetailsDialog(item)}
+                    >
                       Xem chi tiết
                     </button>
                     
@@ -186,13 +213,17 @@ const TourHistory = () => {
                       <button className="cancel-button" disabled>
                         Đã hủy
                       </button>
-                    ) : (
+                    ) : canCancelTicket(item, item.NGAYDI) ? (
                       <button
                         className="cancel-button"
                         onClick={() => openCancelDialog(item)}
                         disabled={isProcessing}
                       >
                         Hủy vé
+                      </button>
+                    ) : (
+                      <button className="cancel-button" disabled>
+                        Không thể hủy
                       </button>
                     )}
                   </div>

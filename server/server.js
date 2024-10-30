@@ -88,7 +88,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
           return res.status(500).json({ error: 'Database query failed' });
           
       }
-      console.log(results);
       res.json(results);
   });
 });
@@ -329,7 +328,7 @@ app.put('/update-schedule/:id', (req, res) => {
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ th��m các chi tiết mới
+      // Bây giờ thêm các chi tiết mới
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -935,7 +934,6 @@ app.post('/check-accountname', (req, res) => {
 
 app.post('/add-user', (req, res) => {
   const { fullname, phone, email, address, dayofbirth, accountname, password  } = req.body;
-  console.log("Received data:", req.body); 
   // Chèn người dùng mới
   const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
   
@@ -1157,28 +1155,40 @@ app.post('/prepare-payment', (req, res) => {
 });
 
 // Thêm đánh giá
-app.post('/add-review', authenticateToken, (req, res) => {
-  const { tourId, rating, content } = req.body;
-  const userId = req.userId;
+app.post('/add-review', (req, res) => {
+  const { tourId, userId, rating, content } = req.body;
 
-  // Kiểm tra xem người dùng đã mua tour và tour đã kết thúc chưa
+  console.log('Received review data:', { tourId, userId, rating, content });
+
+  if (!tourId || !userId || !rating || !content) {
+    return res.status(400).json({ 
+      error: 'Missing required fields',
+      received: { tourId, userId, rating, content }
+    });
+  }
+
+  // Sửa lại câu query để kiểm tra vé với IDTOUR
   const checkQuery = `
-    SELECT v.ID, t.NGAYVE
+    SELECT v.ID, l.NGAYVE
     FROM ve v
     JOIN tour t ON v.IDTOUR = t.ID
-    WHERE v.IDNGUOIDUNG = ? AND v.IDTOUR = ? AND v.TINHTRANG = 'Đã thanh toán' AND t.NGAYVE < NOW()
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE v.IDNGUOIDUNG = ? 
+    AND t.ID = ? 
+    AND v.TINHTRANG = 'Đã thanh toán'
+    AND l.NGAYVE < NOW()
   `;
 
   db.query(checkQuery, [userId, tourId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu' });
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
     }
 
     if (results.length === 0) {
       return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
     }
 
-    // Thêm đánh giá vào cơ sở dữ liệu
     const insertQuery = `
       INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
       VALUES (?, ?, ?, ?)
@@ -1186,16 +1196,20 @@ app.post('/add-review', authenticateToken, (req, res) => {
 
     db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá' });
+        console.error('Insert error:', err);
+        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá', details: err.message });
       }
 
-      res.json({ message: 'Đánh giá đã được thêm thành công', reviewId: result.insertId });
+      res.json({ 
+        message: 'Đánh giá đã được thêm thành công', 
+        reviewId: result.insertId 
+      });
     });
   });
 });
 
 // Sửa đánh giá
-app.put('/update-review/:id', authenticateToken, (req, res) => {
+app.put('/update-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const { rating, content } = req.body;
   const userId = req.userId;
@@ -1220,7 +1234,7 @@ app.put('/update-review/:id', authenticateToken, (req, res) => {
 });
 
 // Xóa đánh giá
-app.delete('/delete-review/:id', authenticateToken, (req, res) => {
+app.delete('/delete-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const userId = req.userId;
 

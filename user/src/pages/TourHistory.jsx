@@ -74,6 +74,73 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
   );
 };
 
+const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
+  const [rating, setRating] = useState(0);
+  const [content, setContent] = useState('');
+
+  if (!isOpen || !tour) return null;
+
+  const handleStarClick = (selectedRating) => {
+    setRating(selectedRating);
+  };
+
+  const handleSubmit = () => {
+    if (rating === 0) {
+      alert('Vui lòng chọn số sao đánh giá.');
+      return;
+    }
+    if (content.trim() === '') {
+      alert('Vui lòng nhập nội dung đánh giá.');
+      return;
+    }
+    onSubmit(tour.ID, rating, content);
+  };
+
+  return (
+    <div className="dialog-overlay">
+      <div className="review-dialog">
+        <h2>Đánh giá tour</h2>
+        <div className="tour-details">
+          <p><strong>Mã vé:</strong> {tour.ID}</p>
+          <p><strong>Ngày đặt:</strong> {formatDate(tour.NGAYDAT)}</p>
+          <p><strong>Tổng số vé:</strong> {tour.SOVE}</p>
+          <p><strong>Số vé người lớn:</strong> {tour.SOVE_NGUOILON}</p>
+          <p><strong>Số vé trẻ em:</strong> {tour.SOVE_TREM}</p>
+          <p><strong>Số vé em bé:</strong> {tour.SOVE_EMBE}</p>
+          <p><strong>Tình trạng:</strong> {tour.TINHTRANG}</p>
+          <p><strong>Tổng tiền:</strong> {formatCurrency(tour.TONGTIEN)}</p>
+          <p><strong>Phương thức thanh toán:</strong> {tour.PHUONGTHUCTHANHTOAN}</p>
+          <p><strong>Ghi chú:</strong> {tour.GHICHU || 'Không có ghi chú'}</p>
+        </div>
+        <div className="star-rating">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              className={`star ${star <= rating ? 'active' : ''}`}
+              onClick={() => handleStarClick(star)}
+            >
+              ★
+            </span>
+          ))}
+        </div>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Nhập nội dung đánh giá..."
+        />
+        <div className="dialog-actions">
+          <button className="dialog-confirm" onClick={handleSubmit}>
+            Gửi đánh giá
+          </button>
+          <button className="dialog-cancel" onClick={onClose}>
+            Hủy
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TourHistory = () => {
   const [tourHistory, setTourHistory] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,7 +148,9 @@ const TourHistory = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [selectedTourForReview, setSelectedTourForReview] = useState(null);
+
   useEffect(() => {
     const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
     const fetchTourHistory = async () => {
@@ -151,6 +220,71 @@ const TourHistory = () => {
     }
   };
 
+  const openReviewDialog = (tour) => {
+    setSelectedTourForReview(tour);
+    setIsReviewDialogOpen(true);
+  };
+
+  const closeReviewDialog = () => {
+    setIsReviewDialogOpen(false);
+    setSelectedTourForReview(null);
+  };
+
+  const handleSubmitReview = async (tourId, rating, content) => {
+    try {
+      const userId = sessionStorage.getItem('userId');
+      const token = sessionStorage.getItem('token');
+      
+      if (!userId || !token) {
+        throw new Error('User ID or token not found. Please log in again.');
+      }
+
+      console.log('Token being sent:', token); // Log token để kiểm tra
+
+      const reviewData = {
+        tourId,
+        userId,
+        rating,
+        content
+      };
+
+      const response = await axios.post('http://localhost:5000/add-review', reviewData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('Review submission response:', response.data);
+      alert('Đánh giá đã được gửi thành công!');
+      closeReviewDialog();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      if (error.response) {
+        console.error('Full error response:', error.response);
+        alert(`Lỗi từ server: ${error.response.data.message || error.response.data || 'Không có thông báo lỗi cụ thể'}`);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        alert('Không nhận được phản hồi từ server. Vui lòng thử lại sau.');
+      } else {
+        console.error('Error setting up request:', error.message);
+        alert(`Lỗi: ${error.message}`);
+      }
+    }
+  };
+
+  const canReview = (tourEndDate) => {
+    // Tạm thời return true để luôn hiển thị nút đánh giá
+    return true;
+    
+    // Code cũ tạm thời comment lại để sau này có thể sử dụng lại
+    /*
+    const endDate = new Date(tourEndDate);
+    const today = new Date();
+    endDate.setDate(endDate.getDate() + 1);
+    return today >= endDate;
+    */
+  };
+
   return (
     <div className="tour-history-container">
       <h1>Lịch sử đặt tour</h1>
@@ -181,6 +315,11 @@ const TourHistory = () => {
                     <button onClick={() => openDetailsDialog(item)}>
                       Xem chi tiết
                     </button>
+                    {canReview(item.NGAYKETTHUC) && (
+                      <button onClick={() => openReviewDialog(item)}>
+                        Đánh giá
+                      </button>
+                    )}
                     {(item.TINHTRANG !== 'Đã hủy' && item.TINHTRANG !== 'Đã hoàn tiền') && (
                       <button
                         className="cancel-button"
@@ -218,6 +357,13 @@ const TourHistory = () => {
         isOpen={isDetailsDialogOpen}
         onClose={closeDetailsDialog}
         ticket={selectedTicket}
+      />
+
+      <ReviewDialog
+        isOpen={isReviewDialogOpen}
+        onClose={closeReviewDialog}
+        onSubmit={handleSubmitReview}
+        tour={selectedTourForReview}
       />
     </div>
   );

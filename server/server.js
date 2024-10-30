@@ -96,7 +96,14 @@ app.get('/api/tour-history/:userId', (req, res) => {
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
 
-  const getTicketQuery = 'SELECT * FROM ve WHERE ID = ?';
+  // Lệnh truy vấn SQL thôi chứ ko có gì đâu
+  const getTicketQuery = `
+    SELECT v.*, t.IDLICHTRINH, l.NGAYDI 
+    FROM ve v
+    JOIN tour t ON v.IDTOUR = t.ID
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE v.ID = ?`;
+
   db.query(getTicketQuery, [ticketId], (err, ticketResults) => {
     if (err) {
       console.error('Lỗi khi lấy thông tin vé:', err);
@@ -108,6 +115,23 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
     }
 
     const ticket = ticketResults[0];
+    
+    // Kiểm tra thời gian mà user huỷ vé (24h trước khi tour khởi hành)
+    const departureDate = new Date(ticket.NGAYDI);
+    const now = new Date();
+    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+
+    if (hoursDifference < 24) {
+      return res.status(400).json({ 
+        error: 'Không thể hủy vé trong vòng 24 giờ trước khi tour khởi hành',
+        remainingHours: Math.floor(hoursDifference)
+      });
+    }
+
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
+    }
+
     const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
     const tourId = ticket.IDTOUR;
 
@@ -125,7 +149,11 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
           return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
         }
 
-        res.json({ message: 'Hủy vé thành công' });
+        res.json({ 
+          message: 'Hủy vé thành công',
+          cancelTime: now,
+          departureTime: departureDate
+        });
       });
     });
   });
@@ -301,7 +329,7 @@ app.put('/update-schedule/:id', (req, res) => {
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ thêm các chi tiết mới
+      // Bây giờ th��m các chi tiết mới
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -988,8 +1016,137 @@ app.post('/prepare-payment', (req, res) => {
   res.json({ message: 'Session data saved successfully' });
 });
 
+// Thêm đánh giá
+app.post('/add-review', authenticateToken, (req, res) => {
+  const { tourId, rating, content } = req.body;
+  const userId = req.userId;
+
+  // Kiểm tra xem người dùng đã mua tour và tour đã kết thúc chưa
+  const checkQuery = `
+    SELECT v.ID, t.NGAYVE
+    FROM ve v
+    JOIN tour t ON v.IDTOUR = t.ID
+    WHERE v.IDNGUOIDUNG = ? AND v.IDTOUR = ? AND v.TINHTRANG = 'Đã thanh toán' AND t.NGAYVE < NOW()
+  `;
+
+  db.query(checkQuery, [userId, tourId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu' });
+    }
+
+    if (results.length === 0) {
+      return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
+    }
+
+    // Thêm đánh giá vào cơ sở dữ liệu
+    const insertQuery = `
+      INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá' });
+      }
+
+      res.json({ message: 'Đánh giá đã được thêm thành công', reviewId: result.insertId });
+    });
+  });
+});
+
+// Sửa đánh giá
+app.put('/update-review/:id', authenticateToken, (req, res) => {
+  const reviewId = req.params.id;
+  const { rating, content } = req.body;
+  const userId = req.userId;
+
+  const updateQuery = `
+    UPDATE danhgia
+    SET SOSAO = ?, NOIDUNG = ?
+    WHERE ID = ? AND IDNGUOIDUNG = ?
+  `;
+
+  db.query(updateQuery, [rating, content, reviewId, userId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi cập nhật đánh giá' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá hoặc bạn không có quyền sửa đánh giá này' });
+    }
+
+    res.json({ message: 'Đánh giá đã được cập nhật thành công' });
+  });
+});
+
+// Xóa đánh giá
+app.delete('/delete-review/:id', authenticateToken, (req, res) => {
+  const reviewId = req.params.id;
+  const userId = req.userId;
+
+  const deleteQuery = `
+    DELETE FROM danhgia
+    WHERE ID = ? AND IDNGUOIDUNG = ?
+  `;
+
+  db.query(deleteQuery, [reviewId, userId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi xóa đánh giá' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá hoặc bạn không có quyền xóa đánh giá này' });
+    }
+
+    res.json({ message: 'Đánh giá đã được xóa thành công' });
+  });
+});
+
+// Lấy đánh giá cho một tour cụ thể
+app.get('/reviews/:tourId', (req, res) => {
+  const tourId = req.params.tourId;
+
+  const query = `
+    SELECT d.ID, d.IDNGUOIDUNG, u.FULLNAME, d.SOSAO, d.NOIDUNG
+    FROM danhgia d
+    JOIN USER u ON d.IDNGUOIDUNG = u.ID
+    WHERE d.IDTOUR = ?
+  `;
+
+  db.query(query, [tourId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi lấy đánh giá' });
+    }
+
+    res.json(results);
+  });
+});
+
+// Cái route này tui test thôi nếu đc thì lấy xài luôn :>
+app.get('/api/tour/:id', (req, res) => {
+  const tourId = req.params.id;
+  const query = `
+    SELECT t.*, l.NGAYDI 
+    FROM tour t
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE t.ID = ?
+  `;
+  
+  db.query(query, [tourId], (err, results) => {
+    if (err) {
+      console.error('Error fetching tour:', err);
+      return res.status(500).json({ error: 'Error fetching tour information' });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Tour not found' });
+    }
+    
+    res.json(results[0]);
+  });
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-

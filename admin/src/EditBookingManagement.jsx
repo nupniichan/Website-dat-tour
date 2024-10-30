@@ -36,18 +36,22 @@ const EditBookingManagement = () => {
   const fetchTicketData = async (ticketId) => {
     setIsLoading(true);
     setError(null);
-
+  
     try {
       const response = await fetch(`http://localhost:5000/tickets/${ticketId}`);
       if (!response.ok) {
         throw new Error('Error fetching ticket information');
       }
-
+  
       const data = await response.json();
+      
+      // Chuyển đổi ngày đặt từ UTC sang múi giờ địa phương
+      const localDate = new Date(data.NGAYDAT).toISOString().slice(0, 10); 
+  
       setBooking({
         IDTOUR: data.IDTOUR || '',
         IDNGUOIDUNG: data.IDNGUOIDUNG || '',
-        NGAYDAT: data.NGAYDAT ? data.NGAYDAT.slice(0, 10) : '',
+        NGAYDAT: localDate, // Gán ngày đã chuyển đổi vào booking
         SOVE_NGUOILON: data.SOVE_NGUOILON || 1,
         SOVE_TREM: data.SOVE_TREM || 0,
         SOVE_EMBE: data.SOVE_EMBE || 0,
@@ -56,6 +60,7 @@ const EditBookingManagement = () => {
         PHUONGTHUCTHANHTOAN: data.PHUONGTHUCTHANHTOAN || 'Momo',
         GHICHU: data.GHICHU || ''
       });
+  
       // Fetch the tour price for the existing booking
       fetchTourPrice(data.IDTOUR);
     } catch (err) {
@@ -63,7 +68,7 @@ const EditBookingManagement = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
 
   // Fetch the tour price based on Tour ID
   const fetchTourPrice = async (tourId) => {
@@ -347,7 +352,7 @@ const EditBookingManagement = () => {
           style={{ marginBottom: '10px' }}
         >
           <MenuItem value="VNPay">VNPay</MenuItem>
-          <MenuItem value="Momo">Momo</MenuItem>
+          <MenuItem value="momo">Momo</MenuItem>
           <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
         </TextField>
 

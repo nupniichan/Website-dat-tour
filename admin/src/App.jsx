@@ -21,12 +21,12 @@ import './App.css';
 import './index.css';
 
 function App() {
-  // Kiểm tra trạng thái đăng nhập từ localStorage
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+  // Kiểm tra trạng thái đăng nhập từ sessionStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(sessionStorage.getItem('isLoggedIn') === 'true');
 
   useEffect(() => {
-    // Cập nhật trạng thái đăng nhập vào localStorage khi trạng thái thay đổi
-    localStorage.setItem('isLoggedIn', isLoggedIn);
+    // Cập nhật trạng thái đăng nhập vào sessionStorage khi trạng thái thay đổi
+    sessionStorage.setItem('isLoggedIn', isLoggedIn);
   }, [isLoggedIn]);
 
   const handleLoginSuccess = () => {
@@ -35,7 +35,7 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false); // Đặt trạng thái đăng nhập thành false
-    localStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập khỏi localStorage
+    sessionStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập khỏi sessionStorage
   };
 
   return (

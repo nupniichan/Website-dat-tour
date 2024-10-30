@@ -1,10 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import "../App.css";
 import PagesNames from "../Router/PagesNames";
-import "../pages/Registration.css"
+import "../pages/Registration.css";
 
-const Register = () => {
+const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         fullname: "",
@@ -35,7 +36,8 @@ const Register = () => {
 
         if (response.ok) {
             alert("Đăng ký thành công!");
-            navigate(PagesNames.LOGIN);
+            onRegisterSuccess(); // Call the success callback to handle registration success
+            onClose(); // Close the modal after registration
         } else {
             alert("Đăng ký thất bại");
         }
@@ -50,7 +52,7 @@ const Register = () => {
                     type="text"
                     id="fullname"
                     name="fullname"
-                    placeholder="Full Name"
+                    placeholder="Họ tên"
                     value={formData.fullname}
                     onChange={handleChange}
                     required
@@ -61,7 +63,7 @@ const Register = () => {
                     type="text"
                     id="phoneNumber"
                     name="phoneNumber"
-                    placeholder="Phone Number"
+                    placeholder="Số điện thoại"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     required
@@ -72,7 +74,7 @@ const Register = () => {
                     type="text"
                     id="address"
                     name="address"
-                    placeholder="Address"
+                    placeholder="Địa chỉ"
                     value={formData.address}
                     onChange={handleChange}
                     required
@@ -93,7 +95,7 @@ const Register = () => {
                     type="text"
                     id="accountName"
                     name="accountName"
-                    placeholder="Account Name"
+                    placeholder="Tên tài khoản"
                     value={formData.accountName}
                     onChange={handleChange}
                     required
@@ -115,7 +117,7 @@ const Register = () => {
                     type="password"
                     id="password"
                     name="password"
-                    placeholder="Password"
+                    placeholder="Mật khẩu"
                     value={formData.password}
                     onChange={handleChange}
                     required
@@ -124,12 +126,24 @@ const Register = () => {
                 <button type="submit">Đăng ký</button>
             </form>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-                <button onClick={() => navigate(PagesNames.LOGIN)} className="button-spacing">
-                    Đã có tài khoản? Đăng nhập
-                </button>
+            <button
+          onClick={() => {
+            onClose();  // Close register modal
+            setTimeout(onOpenLogin, 200);  // Open login modal after 200ms delay
+          }}
+          className="button-spacing"
+        >
+          Đã có tài khoản? Đăng nhập
+        </button>
             </div>
         </div>
     );
+};
+
+Register.propTypes = {
+    onRegisterSuccess: PropTypes.func, // Callback for registration success
+    onClose: PropTypes.func, // Function to close the modal
+    onOpenLogin: PropTypes.func
 };
 
 export default Register;

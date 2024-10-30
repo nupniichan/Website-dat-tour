@@ -1285,6 +1285,38 @@ app.get('/api/tour/:id', (req, res) => {
   });
 });
 
+// Check if user has reviewed a tour
+app.get('/check-review', (req, res) => {
+  const { userId, tourId } = req.query;
+
+  const query = `
+    SELECT d.*, u.FULLNAME
+    FROM danhgia d
+    JOIN USER u ON d.IDNGUOIDUNG = u.ID
+    WHERE d.IDTOUR = ? AND d.IDNGUOIDUNG = ?
+  `;
+
+  db.query(query, [tourId, userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra đánh giá' });
+    }
+
+    if (results.length > 0) {
+      // User has already reviewed this tour
+      res.json({
+        hasReviewed: true,
+        review: results[0]
+      });
+    } else {
+      // User hasn't reviewed this tour yet
+      res.json({
+        hasReviewed: false,
+        review: null
+      });
+    }
+  });
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

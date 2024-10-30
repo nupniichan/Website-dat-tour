@@ -819,10 +819,41 @@ app.get('/search/tour-with-date', (req, res) => {
 });
 
 // User ( còn thiếu thêm, xoá, sửa )
+app.get('/users', (req, res) => {
+  const query = `
+    SELECT u.*
+    FROM user u
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Lỗi truy vấn", err);
+      return res.status(500).json({ error: 'Lỗi truy vấn' });
+    }
+    res.json(results);
+  });
+});
+
+// Lấy thông tin người dùng theo ID
+app.get('/users', (req, res) => {
+  const query = `
+    SELECT *
+    FROM user
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Lỗi truy vấn", err);
+      return res.status(500).json({ error: 'Lỗi truy vấn' });
+    }
+    res.json(results);
+  });
+});
+
 // Lấy thông tin người dùng theo ID
 app.get('/user/:id', (req, res) => {
   const userId = req.params.id;
-  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH FROM USER WHERE ID = ?';
+  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME FROM USER WHERE ID = ?';
 
   db.query(query, [userId], (err, results) => {
     if (err) {
@@ -836,38 +867,147 @@ app.get('/user/:id', (req, res) => {
     res.json(results[0]); // Trả về thông tin người dùng đầu tiên
   });
 });
-// Cập nhật thông tin người dùng
-app.put('/update/user/:id', (req, res) => {
-  const userId = req.params.id;
-  const { FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH } = req.body;
 
-  const query = `
-    UPDATE USER
-    SET FULLNAME = ?, ADDRESS = ?, DAYOFBIRTH = ?
-    WHERE ID = ?
-  `;
+app.post('/check-email', (req, res) => {
+  const { email } = req.body;
 
-  db.query(query, [FULLNAME, ADDRESS, DAYOFBIRTH, userId], (err, results) => {
+  // Kiểm tra xem người dùng với cùng email đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE EMAIL = ?';
+  db.query(checkQuery, [email], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với email này
+          return res.status(409).json({ exists: true, message: 'Người dùng với email này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với email này
+          return res.status(200).json({ exists: false, message: 'Email này có thể sử dụng' });
+      }
+  });
+});
+
+app.post('/check-phone', (req, res) => {
+  const { phone } = req.body;
+
+  // Kiểm tra xem người dùng với cùng số điện thoại đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE PHONENUMBER = ?';
+  db.query(checkQuery, [phone], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với số điện thoại này
+          return res.status(409).json({ exists: true, message: 'Người dùng với số điện thoại này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với số điện thoại này
+          return res.status(200).json({ exists: false, message: 'Số điện thoại này có thể sử dụng' });
+      }
+  });
+});
+
+app.post('/check-accountname', (req, res) => {
+  const { accountName } = req.body;
+
+  // Kiểm tra xem người dùng với cùng tên tài khoản đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE ACCOUNTNAME = ?';
+  db.query(checkQuery, [accountName], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với tên tài khoản này
+          return res.status(409).json({ exists: true, message: 'Người dùng với tên tài khoản này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với tên tài khoản này
+          return res.status(200).json({ exists: false, message: 'Tên tài khoản này có thể sử dụng' });
+      }
+  });
+});
+
+
+
+app.post('/add-user', (req, res) => {
+  const { fullname, phone, email, address, dayofbirth, accountname, password  } = req.body;
+  console.log("Received data:", req.body); 
+  // Chèn người dùng mới
+  const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  
+  db.query(query, [fullname, phone, email, address, dayofbirth, accountname, password], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: 'Lỗi cập nhật cơ sở dữ liệu: ' + err.message });
+      return res.status(500).json({ message: 'Database error: ' + err.message });
+    }
+    res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+  });
+});
+
+
+
+app.put('/edit-user/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    ID, FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME
+  } = req.body;
+
+  // Lấy thông tin người dùng hiện tại
+  const getOldUserQuery = 'SELECT * FROM user WHERE ID = ?';
+  db.query(getOldUserQuery, [id], (err, oldUserResults) => {
+    if (err) {
+      console.error('Lỗi khi lấy thông tin người dùng:', err);
+      return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
     }
 
-    if (results.affectedRows === 0) {
+    if (oldUserResults.length === 0) {
       return res.status(404).json({ message: 'Người dùng không tồn tại' });
     }
 
-    // Trả về thông tin người dùng đã cập nhật
-    const updatedUser = {
-      ID: userId,
-      FULLNAME,
-      PHONENUMBER,
-      EMAIL,
-      ADDRESS,
-      DAYOFBIRTH,
-    };
-    res.json(updatedUser);
+    // Cập nhật thông tin người dùng mà không bao gồm trường PASSWORD và ROLE
+    const updateUserQuery = `
+      UPDATE user 
+      SET FULLNAME = ?, PHONENUMBER = ?, EMAIL = ?, ADDRESS = ?, DAYOFBIRTH = ?, ACCOUNTNAME = ?
+      WHERE ID = ?
+    `;
+
+    db.query(updateUserQuery, [
+      FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, id
+    ], (err, result) => {
+      if (err) {
+        console.error('Lỗi khi cập nhật người dùng:', err);
+        return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
+      }
+
+      res.json({ message: 'Cập nhật người dùng thành công' });
+    });
   });
 });
+
+
+
+app.delete('/delete-user/:id', (req, res) => {
+  const { id } = req.params;
+  const deleteUserQuery = 'DELETE FROM user WHERE ID = ?';
+
+  db.query(deleteUserQuery, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi xóa người dùng' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng để xóa' });
+    }
+
+    // Trả về phản hồi thành công nếu xóa thành công
+    return res.status(200).json({ message: 'Người dùng đã được xóa thành công' });
+  });
+});
+
+
 
 // API MOMO
 app.post('/payment', async (req, res) => {

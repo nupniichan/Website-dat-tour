@@ -1158,37 +1158,22 @@ app.post('/prepare-payment', (req, res) => {
 app.post('/add-review', (req, res) => {
   const { tourId, userId, rating, content } = req.body;
 
-  console.log('Received review data:', { tourId, userId, rating, content });
-
-  if (!tourId || !userId || !rating || !content) {
-    return res.status(400).json({ 
-      error: 'Missing required fields',
-      received: { tourId, userId, rating, content }
-    });
-  }
-
-  // Sửa lại câu query để kiểm tra vé với IDTOUR
-  const checkQuery = `
-    SELECT v.ID, l.NGAYVE
-    FROM ve v
-    JOIN tour t ON v.IDTOUR = t.ID
-    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
-    WHERE v.IDNGUOIDUNG = ? 
-    AND t.ID = ? 
-    AND v.TINHTRANG = 'Đã thanh toán'
-    AND l.NGAYVE < NOW()
+  // Kiểm tra xem người dùng đã đánh giá tour này chưa
+  const checkExistingReviewQuery = `
+    SELECT * FROM danhgia WHERE IDTOUR = ? AND IDNGUOIDUNG = ?
   `;
 
-  db.query(checkQuery, [userId, tourId], (err, results) => {
+  db.query(checkExistingReviewQuery, [tourId, userId], (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
     }
 
-    if (results.length === 0) {
-      return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Bạn đã đánh giá tour này rồi' });
     }
 
+    // Nếu chưa có đánh giá, thêm đánh giá mới
     const insertQuery = `
       INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
       VALUES (?, ?, ?, ?)

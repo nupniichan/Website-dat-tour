@@ -1,0 +1,22 @@
+/* AddTour.css */
+
+.form-container {
+    padding: 20px;
+  }
+
+  .text-field {
+    margin-bottom: 10px;
+  }
+
+  .image-preview {
+    width: auto;
+    height: auto;
+    max-width: 300px;  /* Giới hạn chiều rộng tối đa */
+    max-height: 300px; /* Giới hạn chiều cao tối đa */
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .submit-button {
+    margin-right: 10px;
+  }

@@ -10,12 +10,16 @@ const formatDate = (isoDateString) => {
   return `${day}/${month}/${year}`;
 };
 
-const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason, setCancelReason, isProcessing }) => {
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
+const CancelDialog = ({ isOpen, onClose, onConfirm, cancelReason, setCancelReason, isProcessing }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-form">
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-form" onClick={(e) => e.stopPropagation()}>
         <h2>Chọn lý do hủy vé</h2>
         <select
           value={cancelReason}
@@ -30,12 +34,39 @@ const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason
           <button
             className="dialog-confirm"
             onClick={onConfirm}
-            disabled={isProcessing} // Không cho nhấn khi đang xử lý
+            disabled={isProcessing || !cancelReason} // Disable when processing or no reason selected
           >
             {isProcessing ? 'Đang xử lý...' : 'Xác nhận hủy vé'}
           </button>
           <button className="dialog-cancel" onClick={onClose}>
             Hủy bỏ
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
+  if (!isOpen || !ticket) return null;
+
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="ticket-details-dialog" onClick={(e) => e.stopPropagation()}>
+        <h2>Chi tiết vé</h2>
+        <p><strong>Mã vé:</strong> {ticket.ID}</p>
+        <p><strong>Ngày đặt:</strong> {formatDate(ticket.NGAYDAT)}</p>
+        <p><strong>Tổng số vé:</strong> {ticket.SOVE}</p>
+        <p><strong>Số vé người lớn:</strong> {ticket.SOVE_NGUOILON}</p>
+        <p><strong>Số vé trẻ em:</strong> {ticket.SOVE_TREM}</p>
+        <p><strong>Số vé em bé:</strong> {ticket.SOVE_EMBE}</p>
+        <p><strong>Tình trạng:</strong> {ticket.TINHTRANG}</p>
+        <p><strong>Tổng tiền:</strong> {formatCurrency(ticket.TONGTIEN)}</p>
+        <p><strong>Phương thức thanh toán:</strong> {ticket.PHUONGTHUCTHANHTOAN}</p>
+        <p><strong>Ghi chú:</strong> {ticket.GHICHU || 'Không có ghi chú'}</p>
+        <div className="dialog-actions">
+          <button className="dialog-cancel" onClick={onClose}>
+            Đóng
           </button>
         </div>
       </div>
@@ -49,14 +80,39 @@ const TourHistory = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+  const canCancelTicket = (ticket, tourDate) => {
+    const departureDate = new Date(tourDate);
+    const now = new Date();
+    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+    return hoursDifference >= 24;
+  };
 
   useEffect(() => {
+    const userId = sessionStorage.getItem('userId');
     const fetchTourHistory = async () => {
+      if (!userId) {
+        console.error('User ID not found in session storage.');
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:5000/api/tour-history');
-        setTourHistory(response.data);
+        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`);
+        // Fetch tour dates for each ticket
+        const ticketsWithTourDates = await Promise.all(
+          response.data.map(async (ticket) => {
+            const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            return {
+              ...ticket,
+              NGAYDI: tourResponse.data.NGAYDI
+            };
+          })
+        );
+        setTourHistory(ticketsWithTourDates);
       } catch (error) {
         console.error('Error fetching tour history:', error);
+        alert('Lỗi khi lấy lịch sử đặt tour.');
       }
     };
 
@@ -72,6 +128,16 @@ const TourHistory = () => {
     setIsDialogOpen(false);
     setSelectedTicket(null);
     setCancelReason('');
+  };
+
+  const openDetailsDialog = (ticket) => {
+    setSelectedTicket(ticket);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const closeDetailsDialog = () => {
+    setIsDetailsDialogOpen(false);
+    setSelectedTicket(null);
   };
 
   const handleCancelTicket = async () => {
@@ -102,20 +168,25 @@ const TourHistory = () => {
     }
   };
 
+  const getTicketStatus = (ticket) => {
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return 'Đã hủy';
+    }
+    return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
+  };
+
   return (
     <div className="tour-history-container">
-      <h1>Lịch sử đặt tour</h1>
+      <h1 className="tour-history-title">Lịch sử đặt tour</h1>
       <table className="tour-history-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Ngày đặt</th>
-            <th>Số vé</th>
-            <th>Loại vé</th>
+            <th>Tổng số vé</th>
             <th>Tình trạng</th>
             <th>Tổng tiền</th>
-            <th>Phương thức thanh toán</th>
-            <th>Ghi chú</th>
+            <th className="payment-method">Phương thức thanh toán</th>
             <th>Chức năng</th>
           </tr>
         </thead>
@@ -126,39 +197,60 @@ const TourHistory = () => {
                 <td>{item.ID}</td>
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
-                <td>{item.LOAIVE}</td>
-                <td>{item.TINHTRANG}</td>
-                <td>{item.TONGTIEN} VND</td>
+                <td>{getTicketStatus(item)}</td>
+                <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
-                <td>{item.GHICHU}</td>
                 <td>
-                  <button
-                    className={`cancel-button ${item.TINHTRANG === 'Đã hủy' ? 'disabled' : ''}`}
-                    onClick={item.TINHTRANG === 'Đã hủy' ? null : () => openCancelDialog(item)}
-                    disabled={item.TINHTRANG === 'Đã hủy'} // Vô hiệu hóa nút khi vé đã hủy
-                  >
-                    {item.TINHTRANG === 'Đã hủy' ? 'Đã hủy' : 'Hủy vé'}
-                  </button>
+                  <div className="button-group">
+                    <button 
+                      className="view-details-link" 
+                      onClick={() => openDetailsDialog(item)}
+                    >
+                      Xem chi tiết
+                    </button>
+                    
+                    {item.TINHTRANG === 'Đã hủy' ? (
+                      <button className="cancel-button" disabled>
+                        Đã hủy
+                      </button>
+                    ) : canCancelTicket(item, item.NGAYDI) ? (
+                      <button
+                        className="cancel-button"
+                        onClick={() => openCancelDialog(item)}
+                        disabled={isProcessing}
+                      >
+                        Hủy vé
+                      </button>
+                    ) : (
+                      <button className="cancel-button" disabled>
+                        Không thể hủy
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="9">Không có lịch sử đặt tour.</td>
+              <td colSpan="7" className="no-tours">Không có tour nào trong lịch sử.</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* Dialog form để chọn lý do hủy */}
-      <CancelDialog 
-        isOpen={isDialogOpen} 
-        onClose={closeCancelDialog} 
-        onConfirm={handleCancelTicket} 
-        selectedTicket={selectedTicket} 
-        cancelReason={cancelReason} 
-        setCancelReason={setCancelReason} 
-        isProcessing={isProcessing} 
+      <CancelDialog
+        isOpen={isDialogOpen}
+        onClose={closeCancelDialog}
+        onConfirm={handleCancelTicket}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+        isProcessing={isProcessing}
+      />
+
+      <TicketDetailsDialog
+        isOpen={isDetailsDialogOpen}
+        onClose={closeDetailsDialog}
+        ticket={selectedTicket}
       />
     </div>
   );

@@ -1,3 +1,33 @@
+.button-group {
+  display: flex;
+  justify-content: space-between; /* Căn giữa và phân chia không gian */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  width: 100%; /* Đảm bảo nó chiếm toàn bộ chiều rộng */
+  padding: 0 10px; /* Thêm một chút đệm để các nút không dính vào nhau */
+  height: 100%; /* Đảm bảo chiều cao đầy đủ để căn giữa theo chiều dọc */
+}
+
+.button-group button {
+  flex: 1; /* Cho các nút cùng chiếm không gian đều */
+  margin: 0 5px; /* Thêm khoảng cách giữa các nút */
+}
+
+
+.view-details-link, 
+.cancel-button {
+  flex: 1; /* Các nút chiếm bằng nhau */
+  margin: 0 10px; /* Khoảng cách bên trái và bên phải */
+}
+
+.view-details-link {
+  max-width: 150px; /* Kích thước tối đa của nút xem chi tiết */
+}
+
+.cancel-button {
+  max-width: 150px; /* Kích thước tối đa của nút hủy vé */
+}
+
+/* Các phần còn lại của CSS của bạn */
 .tour-history-container {
   padding: 20px;
   max-width: 1000px;
@@ -20,7 +50,7 @@
 .tour-history-table td {
   border: 1px solid #ddd;
   padding: 12px;
-  text-align: left;
+  text-align: center;
 }
 
 .tour-history-table th {
@@ -40,6 +70,19 @@
   background-color: #ffffff; /* Zebra stripes for odd rows */
 }
 
+/* Chi tiết vé người lớn, trẻ em, em bé */
+.ticket-details {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #fafafa;
+  border-radius: 5px;
+}
+
+.ticket-details strong {
+  font-weight: bold;
+}
+
 /* CSS cho nút Hủy vé */
 .cancel-button {
   background-color: #ff4d4d; /* Màu đỏ nổi bật */
@@ -51,7 +94,6 @@
   font-size: 14px; /* Kích thước chữ */
   transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu */
   white-space: nowrap; /* Ngăn không cho chữ bị xuống dòng */
-  min-width: 100px; /* Đặt chiều rộng tối thiểu cho nút */
   text-align: center; /* Canh giữa chữ trong nút */
 }
 
@@ -125,4 +167,59 @@
 
 .dialog-cancel:hover {
   background-color: #da190b;
+}
+
+/* CSS cho chi tiết vé đầy đủ */
+.ticket-details-dialog {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 500px;
+  text-align: left;
+}
+
+.ticket-details-dialog h2 {
+  margin-bottom: 15px;
+}
+
+.ticket-details-dialog p {
+  margin: 5px 0;
+}
+
+.ticket-details-dialog strong {
+  font-weight: bold;
+}
+
+.tour-history-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin: 20px 0;
+  padding: 10px;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  letter-spacing: 1px;
+}
+
+.view-details-link {
+  background: none;
+  border: none;
+  color: #007bff; /* Link blue color */
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+}
+
+.view-details-link:hover {
+  color: #0056b3; /* Darker blue on hover */
+  text-decoration: underline;
+}
+
+th.payment-method, td.payment-method {
+  max-width: 150px; /* Adjust width as needed */
+  white-space: normal;
+  word-wrap: break-word;
 }

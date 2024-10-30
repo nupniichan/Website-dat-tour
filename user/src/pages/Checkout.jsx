@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 const Checkout = () => {
+  const { id } = useParams(); // Lấy tourId từ URL params
   const [tourDetails, setTourDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [promoCode, setPromoCode] = useState('');
+  const [promoCode, setPromoCode] = useState(''); // Mã giảm giá
   const [finalPrice, setFinalPrice] = useState(0);
   const [termsAccepted, setTermsAccepted] = useState(false); 
   const [paymentMethod, setPaymentMethod] = useState(''); 
@@ -21,7 +23,6 @@ const Checkout = () => {
   const [infantCount, setInfantCount] = useState(0);
 
   // Lấy id và customerId từ sessionStorage
-  const id = sessionStorage.getItem('id') || 2; 
   const customerId = sessionStorage.getItem('userId');
 
   useEffect(() => {
@@ -73,13 +74,16 @@ const Checkout = () => {
   }, [adultCount, childCount, infantCount, tourDetails]);
 
   const handlePromoCodeChange = (e) => {
-    setPromoCode(e.target.value);
+    setPromoCode(e.target.value); // Cập nhật mã giảm giá khi nhập
   };
 
-  // Áp dụng mã giảm giá - Test tạm thời
+  // Áp dụng mã giảm giá
   const applyPromoCode = () => {
     if (promoCode === 'DISCOUNT10' && tourDetails) {
-      setFinalPrice(prevPrice => prevPrice * 0.9); 
+      alert('Mã giảm giá hợp lệ! Bạn đã được giảm 10%.');
+      setFinalPrice(prevPrice => prevPrice * 0.9); // Giảm giá 10% nếu mã hợp lệ
+    } else {
+      alert('Mã giảm giá không hợp lệ.');
     }
   };
 
@@ -124,9 +128,20 @@ const Checkout = () => {
       alert('Bạn cần đồng ý với các điều khoản trước khi tiếp tục!');
       return;
     }
+
+    if (!paymentMethod) {
+      alert('Vui lòng chọn một phương thức thanh toán');
+      return;
+    }
   
+    // Kiểm tra nếu phương thức thanh toán không phải là Momo
+    if (paymentMethod !== 'momo') {
+      alert('Hiện chúng tôi chưa hỗ trợ phương thức thanh toán này');
+      return;
+    }
+
     const paymentData = {
-      id: id,
+      tourId: id,
       customerId: customerId,
       amount: finalPrice,
       adultCount: adultCount,
@@ -135,6 +150,10 @@ const Checkout = () => {
       paymentMethod: paymentMethod,
       ticketType: tourDetails.LOAITOUR,
       customerNote: customerNote || '',
+      bookingDate: new Date().toISOString(),
+      status: 'Đã thanh toán', // hoặc trạng thái phù hợp
+      totalTickets: adultCount + childCount + infantCount,
+      discountId: null // hoặc mã giảm giá nếu có
     };
   
     try {
@@ -145,7 +164,7 @@ const Checkout = () => {
         },
         body: JSON.stringify({
           amount: finalPrice,
-          orderInfo: `Thanh toán cho tour ${tourDetails.TENTOUR}`,
+          orderInfo: `Thanh toán tour ${tourDetails.TENTOUR}`,
           extraData: JSON.stringify(paymentData), 
         }),
       });
@@ -157,7 +176,7 @@ const Checkout = () => {
     } catch (error) {
       console.error('Lỗi khi xử lý thanh toán:', error);
     }
-  };  
+  };
 
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-red-500 text-center">Lỗi: {error}</div>;
@@ -184,18 +203,26 @@ const Checkout = () => {
         <div className="mt-4">
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
-        <div className="mt-6">
+
+        {/* Tui khoá lại tại vì cái này ở sprint 3. Khi nào tới sprint 3 thì mở ra */}
+        {/* Cho phép nhập mã giảm giá */}
+        {/* <div className="mt-6">
           <label className="block font-medium">Mã giảm giá</label>
           <input
             type="text"
             className="border border-gray-300 rounded-md w-full p-2 mt-2"
             placeholder="Nhập mã giảm giá"
-            value={promoCode}
-            onChange={handlePromoCodeChange}
-            disabled
+            value={promoCode}  // Giá trị hiện tại của mã giảm giá
+            onChange={handlePromoCodeChange}  // Sự kiện cập nhật mã giảm giá khi thay đổi
           />
-          <button onClick={applyPromoCode} className="mt-2 w-full bg-blue-600 text-white py-2 rounded opacity-50 cursor-not-allowed" disabled>Áp dụng</button>
-        </div>
+          <button 
+            onClick={applyPromoCode} 
+            className="mt-2 w-full bg-blue-600 text-white py-2 rounded"
+          >
+            Áp dụng
+          </button>
+        </div> */}
+
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
         </div>
@@ -217,12 +244,18 @@ const Checkout = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {Object.entries(customerInfo).map(([key, value]) => (
             <div key={key}>
-              <label className="block font-medium">{key === 'fullname' ? 'Họ tên' : key === 'phoneNumber' ? 'Số điện thoại' : key === 'email' ? 'Email' : 'Địa chỉ'}</label>
+              <label className="block font-medium">
+                {key === 'fullname' ? 'Họ tên' : key === 'phoneNumber' ? 'Số điện thoại' : key === 'email' ? 'Email' : 'Địa chỉ'}
+              </label>
               <input 
                 type="text" 
                 className="border border-gray-300 rounded-md w-full p-2 mt-2" 
                 value={value} 
-                readOnly 
+                readOnly
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert('Bạn không thể thay đổi thông tin này!');
+                }}
               />
             </div>
           ))}
@@ -256,7 +289,7 @@ const Checkout = () => {
           >
             <option value="" disabled>Chọn phương thức</option>
             <option value="cash">Tiền mặt</option>
-            <option value="bank_transfer">Chuyển khoản</option>
+            <option value="vnPay">Quét mã VNPay</option>
             <option value="momo">Thanh toán bằng Momo</option>
           </select>
         </div>
@@ -276,9 +309,9 @@ const Checkout = () => {
         />
 
         {/* Điều khoản và dịch vụ */}
-        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đăng ký online</h4>
+        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đặt tour online</h4>
         <div className="h-32 overflow-y-scroll border border-gray-300 p-4 rounded-md mb-4">
-          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán...</p>
+          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán tour online</p>
         </div>
 
         <label className="flex items-center mb-4">

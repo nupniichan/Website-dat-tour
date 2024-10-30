@@ -11,6 +11,7 @@ import Vehicle from "../assets/svg/Vehicle";
 import "./TourDetails.css";
 
 const TourDetails = () => {
+<<<<<<< HEAD
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
@@ -45,6 +46,30 @@ const TourDetails = () => {
         };
         fetchScheduleDetails();
     }, [id]);
+=======
+    const { id } = useParams(); // Lấy id từ URL
+    const location = useLocation();
+    const navigate = useNavigate(); // Khởi tạo navigate để điều hướng
+    const [tour, setTour] = useState(location.state?.tour || null); // Lấy từ state nếu có
+    const [scheduleDetails, setScheduleDetails] = useState([]);
+
+    useEffect(() => {
+        if (!tour) {
+            // Nếu không có tour trong state, gọi API để lấy thông tin tour
+            fetch(`http://localhost:5000/tours/${id}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setTour(data);
+                    // Gọi API để lấy chi tiết lịch trình
+                    fetch(`http://localhost:5000/schedules/${data.IDLICHTRINH}`)
+                        .then((response) => response.json())
+                        .then((scheduleData) => setScheduleDetails(scheduleData.details))
+                        .catch((error) => console.error('Error fetching schedule details:', error));
+                })
+                .catch((error) => console.error('Error fetching tour details:', error));
+        }
+    }, [id, tour]);
+>>>>>>> main
 
     // Hàm điều hướng đến trang checkout
     const handleCheckout = () => {
@@ -56,6 +81,7 @@ const TourDetails = () => {
     }
 
     return (
+<<<<<<< HEAD
         <div className="container flex justify-center">
             <div className="tour-details-container mx-auto">
                 {/* LEFT MAIN SECTION */}
@@ -84,6 +110,27 @@ const TourDetails = () => {
                             <p>Chưa có lịch trình.</p>
                         )}
                     </div>
+=======
+        <div className="tour-details-container">
+            <div className="tour-left">
+                <img src={`http://localhost:5000/${tour.HINHANH}`} alt={tour.TENTOUR} className="tour-image" onError={(e) => e.target.src = 'default-image.jpg'} />
+                <h1 className="tour-title">{tour.TENTOUR}</h1>
+                <p className="tour-description">{tour.MOTA || 'Chưa có mô tả.'}</p>
+                <div className="tour-itinerary">
+                <h2>Chi tiết lịch trình</h2>
+                    <ul>
+                        {scheduleDetails.length > 0 ? (
+                            scheduleDetails.map((detail, index) => (
+                                <li key={index}>
+                                    <strong>Ngày {index + 1}:</strong> {dayjs(detail.NGAY).format('DD/MM/YYYY')} - {detail.GIO} - {detail.SUKIEN}
+                                    <p>{detail.MOTA}</p> {/* Mô tả xuống dòng */}
+                                </li>
+                            ))
+                        ) : (
+                            <p>Chưa có chi tiết lịch trình.</p>
+                        )}
+                    </ul>
+>>>>>>> main
                 </div>
 
                 {/* RIGHT INFO SECTION */}

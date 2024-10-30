@@ -216,7 +216,7 @@ const EditSchedule = () => {
           )}
         </ul>
 
-        <Button type="submit" variant="contained" color="primary" style={{ marginRight: '10px' }}>
+        <Button type="submit" variant="contained" color="primary" style={{ marginRight: '10px' }} onClick={() => navigate('/schedule')}>
           Cập nhật
         </Button>
         <Button variant="outlined" color="secondary" onClick={() => navigate('/schedule')}>

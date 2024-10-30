@@ -8,11 +8,14 @@ import TourManagement from './TourManagement.jsx';
 import ScheduleManagement from './ScheduleManagement.jsx';
 import AddSchedule from './AddSchedule.jsx';
 import ScheduleDetail from './ScheduleDetail.jsx';
-import AddTour from './Addtour.jsx';
+import AddTour from './AddTour.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
 import BookingManagement from './BookingManagement.jsx';
 import EditBookingManagement from './EditBookingManagement.jsx';
+import UserManagement from './UserManagement.jsx';
+import AddUser from'./AddUser.jsx';
+import EditUser from'./EditUser.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
@@ -61,10 +64,12 @@ function App() {
                     <Route path="/edit-tour/:id" element={<EditTour />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<BookingManagement />} />
-                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} /> {/* Điều chỉnh */}
+                    <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
-                    <Route path="/user" element={<h1>Quản lý người dùng</h1>} />
+                    <Route path="/user" element={<UserManagement />} />
+                    <Route path="/add-user" element={<AddUser/>} />
+                    <Route path="/edit-user/:id" element={<EditUser/>} />
                     <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
                   </Routes>
                 </div>

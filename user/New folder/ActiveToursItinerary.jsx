@@ -25,7 +25,7 @@ const ActiveToursItinerary = () => {
   }, [page]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) {
       fetch(`http://localhost:3000/user/profile`, {
         headers: {

@@ -11,7 +11,7 @@ const SearchBar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedUser = JSON.parse(sessionStorage.getItem('user'));
     if (storedUser) {
       setUser(storedUser);
     }

@@ -14,12 +14,12 @@ const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
-const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason, setCancelReason, isProcessing }) => {
+const CancelDialog = ({ isOpen, onClose, onConfirm, cancelReason, setCancelReason, isProcessing }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-form">
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="dialog-form" onClick={(e) => e.stopPropagation()}>
         <h2>Chọn lý do hủy vé</h2>
         <select
           value={cancelReason}
@@ -34,7 +34,7 @@ const CancelDialog = ({ isOpen, onClose, onConfirm, selectedTicket, cancelReason
           <button
             className="dialog-confirm"
             onClick={onConfirm}
-            disabled={isProcessing} // Disable when processing
+            disabled={isProcessing || !cancelReason} // Disable when processing or no reason selected
           >
             {isProcessing ? 'Đang xử lý...' : 'Xác nhận hủy vé'}
           </button>
@@ -51,8 +51,8 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
   if (!isOpen || !ticket) return null;
 
   return (
-    <div className="dialog-overlay">
-      <div className="ticket-details-dialog">
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="ticket-details-dialog" onClick={(e) => e.stopPropagation()}>
         <h2>Chi tiết vé</h2>
         <p><strong>Mã vé:</strong> {ticket.ID}</p>
         <p><strong>Ngày đặt:</strong> {formatDate(ticket.NGAYDAT)}</p>
@@ -93,7 +93,7 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
       alert('Vui lòng nhập nội dung đánh giá.');
       return;
     }
-    onSubmit(tour.ID, rating, content);
+    onSubmit(tour.IDTOUR, rating, content);
   };
 
   return (
@@ -102,6 +102,7 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
         <h2>Đánh giá tour</h2>
         <div className="tour-details">
           <p><strong>Mã vé:</strong> {tour.ID}</p>
+          <p><strong>Mã tour:</strong> {tour.IDTOUR}</p>
           <p><strong>Ngày đặt:</strong> {formatDate(tour.NGAYDAT)}</p>
           <p><strong>Tổng số vé:</strong> {tour.SOVE}</p>
           <p><strong>Số vé người lớn:</strong> {tour.SOVE_NGUOILON}</p>
@@ -151,8 +152,16 @@ const TourHistory = () => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [selectedTourForReview, setSelectedTourForReview] = useState(null);
 
+  const canCancelTicket = (ticket, tourDate) => {
+    const departureDate = new Date(tourDate);
+    const now = new Date();
+    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+    return hoursDifference >= 24;
+  };
+
   useEffect(() => {
-    const userId = sessionStorage.getItem('userId'); // Retrieve user ID from session storage
+    const userId = sessionStorage.getItem('userId');
+    console.log(userId);
     const fetchTourHistory = async () => {
       if (!userId) {
         console.error('User ID not found in session storage.');
@@ -160,8 +169,18 @@ const TourHistory = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`); // Update API endpoint with userId
-        setTourHistory(response.data);
+        const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`);
+        // Fetch tour dates for each ticket
+        const ticketsWithTourDates = await Promise.all(
+          response.data.map(async (ticket) => {
+            const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            return {
+              ...ticket,
+              NGAYDI: tourResponse.data.NGAYDI
+            };
+          })
+        );
+        setTourHistory(ticketsWithTourDates);
       } catch (error) {
         console.error('Error fetching tour history:', error);
         alert('Lỗi khi lấy lịch sử đặt tour.');
@@ -233,61 +252,48 @@ const TourHistory = () => {
   const handleSubmitReview = async (tourId, rating, content) => {
     try {
       const userId = sessionStorage.getItem('userId');
-      const token = sessionStorage.getItem('token');
       
-      if (!userId || !token) {
-        throw new Error('User ID or token not found. Please log in again.');
+      if (!userId) {
+        throw new Error('User ID not found. Please log in again.');
       }
 
-      console.log('Token being sent:', token); // Log token để kiểm tra
-
       const reviewData = {
-        tourId,
+        tourId: selectedTourForReview.IDTOUR,
         userId,
         rating,
         content
       };
 
-      const response = await axios.post('http://localhost:5000/add-review', reviewData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      console.log('Sending review data:', reviewData);
 
+      const response = await axios.post('http://localhost:5000/add-review', reviewData);
+      
       console.log('Review submission response:', response.data);
       alert('Đánh giá đã được gửi thành công!');
       closeReviewDialog();
     } catch (error) {
       console.error('Error submitting review:', error);
-      if (error.response) {
-        console.error('Full error response:', error.response);
-        alert(`Lỗi từ server: ${error.response.data.message || error.response.data || 'Không có thông báo lỗi cụ thể'}`);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-        alert('Không nhận được phản hồi từ server. Vui lòng thử lại sau.');
-      } else {
-        console.error('Error setting up request:', error.message);
-        alert(`Lỗi: ${error.message}`);
-      }
+      console.error('Full error response:', error.response);
+      console.error('Lỗi từ server:', error.response?.data);
+      alert(`Không thể gửi đánh giá: ${error.response?.data?.error || error.message}`);
     }
   };
 
   const canReview = (tourEndDate) => {
     // Tạm thời return true để luôn hiển thị nút đánh giá
     return true;
-    
-    // Code cũ tạm thời comment lại để sau này có thể sử dụng lại
-    /*
-    const endDate = new Date(tourEndDate);
-    const today = new Date();
-    endDate.setDate(endDate.getDate() + 1);
-    return today >= endDate;
-    */
+  };
+
+  const getTicketStatus = (ticket) => {
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return 'Đã hủy';
+    }
+    return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
   };
 
   return (
     <div className="tour-history-container">
-      <h1>Lịch sử đặt tour</h1>
+      <h1 className="tour-history-title">Lịch sử đặt tour</h1>
       <table className="tour-history-table">
         <thead>
           <tr>
@@ -296,7 +302,7 @@ const TourHistory = () => {
             <th>Tổng số vé</th>
             <th>Tình trạng</th>
             <th>Tổng tiền</th>
-            <th>Phương thức thanh toán</th>
+            <th className="payment-method">Phương thức thanh toán</th>
             <th>Chức năng</th>
           </tr>
         </thead>
@@ -307,12 +313,15 @@ const TourHistory = () => {
                 <td>{item.ID}</td>
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
-                <td>{item.TINHTRANG}</td>
+                <td>{getTicketStatus(item)}</td>
                 <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
                   <div className="button-group">
-                    <button onClick={() => openDetailsDialog(item)}>
+                    <button 
+                      className="view-details-link" 
+                      onClick={() => openDetailsDialog(item)}
+                    >
                       Xem chi tiết
                     </button>
                     {canReview(item.NGAYKETTHUC) && (
@@ -320,13 +329,21 @@ const TourHistory = () => {
                         Đánh giá
                       </button>
                     )}
-                    {(item.TINHTRANG !== 'Đã hủy' && item.TINHTRANG !== 'Đã hoàn tiền') && (
+                    {item.TINHTRANG === 'Đã hủy' ? (
+                      <button className="cancel-button" disabled>
+                        Đã hủy
+                      </button>
+                    ) : canCancelTicket(item, item.NGAYDI) ? (
                       <button
                         className="cancel-button"
                         onClick={() => openCancelDialog(item)}
                         disabled={isProcessing}
                       >
                         Hủy vé
+                      </button>
+                    ) : (
+                      <button className="cancel-button" disabled>
+                        Không thể hủy
                       </button>
                     )}
                   </div>
@@ -335,24 +352,21 @@ const TourHistory = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="7">Không có lịch sử đặt tour.</td>
+              <td colSpan="7" className="no-tours">Không có tour nào trong lịch sử.</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* Dialog form để chọn lý do hủy */}
       <CancelDialog
         isOpen={isDialogOpen}
         onClose={closeCancelDialog}
         onConfirm={handleCancelTicket}
-        selectedTicket={selectedTicket}
         cancelReason={cancelReason}
         setCancelReason={setCancelReason}
         isProcessing={isProcessing}
       />
 
-      {/* Dialog hiển thị chi tiết vé */}
       <TicketDetailsDialog
         isOpen={isDetailsDialogOpen}
         onClose={closeDetailsDialog}

@@ -13,17 +13,20 @@ import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
 import BookingManagement from './BookingManagement.jsx';
 import EditBookingManagement from './EditBookingManagement.jsx';
+import UserManagement from './UserManagement.jsx';
+import AddUser from'./AddUser.jsx';
+import EditUser from'./EditUser.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
 
 function App() {
-  // Kiểm tra trạng thái đăng nhập từ localStorage
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+  // Kiểm tra trạng thái đăng nhập từ sessionStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(sessionStorage.getItem('isLoggedIn') === 'true');
 
   useEffect(() => {
-    // Cập nhật trạng thái đăng nhập vào localStorage khi trạng thái thay đổi
-    localStorage.setItem('isLoggedIn', isLoggedIn);
+    // Cập nhật trạng thái đăng nhập vào sessionStorage khi trạng thái thay đổi
+    sessionStorage.setItem('isLoggedIn', isLoggedIn);
   }, [isLoggedIn]);
 
   const handleLoginSuccess = () => {
@@ -32,7 +35,7 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false); // Đặt trạng thái đăng nhập thành false
-    localStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập khỏi localStorage
+    sessionStorage.removeItem('isLoggedIn'); // Xóa trạng thái đăng nhập khỏi sessionStorage
   };
 
   return (
@@ -64,7 +67,9 @@ function App() {
                     <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
                     <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<h1>Quản lý mã giảm giá</h1>} />
-                    <Route path="/user" element={<h1>Quản lý người dùng</h1>} />
+                    <Route path="/user" element={<UserManagement />} />
+                    <Route path="/add-user" element={<AddUser/>} />
+                    <Route path="/edit-user/:id" element={<EditUser/>} />
                     <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
                   </Routes>
                 </div>

@@ -88,7 +88,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
           return res.status(500).json({ error: 'Database query failed' });
           
       }
-      console.log(results);
       res.json(results);
   });
 });
@@ -96,7 +95,14 @@ app.get('/api/tour-history/:userId', (req, res) => {
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
 
-  const getTicketQuery = 'SELECT * FROM ve WHERE ID = ?';
+  // Lệnh truy vấn SQL thôi chứ ko có gì đâu
+  const getTicketQuery = `
+    SELECT v.*, t.IDLICHTRINH, l.NGAYDI 
+    FROM ve v
+    JOIN tour t ON v.IDTOUR = t.ID
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE v.ID = ?`;
+
   db.query(getTicketQuery, [ticketId], (err, ticketResults) => {
     if (err) {
       console.error('Lỗi khi lấy thông tin vé:', err);
@@ -108,6 +114,23 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
     }
 
     const ticket = ticketResults[0];
+    
+    // Kiểm tra thời gian mà user huỷ vé (24h trước khi tour khởi hành)
+    const departureDate = new Date(ticket.NGAYDI);
+    const now = new Date();
+    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+
+    if (hoursDifference < 24) {
+      return res.status(400).json({ 
+        error: 'Không thể hủy vé trong vòng 24 giờ trước khi tour khởi hành',
+        remainingHours: Math.floor(hoursDifference)
+      });
+    }
+
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
+    }
+
     const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
     const tourId = ticket.IDTOUR;
 
@@ -125,7 +148,11 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
           return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
         }
 
-        res.json({ message: 'Hủy vé thành công' });
+        res.json({ 
+          message: 'Hủy vé thành công',
+          cancelTime: now,
+          departureTime: departureDate
+        });
       });
     });
   });
@@ -791,10 +818,41 @@ app.get('/search/tour-with-date', (req, res) => {
 });
 
 // User ( còn thiếu thêm, xoá, sửa )
+app.get('/users', (req, res) => {
+  const query = `
+    SELECT u.*
+    FROM user u
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Lỗi truy vấn", err);
+      return res.status(500).json({ error: 'Lỗi truy vấn' });
+    }
+    res.json(results);
+  });
+});
+
+// Lấy thông tin người dùng theo ID
+app.get('/users', (req, res) => {
+  const query = `
+    SELECT *
+    FROM user
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Lỗi truy vấn", err);
+      return res.status(500).json({ error: 'Lỗi truy vấn' });
+    }
+    res.json(results);
+  });
+});
+
 // Lấy thông tin người dùng theo ID
 app.get('/user/:id', (req, res) => {
   const userId = req.params.id;
-  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH FROM USER WHERE ID = ?';
+  const query = 'SELECT FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME FROM USER WHERE ID = ?';
 
   db.query(query, [userId], (err, results) => {
     if (err) {
@@ -808,38 +866,146 @@ app.get('/user/:id', (req, res) => {
     res.json(results[0]); // Trả về thông tin người dùng đầu tiên
   });
 });
-// Cập nhật thông tin người dùng
-app.put('/update/user/:id', (req, res) => {
-  const userId = req.params.id;
-  const { FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH } = req.body;
 
-  const query = `
-    UPDATE USER
-    SET FULLNAME = ?, ADDRESS = ?, DAYOFBIRTH = ?
-    WHERE ID = ?
-  `;
+app.post('/check-email', (req, res) => {
+  const { email } = req.body;
 
-  db.query(query, [FULLNAME, ADDRESS, DAYOFBIRTH, userId], (err, results) => {
+  // Kiểm tra xem người dùng với cùng email đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE EMAIL = ?';
+  db.query(checkQuery, [email], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với email này
+          return res.status(409).json({ exists: true, message: 'Người dùng với email này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với email này
+          return res.status(200).json({ exists: false, message: 'Email này có thể sử dụng' });
+      }
+  });
+});
+
+app.post('/check-phone', (req, res) => {
+  const { phone } = req.body;
+
+  // Kiểm tra xem người dùng với cùng số điện thoại đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE PHONENUMBER = ?';
+  db.query(checkQuery, [phone], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với số điện thoại này
+          return res.status(409).json({ exists: true, message: 'Người dùng với số điện thoại này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với số điện thoại này
+          return res.status(200).json({ exists: false, message: 'Số điện thoại này có thể sử dụng' });
+      }
+  });
+});
+
+app.post('/check-accountname', (req, res) => {
+  const { accountName } = req.body;
+
+  // Kiểm tra xem người dùng với cùng tên tài khoản đã tồn tại hay chưa
+  const checkQuery = 'SELECT * FROM user WHERE ACCOUNTNAME = ?';
+  db.query(checkQuery, [accountName], (err, results) => {
+      if (err) {
+          console.error('Lỗi cơ sở dữ liệu:', err);
+          return res.status(500).json({ error: 'Lỗi cơ sở dữ liệu' });
+      }
+
+      if (results.length > 0) {
+          // Nếu đã tồn tại người dùng với tên tài khoản này
+          return res.status(409).json({ exists: true, message: 'Người dùng với tên tài khoản này đã tồn tại' });
+      } else {
+          // Nếu không có người dùng với tên tài khoản này
+          return res.status(200).json({ exists: false, message: 'Tên tài khoản này có thể sử dụng' });
+      }
+  });
+});
+
+
+
+app.post('/add-user', (req, res) => {
+  const { fullname, phone, email, address, dayofbirth, accountname, password  } = req.body;
+  // Chèn người dùng mới
+  const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  
+  db.query(query, [fullname, phone, email, address, dayofbirth, accountname, password], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: 'Lỗi cập nhật cơ sở dữ liệu: ' + err.message });
+      return res.status(500).json({ message: 'Database error: ' + err.message });
+    }
+    res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+  });
+});
+
+
+
+app.put('/edit-user/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    ID, FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME
+  } = req.body;
+
+  // Lấy thông tin người dùng hiện tại
+  const getOldUserQuery = 'SELECT * FROM user WHERE ID = ?';
+  db.query(getOldUserQuery, [id], (err, oldUserResults) => {
+    if (err) {
+      console.error('Lỗi khi lấy thông tin người dùng:', err);
+      return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
     }
 
-    if (results.affectedRows === 0) {
+    if (oldUserResults.length === 0) {
       return res.status(404).json({ message: 'Người dùng không tồn tại' });
     }
 
-    // Trả về thông tin người dùng đã cập nhật
-    const updatedUser = {
-      ID: userId,
-      FULLNAME,
-      PHONENUMBER,
-      EMAIL,
-      ADDRESS,
-      DAYOFBIRTH,
-    };
-    res.json(updatedUser);
+    // Cập nhật thông tin người dùng mà không bao gồm trường PASSWORD và ROLE
+    const updateUserQuery = `
+      UPDATE user 
+      SET FULLNAME = ?, PHONENUMBER = ?, EMAIL = ?, ADDRESS = ?, DAYOFBIRTH = ?, ACCOUNTNAME = ?
+      WHERE ID = ?
+    `;
+
+    db.query(updateUserQuery, [
+      FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, id
+    ], (err, result) => {
+      if (err) {
+        console.error('Lỗi khi cập nhật người dùng:', err);
+        return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
+      }
+
+      res.json({ message: 'Cập nhật người dùng thành công' });
+    });
   });
 });
+
+
+
+app.delete('/delete-user/:id', (req, res) => {
+  const { id } = req.params;
+  const deleteUserQuery = 'DELETE FROM user WHERE ID = ?';
+
+  db.query(deleteUserQuery, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi xóa người dùng' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng để xóa' });
+    }
+
+    // Trả về phản hồi thành công nếu xóa thành công
+    return res.status(200).json({ message: 'Người dùng đã được xóa thành công' });
+  });
+});
+
+
 
 // API MOMO
 app.post('/payment', async (req, res) => {
@@ -989,28 +1155,40 @@ app.post('/prepare-payment', (req, res) => {
 });
 
 // Thêm đánh giá
-app.post('/add-review', authenticateToken, (req, res) => {
-  const { tourId, rating, content } = req.body;
-  const userId = req.userId;
+app.post('/add-review', (req, res) => {
+  const { tourId, userId, rating, content } = req.body;
 
-  // Kiểm tra xem người dùng đã mua tour và tour đã kết thúc chưa
+  console.log('Received review data:', { tourId, userId, rating, content });
+
+  if (!tourId || !userId || !rating || !content) {
+    return res.status(400).json({ 
+      error: 'Missing required fields',
+      received: { tourId, userId, rating, content }
+    });
+  }
+
+  // Sửa lại câu query để kiểm tra vé với IDTOUR
   const checkQuery = `
-    SELECT v.ID, t.NGAYVE
+    SELECT v.ID, l.NGAYVE
     FROM ve v
     JOIN tour t ON v.IDTOUR = t.ID
-    WHERE v.IDNGUOIDUNG = ? AND v.IDTOUR = ? AND v.TINHTRANG = 'Đã thanh toán' AND t.NGAYVE < NOW()
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE v.IDNGUOIDUNG = ? 
+    AND t.ID = ? 
+    AND v.TINHTRANG = 'Đã thanh toán'
+    AND l.NGAYVE < NOW()
   `;
 
   db.query(checkQuery, [userId, tourId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu' });
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
     }
 
     if (results.length === 0) {
       return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
     }
 
-    // Thêm đánh giá vào cơ sở dữ liệu
     const insertQuery = `
       INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
       VALUES (?, ?, ?, ?)
@@ -1018,16 +1196,20 @@ app.post('/add-review', authenticateToken, (req, res) => {
 
     db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá' });
+        console.error('Insert error:', err);
+        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá', details: err.message });
       }
 
-      res.json({ message: 'Đánh giá đã được thêm thành công', reviewId: result.insertId });
+      res.json({ 
+        message: 'Đánh giá đã được thêm thành công', 
+        reviewId: result.insertId 
+      });
     });
   });
 });
 
 // Sửa đánh giá
-app.put('/update-review/:id', authenticateToken, (req, res) => {
+app.put('/update-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const { rating, content } = req.body;
   const userId = req.userId;
@@ -1052,7 +1234,7 @@ app.put('/update-review/:id', authenticateToken, (req, res) => {
 });
 
 // Xóa đánh giá
-app.delete('/delete-review/:id', authenticateToken, (req, res) => {
+app.delete('/delete-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const userId = req.userId;
 
@@ -1091,6 +1273,30 @@ app.get('/reviews/:tourId', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+
+// Cái route này tui test thôi nếu đc thì lấy xài luôn :>
+app.get('/api/tour/:id', (req, res) => {
+  const tourId = req.params.id;
+  const query = `
+    SELECT t.*, l.NGAYDI 
+    FROM tour t
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE t.ID = ?
+  `;
+  
+  db.query(query, [tourId], (err, results) => {
+    if (err) {
+      console.error('Error fetching tour:', err);
+      return res.status(500).json({ error: 'Error fetching tour information' });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Tour not found' });
+    }
+    
+    res.json(results[0]);
   });
 });
 

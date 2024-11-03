@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import './SearchResult.css';
+import PagesNames from '../Router/Router';
 
 const SearchResults = () => {
     const location = useLocation();
@@ -48,12 +49,12 @@ const SearchResults = () => {
 
     // Hàm chuyển đến trang chi tiết tour
     const goToTourDetails = (tour) => {
-        navigate(`/tour-details/${tour.ID}`); // Điều hướng đến TourDetails với tourId trong URL
+        navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}`); // Điều hướng đến TourDetails với tourId trong URL
     };
 
     // Hàm chuyển đến trang checkout
     const goToCheckout = (tour) => {
-        navigate(`/checkout/${tour.ID}`); // Thay đổi `navigate(/checkout/${tour.ID})` thành `navigate(`/checkout/${tour.ID})` với dấu ngoặc kép
+        navigate(`${PagesNames.CHECKOUT}/${tour.ID}`); // Thay đổi `navigate(/checkout/${tour.ID})` thành `navigate(`/checkout/${tour.ID})` với dấu ngoặc kép
     };
 
     return (

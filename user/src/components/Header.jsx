@@ -25,7 +25,7 @@ const Header = ({ user, onLogout }) => {
 
     const handleHomepageClick = () => navigate(PagesNames.HOMEPAGE);
 
-    const handleProfileClick = () => navigate(`/user-profile/`);
+    const handleProfileClick = () => navigate(PagesNames.PROFILE);
 
     const handleLoginOpen = () => {
         setIsLoginModalOpen(true);

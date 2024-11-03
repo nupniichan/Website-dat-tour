@@ -1,8 +1,6 @@
 const PagesNames = {
     HOMEPAGE: "/",
     ABOUT: "/about-us",
-    REGISTER: "/register",
-    LOGIN: "/login",
     PROFILE: '/profile',
     CHECKOUT: "/checkout",
     SEARCH_RESULTS: "/search-results",

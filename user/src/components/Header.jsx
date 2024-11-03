@@ -1,13 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Modal } from "antd"; // Importing Modal from antd for better styling
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PagesNames from "../Router/Router";
-import Logo3 from "../assets/images/Logo3.png"; // Import the brand logo image
-import "../components/Header.css"; // Import the CSS file for styling
+import "../components/Header.css";
+import Login from "./Login";
+import Register from "./Register";
+import Logo3 from '../assets/images/Logo3.png'
 
 const Header = ({ user, onLogout }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const navigate = useNavigate();
-
+    const userId = sessionStorage.getItem("userId");
+    const userName = sessionStorage.getItem("userName");
     const pagesNavigation = [
         { title: "Trang chủ", path: PagesNames.HOMEPAGE },
         { title: "Tour", path: PagesNames.SCHEDULE },
@@ -15,20 +21,34 @@ const Header = ({ user, onLogout }) => {
         { title: "Liên hệ", path: PagesNames.CONTACT },
     ];
 
-    const handleNavigation = (path) => {
-        navigate(path);
+    const handleNavigation = (path) => navigate(path);
+
+    const handleHomepageClick = () => navigate(PagesNames.HOMEPAGE);
+
+    const handleProfileClick = () => navigate(`/user-profile/`);
+
+    const handleLoginOpen = () => {
+        setIsLoginModalOpen(true);
+        setIsRegisterModalOpen(false);
     };
 
-    const handleHomepageClick = () => {
-        navigate(PagesNames.HOMEPAGE);
+    const handleRegisterOpen = () => {
+        setIsLoginModalOpen(false);
+        setIsRegisterModalOpen(true);
     };
 
-    const handleSignUpClick = () => {
-        navigate(PagesNames.LOGIN);
+    const handleLoginClose = () => setIsLoginModalOpen(false);
+
+    const handleRegisterClose = () => setIsRegisterModalOpen(false);
+
+    const handleRegisterSuccess = () => {
+        handleRegisterClose();
+        setIsLoginModalOpen(true); // Opens login modal after registration
     };
 
-    const handleProfileClick = () => {
-        navigate(`/user-profile/`); // Navigate to profile page
+    const handleLoginSuccess = () => {
+        handleLoginClose();
+        window.location.reload(); // Refreshes page on login success
     };
 
     useEffect(() => {
@@ -42,10 +62,7 @@ const Header = ({ user, onLogout }) => {
 
     const BrandLogo = () => (
         <div className="flex items-center justify-between py-2 md:block">
-            <button
-                onClick={() => handleHomepageClick()}
-                className="h-[96px] w-[96px]"
-            >
+            <button onClick={handleHomepageClick} className="h-[96px] w-[96px]">
                 <img src={Logo3} alt="La Voyage brand logo" />
             </button>
             <div className="md:hidden">
@@ -99,7 +116,7 @@ const Header = ({ user, onLogout }) => {
             <nav
                 className={`md:text-sm bg-gray-900 ${
                     isMobileMenuOpen
-                        ? "absolute z-20 top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-3"
+                        ? "absolute z-20 top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent"
                         : ""
                 }`}
             >
@@ -127,13 +144,13 @@ const Header = ({ user, onLogout }) => {
                                 </li>
                             ))}
                             <li>
-                                {user ? (
+                                {userId ? (
                                     <div className="flex items-center">
                                         <button
                                             className="username-plate"
                                             onClick={handleProfileClick}
                                         >
-                                            Xin chào, {user.fullname}
+                                            {userName}
                                         </button>
                                         <button
                                             onClick={onLogout}
@@ -144,7 +161,7 @@ const Header = ({ user, onLogout }) => {
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={handleSignUpClick}
+                                        onClick={handleLoginOpen}
                                         className="flex items-center justify-center gap-x-1 py-2 px-4 text-white font-medium bg-orange-500 hover:bg-orange-400 active:bg-orange-600 duration-150 rounded-full"
                                     >
                                         Đăng nhập
@@ -167,6 +184,34 @@ const Header = ({ user, onLogout }) => {
                     </div>
                 </div>
             </nav>
+
+            {/* Ant Design Modal for Login */}
+            <Modal
+                title="Login"
+                visible={isLoginModalOpen}
+                onCancel={handleLoginClose}
+                footer={null}
+            >
+                <Login
+                    onLogin={handleLoginSuccess}
+                    onClose={handleLoginClose}
+                    onOpenRegister={handleRegisterOpen}
+                />
+            </Modal>
+
+            {/* Ant Design Modal for Register */}
+            <Modal
+                title="Register"
+                visible={isRegisterModalOpen}
+                onCancel={handleRegisterClose}
+                footer={null}
+            >
+                <Register
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onClose={handleRegisterClose}
+                    onOpenLogin={handleLoginOpen} // Add this line
+                />
+            </Modal>
         </header>
     );
 };

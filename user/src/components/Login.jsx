@@ -1,60 +1,99 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
-import PropTypes from "prop-types"; // Import PropTypes
+import PropTypes from "prop-types";
+import { useState } from "react";
+import "../App.css";
+import "../pages/Registration.css";
 
-const Login = ({ onLogin }) => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+const Login = ({ onLogin, onClose, onOpenRegister }) => {
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+    });
+    const [errorMessage, setErrorMessage] = useState(""); // State for error messages
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch("http://localhost:5000/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        });
+        setErrorMessage(""); // Reset error message
 
-        const data = await response.json();
-        if (response.ok) {
-            const { token, userName } = data;
-            onLogin(token, userName);
-            alert(data.message);
-        } else {
-            alert(data.message);
+        try {
+            const response = await fetch("http://localhost:5000/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: formData.email, password: formData.password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Đăng nhập thành công!");
+                const { ID, userName } = data;
+                sessionStorage.setItem('userId', ID);
+                sessionStorage.setItem('userName', userName);
+                onLogin(ID, userName); // Call the onLogin function to handle login state
+                onClose(); // Close the modal after login
+                console.log(ID)
+                console.log(userName)
+            } else {
+                setErrorMessage(data.message || "Đăng nhập thất bại");
+            }
+        } catch (error) {
+            setErrorMessage("Lỗi kết nối: " + error.message);
         }
     };
 
     return (
         <div className="auth-container">
             <h2>Đăng nhập</h2>
+
+            {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>} {/* Display error message */}
+
             <form onSubmit={handleSubmit}>
-                <label htmlFor="fullname">Email:</label>
+                <label htmlFor="email">Email:</label>
                 <input
                     type="email"
+                    id="email"
+                    name="email"
                     placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                 />
-                <label htmlFor="fullname">Mật khẩu:</label>
+
+                <label htmlFor="password">Mật khẩu:</label>
                 <input
                     type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    id="password"
+                    name="password"
+                    placeholder="Mật khẩu"
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                 />
+
                 <button type="submit">Đăng nhập</button>
             </form>
+
+            <div style={{ textAlign: "center", marginTop: "15px" }}>
+                <button onClick={onOpenRegister} className="button-spacing">
+                    Chưa có tài khoản? Đăng ký
+                </button>
+            </div>
         </div>
     );
 };
 
-// Add PropTypes validation
 Login.propTypes = {
-    onLogin: PropTypes.func.isRequired, // Validate that onLogin is a required function
+    onLogin: PropTypes.func,
+    onClose: PropTypes.func,
+    onOpenRegister: PropTypes.func, // Prop for opening the registration modal
 };
 
 export default Login;

@@ -1,15 +1,25 @@
+import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import "../App.css";
+import "../pages/Registration.css";
 
-const Register = () => {
-    const navigate = useNavigate(); // Initialize useNavigate
-    const [fullname, setFullname] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [email, setEmail] = useState("");
-    const [address, setAddress] = useState("");
-    const [dayOfBirth, setDayOfBirth] = useState("");
-    const [accountName, setAccountName] = useState("");
-    const [password, setPassword] = useState("");
+const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
+    const [formData, setFormData] = useState({
+        fullname: "",
+        phoneNumber: "",
+        email: "",
+        address: "",
+        dayOfBirth: "",
+        accountName: "",
+        password: "",
+    });
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,23 +28,15 @@ const Register = () => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                fullname,
-                phoneNumber,
-                email,
-                address,
-                dayOfBirth,
-                accountName,
-                password,
-            }),
+            body: JSON.stringify(formData),
         });
 
-        const data = await response.json();
         if (response.ok) {
-            alert(data.message);
-            navigate("/login"); // Redirect to login on successful registration
+            alert("Đăng ký thành công!");
+            onRegisterSuccess(); // Call the success callback to handle registration success
+            onClose(); // Close the modal after registration
         } else {
-            alert(data.message);
+            alert("Đăng ký thất bại");
         }
     };
 
@@ -46,9 +48,10 @@ const Register = () => {
                 <input
                     type="text"
                     id="fullname"
-                    placeholder="Full Name"
-                    value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
+                    name="fullname"
+                    placeholder="Họ tên"
+                    value={formData.fullname}
+                    onChange={handleChange}
                     required
                 />
 
@@ -56,19 +59,10 @@ const Register = () => {
                 <input
                     type="text"
                     id="phoneNumber"
-                    placeholder="Phone Number"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required
-                />
-
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="email"
-                    id="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="phoneNumber"
+                    placeholder="Số điện thoại"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
                     required
                 />
 
@@ -76,9 +70,10 @@ const Register = () => {
                 <input
                     type="text"
                     id="address"
-                    placeholder="Address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    name="address"
+                    placeholder="Địa chỉ"
+                    value={formData.address}
+                    onChange={handleChange}
                     required
                 />
 
@@ -86,9 +81,9 @@ const Register = () => {
                 <input
                     type="date"
                     id="dayOfBirth"
-                    placeholder="Date of Birth"
-                    value={dayOfBirth}
-                    onChange={(e) => setDayOfBirth(e.target.value)}
+                    name="dayOfBirth"
+                    value={formData.dayOfBirth}
+                    onChange={handleChange}
                     required
                 />
 
@@ -96,9 +91,21 @@ const Register = () => {
                 <input
                     type="text"
                     id="accountName"
-                    placeholder="Account Name"
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
+                    name="accountName"
+                    placeholder="Tên tài khoản"
+                    value={formData.accountName}
+                    onChange={handleChange}
+                    required
+                />
+
+                <label htmlFor="email">Email:</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                 />
 
@@ -106,16 +113,34 @@ const Register = () => {
                 <input
                     type="password"
                     id="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    name="password"
+                    placeholder="Mật khẩu"
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                 />
 
                 <button type="submit">Đăng ký</button>
             </form>
+            <div style={{ textAlign: "center", marginTop: "15px" }}>
+                <button
+                    onClick={() => {
+                        onClose(); // Close register modal
+                        setTimeout(onOpenLogin, 200); // Open login modal after 200ms delay
+                    }}
+                    className="button-spacing"
+                >
+                    Đã có tài khoản? Đăng nhập
+                </button>
+            </div>
         </div>
     );
+};
+
+Register.propTypes = {
+    onRegisterSuccess: PropTypes.func, // Callback for registration success
+    onClose: PropTypes.func, // Function to close the modal
+    onOpenLogin: PropTypes.func,
 };
 
 export default Register;

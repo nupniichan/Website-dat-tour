@@ -11,42 +11,6 @@ import Vehicle from "../assets/svg/Vehicle";
 import "./TourDetails.css";
 
 const TourDetails = () => {
-<<<<<<< HEAD
-    const { id } = useParams();
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [tour, setTour] = useState(location.state?.tour || null);
-    const [schedule, setSchedule] = useState([]);
-
-    useEffect(() => {
-        const fetchTourDetails = async () => {
-            try {
-                const response = await axios.get(
-                    `http://localhost:5000/tours/${id}`
-                );
-                setTour(response.data);
-            } catch (error) {
-                console.error("Error fetching tour details:", error);
-            }
-        };
-        fetchTourDetails();
-    }, [id]);
-
-    useEffect(() => {
-        const fetchScheduleDetails = async () => {
-            try {
-                const response = await axios.get(
-                    `http://localhost:5000/schedules/${id}`
-                );
-                // Ensure response.data is an array before setting it
-                setSchedule(response.data);
-            } catch (error) {
-                console.error("Error fetching schedule details:", error);
-            }
-        };
-        fetchScheduleDetails();
-    }, [id]);
-=======
     const { id } = useParams(); // Lấy id từ URL
     const location = useLocation();
     const navigate = useNavigate(); // Khởi tạo navigate để điều hướng
@@ -69,7 +33,6 @@ const TourDetails = () => {
                 .catch((error) => console.error('Error fetching tour details:', error));
         }
     }, [id, tour]);
->>>>>>> main
 
     // Hàm điều hướng đến trang checkout
     const handleCheckout = () => {
@@ -81,7 +44,6 @@ const TourDetails = () => {
     }
 
     return (
-<<<<<<< HEAD
         <div className="container flex justify-center">
             <div className="tour-details-container mx-auto">
                 {/* LEFT MAIN SECTION */}
@@ -98,8 +60,8 @@ const TourDetails = () => {
                     </p>
                     <div className="tour-schedule">
                         <h2>Chi tiết lịch trình</h2>
-                        {schedule.length > 0 ? (
-                            schedule.map((item) => (
+                        {scheduleDetails.length > 0 ? (
+                            scheduleDetails.map((item) => (
                                 <ul key={item.ID}>
                                     <li>
                                         {item.NGAY}: {item.MOTA}
@@ -110,8 +72,8 @@ const TourDetails = () => {
                             <p>Chưa có lịch trình.</p>
                         )}
                     </div>
-=======
-        <div className="tour-details-container">
+
+        {/* <div className="tour-details-container">
             <div className="tour-left">
                 <img src={`http://localhost:5000/${tour.HINHANH}`} alt={tour.TENTOUR} className="tour-image" onError={(e) => e.target.src = 'default-image.jpg'} />
                 <h1 className="tour-title">{tour.TENTOUR}</h1>
@@ -123,15 +85,15 @@ const TourDetails = () => {
                             scheduleDetails.map((detail, index) => (
                                 <li key={index}>
                                     <strong>Ngày {index + 1}:</strong> {dayjs(detail.NGAY).format('DD/MM/YYYY')} - {detail.GIO} - {detail.SUKIEN}
-                                    <p>{detail.MOTA}</p> {/* Mô tả xuống dòng */}
+                                    <p>{detail.MOTA}</p>
                                 </li>
                             ))
                         ) : (
                             <p>Chưa có chi tiết lịch trình.</p>
                         )}
                     </ul>
->>>>>>> main
-                </div>
+
+                </div> */}
 
                 {/* RIGHT INFO SECTION */}
                 <div className="right-info-section border-shadow scale-[70%]">
@@ -219,6 +181,7 @@ const TourDetails = () => {
                 </div>
             </div>
         </div>
+    </div>
     );
 };
 

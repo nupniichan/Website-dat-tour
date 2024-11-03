@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import PagesNames from "../Router/PagesNames";
+import PagesNames from "../Router/Router";
 import Logo3 from "../assets/images/Logo3.png"; // Import the brand logo image
 import "../components/Header.css"; // Import the CSS file for styling
 

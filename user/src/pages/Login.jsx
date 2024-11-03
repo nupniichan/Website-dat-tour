@@ -1,8 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types"; // Import PropTypes
 import { useNavigate } from "react-router-dom";
-import "../App.css";
-import PagesNames from "../Router/PagesNames";
+import PagesNames from "../Router/Router";
 import "../pages/Registration.css";
 
 const Login = ({ onLogin }) => {
@@ -79,7 +78,7 @@ const Login = ({ onLogin }) => {
                 <button type="submit">Đăng nhập</button>
             </form>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-                <button onClick={() => navigate(PagesNames.REGISTRATION)} className="button-spacing">
+                <button onClick={() => navigate(PagesNames.REGISTER)} className="button-spacing">
                     Chưa có tài khoản? Đăng ký
                 </button>
             </div>

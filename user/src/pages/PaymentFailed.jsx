@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import pagesName from "../Router/PagesNames";
+import PagesNames from "../Router/Router";
 
 const PaymentFailed = () => {
   const navigate = useNavigate();
   const handleNavigateToHomepage = () => {
-    navigate(pagesName.HOMEPAGE)
+    navigate(PagesNames.HOMEPAGE)
   }
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">

@@ -1,26 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PagesNames from "../Router/Router";
-import "../pages/Registration.css"
 
 const Register = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        fullname: "",
-        phoneNumber: "",
-        email: "",
-        address: "",
-        dayOfBirth: "",
-        accountName: "",
-        password: "",
-    });
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
+    const navigate = useNavigate(); // Initialize useNavigate
+    const [fullname, setFullname] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [email, setEmail] = useState("");
+    const [address, setAddress] = useState("");
+    const [dayOfBirth, setDayOfBirth] = useState("");
+    const [accountName, setAccountName] = useState("");
+    const [password, setPassword] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,14 +18,23 @@ const Register = () => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({
+                fullname,
+                phoneNumber,
+                email,
+                address,
+                dayOfBirth,
+                accountName,
+                password,
+            }),
         });
 
+        const data = await response.json();
         if (response.ok) {
-            alert("Đăng ký thành công!");
-            navigate(PagesNames.LOGIN);
+            alert(data.message);
+            navigate("/login"); // Redirect to login on successful registration
         } else {
-            alert("Đăng ký thất bại");
+            alert(data.message);
         }
     };
 
@@ -48,10 +46,9 @@ const Register = () => {
                 <input
                     type="text"
                     id="fullname"
-                    name="fullname"
                     placeholder="Full Name"
-                    value={formData.fullname}
-                    onChange={handleChange}
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
                     required
                 />
 
@@ -59,42 +56,9 @@ const Register = () => {
                 <input
                     type="text"
                     id="phoneNumber"
-                    name="phoneNumber"
                     placeholder="Phone Number"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    required
-                />
-
-                <label htmlFor="address">Địa chỉ:</label>
-                <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    placeholder="Address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                />
-
-                <label htmlFor="dayOfBirth">Ngày sinh:</label>
-                <input
-                    type="date"
-                    id="dayOfBirth"
-                    name="dayOfBirth"
-                    value={formData.dayOfBirth}
-                    onChange={handleChange}
-                    required
-                />
-
-                <label htmlFor="accountName">Tên tài khoản:</label>
-                <input
-                    type="text"
-                    id="accountName"
-                    name="accountName"
-                    placeholder="Account Name"
-                    value={formData.accountName}
-                    onChange={handleChange}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     required
                 />
 
@@ -102,10 +66,39 @@ const Register = () => {
                 <input
                     type="email"
                     id="email"
-                    name="email"
                     placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+
+                <label htmlFor="address">Địa chỉ:</label>
+                <input
+                    type="text"
+                    id="address"
+                    placeholder="Address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    required
+                />
+
+                <label htmlFor="dayOfBirth">Ngày sinh:</label>
+                <input
+                    type="date"
+                    id="dayOfBirth"
+                    placeholder="Date of Birth"
+                    value={dayOfBirth}
+                    onChange={(e) => setDayOfBirth(e.target.value)}
+                    required
+                />
+
+                <label htmlFor="accountName">Tên tài khoản:</label>
+                <input
+                    type="text"
+                    id="accountName"
+                    placeholder="Account Name"
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
                     required
                 />
 
@@ -113,20 +106,14 @@ const Register = () => {
                 <input
                     type="password"
                     id="password"
-                    name="password"
                     placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                 />
 
                 <button type="submit">Đăng ký</button>
             </form>
-            <div style={{ textAlign: "center", marginTop: "15px" }}>
-                <button onClick={() => navigate(PagesNames.LOGIN)} className="button-spacing">
-                    Đã có tài khoản? Đăng nhập
-                </button>
-            </div>
         </div>
     );
 };

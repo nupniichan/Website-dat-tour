@@ -1,4 +1,4 @@
-import PagesNames from "../Router/PagesNames";
+import PagesNames from "../Router/Router";
 import Logo3 from '../assets/images/Logo3.png';
 
 const Footer = () => {

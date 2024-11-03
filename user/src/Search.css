@@ -1,17 +1,17 @@
-.App {
+/* .App {
     padding: 20px;
-  }
+}
 
-  .search-bar,
-  .filter-bar {
+.search-bar,
+.filter-bar {
     margin-bottom: 20px;
-  }
+}
 
-  .results {
+.results {
     margin-top: 20px;
-  }
+}
 
-  .tour-card {
+.tour-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -24,50 +24,50 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
     color: black;
-  }
+}
 
-  .tour-card:hover {
+.tour-card:hover {
     transform: translateY(-5px);
-  }
+}
 
-  .tour-image {
+.tour-image {
     width: 150px;
     height: 100px;
     object-fit: cover;
     border-radius: 5px;
     margin-right: 15px;
-  }
+}
 
-  .tour-info {
+.tour-info {
     flex-grow: 1;
-  }
+}
 
-  .tour-name {
+.tour-name {
     font-size: 20px;
     font-weight: bold;
     margin: 0 0 10px;
-  }
+}
 
-  .tour-price {
+.tour-price {
     color: #d9534f;
     font-size: 16px;
     margin: 5px 0;
-  }
+}
 
-  .tour-ticket-available {
+.tour-ticket-available {
     font-size: 14px;
     color: #5bc0de;
-  }
+}
 
-  .tour-vehicle,
-  .tour-type {
+.tour-vehicle,
+.tour-type {
     font-size: 12px;
     color: #999;
     margin-top: 5px;
-  }
+}
 
-  .button-container {
+.button-container {
     display: flex;
     align-items: center;
     margin-left: auto;
-  }
+} */

@@ -3,7 +3,6 @@ import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import cities from "../json/cities.json";
-import "../App.css";
 import "./Homepage.css";
 
 const Homepage = () => {

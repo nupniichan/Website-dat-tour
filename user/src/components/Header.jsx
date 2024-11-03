@@ -188,7 +188,7 @@ const Header = ({ user, onLogout }) => {
             {/* Ant Design Modal for Login */}
             <Modal
                 title="Login"
-                visible={isLoginModalOpen}
+                open={isLoginModalOpen}
                 onCancel={handleLoginClose}
                 footer={null}
             >
@@ -202,7 +202,7 @@ const Header = ({ user, onLogout }) => {
             {/* Ant Design Modal for Register */}
             <Modal
                 title="Register"
-                visible={isRegisterModalOpen}
+                open={isRegisterModalOpen}
                 onCancel={handleRegisterClose}
                 footer={null}
             >

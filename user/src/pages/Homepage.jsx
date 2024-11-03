@@ -22,8 +22,8 @@ const Homepage = () => {
     const onSearch = (value) => {
         const filtered = value
             ? cities.filter((city) =>
-                city.city.toLowerCase().includes(value.toLowerCase())
-            )
+                  city.city.toLowerCase().includes(value.toLowerCase())
+              )
             : cities;
         setFilteredCities(filtered);
     };
@@ -37,7 +37,7 @@ const Homepage = () => {
             alert("Vui lòng chọn điểm đến.");
             return;
         }
-
+        
         if (!departureDate) {
             alert("Vui lòng chọn ngày khởi hành.");
             return;
@@ -49,16 +49,14 @@ const Homepage = () => {
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error("Lỗi mạng.");
+                throw new Error('Lỗi mạng.');
             }
 
             const data = await response.json();
             const filteredResults = data;
-            navigate(`/search/${selectedCity}/${formattedDate}`, {
-                state: { results: filteredResults },
-            });
+            navigate(`/search/${selectedCity}/${formattedDate}`, { state: { results: filteredResults } });
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu:", error);
+            console.error('Lỗi khi lấy dữ liệu:', error);
         }
     };
 

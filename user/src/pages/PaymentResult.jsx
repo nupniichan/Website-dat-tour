@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import PagesNames from "../Router/Router";
+import PagesNames from "../Router/PagesNames.js";
 const PaymentResult = () => {
     const location = useLocation();
     const navigate = useNavigate();

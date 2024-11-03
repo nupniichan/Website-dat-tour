@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "../pages/Profile.css"; // Import the CSS file for styling
+import PagesNames from "../Router/PagesNames.js";
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -126,7 +127,7 @@ const Profile = () => {
     };
 
     const handleTourHistoryClick = () => {
-        navigate("/TourHistory");
+        navigate(PagesNames.TOUR_HISTORY);
     };
 
     if (error) {

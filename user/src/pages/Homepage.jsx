@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import cities from "../json/cities.json";
 import "./Homepage.css";
-import PagesNames from "../Router/Router";
+import PagesNames from "../Router/PagesNames.js";
 
 const Homepage = () => {
     const [filteredCities, setFilteredCities] = useState(cities);
@@ -23,8 +23,8 @@ const Homepage = () => {
     const onSearch = (value) => {
         const filtered = value
             ? cities.filter((city) =>
-                  city.city.toLowerCase().includes(value.toLowerCase())
-              )
+                city.city.toLowerCase().includes(value.toLowerCase())
+            )
             : cities;
         setFilteredCities(filtered);
     };
@@ -44,20 +44,23 @@ const Homepage = () => {
             return;
         }
 
-        const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD");
+        const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format(
+            "YYYY-MM-DD"
+        );
         const apiUrl = `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`;
 
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error('Lỗi mạng.');
+                throw new Error("Lỗi mạng.");
             }
 
             const data = await response.json();
-            const filteredResults = data;
-            navigate(`${PagesNames.SEARCH_RESULTS}/${selectedCity}&date=${formattedDate}`, { state: { results: filteredResults } });
+            navigate(
+                `${PagesNames.SEARCH_RESULTS}?city=${encodeURIComponent(selectedCity)}&date=${formattedDate}`, {state: { results: data }}
+            );
         } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error);
+            console.error("Lỗi khi lấy dữ liệu:", error);
         }
     };
 

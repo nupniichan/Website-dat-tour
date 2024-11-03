@@ -1,7 +1,7 @@
 import { Modal } from "antd"; // Importing Modal from antd for better styling
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PagesNames from "../Router/Router";
+import PagesNames from "../Router/PagesNames.js";
 import "../components/Header.css";
 import Login from "./Login";
 import Register from "./Register";

@@ -20,9 +20,9 @@ const PageRouter = () => {
             {/* <Route path={PagesNames.REGISTER} element={<Registration onLogin={onLogin} />} />
             <Route path={PagesNames.LOGIN} element={<Login onLogin={onLogin} />} /> */}
             <Route path={PagesNames.ABOUT} element={<About />} />
-            <Route path={PagesNames.CHECKOUT} element={<Checkout />} />
+            <Route path={`${PagesNames.CHECKOUT}/:id`} element={<Checkout />} />
             <Route path={PagesNames.SEARCH_RESULTS} element={<SearchResults />} />
-            <Route path={PagesNames.TOUR_DETAILS} element={<TourDetails />} /> {/* Route cho trang tour details */}
+            <Route path={`${PagesNames.TOUR_DETAILS}/:id`} element={<TourDetails />} /> {/* Route cho trang tour details */}
             <Route path={PagesNames.TOUR_HISTORY} element={<TourHistory />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />

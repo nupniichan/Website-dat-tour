@@ -23,8 +23,8 @@ const Homepage = () => {
     const onSearch = (value) => {
         const filtered = value
             ? cities.filter((city) =>
-                city.city.toLowerCase().includes(value.toLowerCase())
-            )
+                  city.city.toLowerCase().includes(value.toLowerCase())
+              )
             : cities;
         setFilteredCities(filtered);
     };
@@ -57,7 +57,8 @@ const Homepage = () => {
 
             const data = await response.json();
             navigate(
-                `${PagesNames.SEARCH_RESULTS}?city=${encodeURIComponent(selectedCity)}&date=${formattedDate}`, {state: { results: data }}
+                `${PagesNames.SEARCH_RESULTS}?city=${encodeURIComponent(selectedCity)}&date=${formattedDate}`,
+                { state: { results: data } }
             );
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu:", error);

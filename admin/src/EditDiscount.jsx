@@ -3,32 +3,28 @@ import { Box, TextField, Button, MenuItem, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const EditDiscount = () => {
-  const { id } = useParams(); // Get discount ID from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  // Discount form state
   const [discount, setDiscount] = useState({
     TENMGG: '',              // Discount Code
     DIEUKIEN: '',            // Condition/Description
     TILECHIETKHAU: 0,        // Discount Percentage
+    NGAYAPDUNG: '',          // Application Date
     NGAYHETHAN: '',          // Expiration Date
-    TRANG_THAI: 'Còn hiệu lực', // Default status
+    TRANG_THAI: 'Còn hiệu lực',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [errors, setErrors] = useState({}); // State for validation errors
+  const [errors, setErrors] = useState({});
 
-  // Fetch discount data when the component loads if ID is not "new"
   useEffect(() => {
-    console.log(id);  // Debugging the id
     if (id !== 'new') {
       fetchDiscountData(id);
     }
   }, [id]);
-  
 
-  // Fetch discount data from the server
   const fetchDiscountData = async (discountId) => {
     setIsLoading(true);
     setError(null);
@@ -41,14 +37,15 @@ const EditDiscount = () => {
 
       const data = await response.json();
       
-      // Convert expiration date to local date format
-      const localDate = new Date(data.NGAYHETHAN).toISOString().slice(0, 10);
+      const localNgayApDung = new Date(data.NGAYAPDUNG).toISOString().slice(0, 10);
+      const localNgayHetHan = new Date(data.NGAYHETHAN).toISOString().slice(0, 10);
 
       setDiscount({
         TENMGG: data.TENMGG || '',
         DIEUKIEN: data.DIEUKIEN || '',
         TILECHIETKHAU: data.TILECHIETKHAU || 0,
-        NGAYHETHAN: localDate,
+        NGAYAPDUNG: localNgayApDung,
+        NGAYHETHAN: localNgayHetHan,
         TRANG_THAI: data.TRANG_THAI || 'Còn hiệu lực',
       });
     } catch (err) {
@@ -58,7 +55,6 @@ const EditDiscount = () => {
     }
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDiscount((prev) => ({
@@ -67,7 +63,6 @@ const EditDiscount = () => {
     }));
   };
 
-  // Validate form fields
   const validateForm = () => {
     let tempErrors = {};
 
@@ -79,25 +74,35 @@ const EditDiscount = () => {
       tempErrors.TILECHIETKHAU = "Phần Trăm Giảm phải từ 0 đến 100";
     }
 
+    if (!discount.NGAYAPDUNG) {
+      tempErrors.NGAYAPDUNG = "Ngày Áp Dụng không được để trống";
+    } else {
+      const applyDate = new Date(discount.NGAYAPDUNG);
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Reset current time to midnight for accurate comparison
+      if (applyDate < currentDate) {
+        tempErrors.NGAYAPDUNG = "Ngày Áp Dụng phải là hôm nay hoặc ngày trong tương lai";
+      }
+    }
+
     if (!discount.NGAYHETHAN) {
       tempErrors.NGAYHETHAN = "Ngày Hết Hạn không được để trống";
     } else {
       const selectedDate = new Date(discount.NGAYHETHAN);
       const currentDate = new Date();
       if (selectedDate < currentDate) {
-        tempErrors.NGAYHETHAN = "Ngày Hết Hạn không thể là ngày trong quá khứ";
+        tempErrors.NGAYHETHAN = "Ngày Hết Hạn phải là hôm nay hoặc ngày trong tương lai";
       }
     }
 
     setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0; // Return true if no errors
+    return Object.keys(tempErrors).length === 0;
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      return; // Stop submission if validation fails
+      return;
     }
     setIsLoading(true);
     setError(null);
@@ -123,7 +128,6 @@ const EditDiscount = () => {
       }
 
       const result = await response.json();
-      console.log(id === 'new' ? 'Discount created:' : 'Discount updated:', result);
       navigate('/voucher');
     } catch (err) {
       setError(err.message);
@@ -173,6 +177,20 @@ const EditDiscount = () => {
           helperText={errors.TILECHIETKHAU}
           style={{ marginBottom: '10px' }}
           inputProps={{ min: 0, max: 100 }}
+        />
+
+        <TextField
+          label="Ngày Áp Dụng"
+          name="NGAYAPDUNG"
+          type="date"
+          fullWidth
+          value={discount.NGAYAPDUNG}
+          onChange={handleChange}
+          required
+          error={!!errors.NGAYAPDUNG}
+          helperText={errors.NGAYAPDUNG}
+          style={{ marginBottom: '10px' }}
+          InputLabelProps={{ shrink: true }}
         />
 
         <TextField

@@ -106,7 +106,7 @@ const SearchResults = () => {
                                         </div>
                                     </div>
                                     <div className="tour-ticket-available">
-                                        <img src="/public/images/ticket_icon.png" alt="ticket icon" className="icon" />
+                                        <img src="../assets/images/ticket_icon.png" alt="ticket icon" className="icon" />
                                         Còn lại: {item.SOVECONLAI} vé
                                     </div>
                                     <div className="tour-price">

@@ -19,7 +19,7 @@ const Header = () => {
         <Nav>
           <Nav.Link href="#profile" className="d-flex align-items-center" style={{marginRight: '20px'}}>
             <img
-              src="public/avatar.jpg"
+              src="./assets/user.png"
               alt="Profile"
               className="rounded-circle me-2"
               width="30"

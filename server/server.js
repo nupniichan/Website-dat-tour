@@ -1300,6 +1300,86 @@ app.get('/api/tour/:id', (req, res) => {
   });
 });
 
+  // GET: Fetch all discount codes
+app.get('/api/discount-codes', (req, res) => {
+  const sql = 'SELECT * FROM magiamgia';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+const getNextId = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT MAX(IDMAGIAMGIA) AS max_id FROM magiamgia', (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      const nextId = results[0].max_id ? results[0].max_id + 1 : 1;  // Start at 1 if no rows exist
+      resolve(nextId);
+    });
+  });
+};
+// GET: Fetch a discount code by specific ID
+app.get('/api/discount-codes/:id', (req, res) => {
+  const discountId = req.params.id; // Get the ID from the URL params
+
+  // Query the database for the discount with the provided ID
+  const sql = 'SELECT * FROM magiamgia WHERE IDMAGIAMGIA = ?';
+  
+  db.query(sql, [discountId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    // If no results found, return 404
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Discount not found' });
+    }
+
+    // Return the discount data as JSON
+    res.json(results[0]);
+  });
+});
+
+// POST: Create a new discount code
+app.post('/api/discount-codes', async (req, res) => {
+  const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+  
+  try {
+    const nextId = await getNextId();  // Get the next ID from the DB
+
+    const query = `
+      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU)
+      VALUES (?, ?, ?, ?, ?, ?)`;
+
+    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to insert discount code' });
+      }
+      res.status(201).json({ message: 'Discount code created successfully' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT: Update an existing discount code
+app.put('/api/discount-codes/:id', (req, res) => {
+  const { id } = req.params;
+  const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+  const sql = `
+    UPDATE magiamgia
+    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?
+    WHERE IDMAGIAMGIA = ?
+  `;
+  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, id];
+  db.query(sql, values, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Discount code not found' });
+    res.json({ message: 'Discount code updated successfully' });
+  });
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

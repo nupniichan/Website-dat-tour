@@ -1154,6 +1154,40 @@ app.post('/prepare-payment', (req, res) => {
   res.json({ message: 'Session data saved successfully' });
 });
 
+// Fetch all reviews
+app.get('/reviews', (req, res) => {
+  const query = 'SELECT * FROM danhgia'; // Query to fetch reviews (adjust the table name and fields as needed)
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching reviews:', err);
+      return res.status(500).json({ error: 'Error fetching reviews' });
+    }
+    res.json(results); // Send the reviews as JSON response
+  });
+});
+
+// Fetch review by id
+app.get('/reviews/:id', (req, res) => {
+  const reviewId = req.params.id;
+
+  // Query the database for the review with the given ID
+  const query = 'SELECT * FROM danhgia WHERE ID = ?'; // Modify the table and column names as per your schema
+  db.query(query, [reviewId], (err, results) => {
+    if (err) {
+      console.error('Error fetching review:', err);
+      res.status(500).json({ error: 'Error fetching review' });
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+
+    res.json(results[0]); // Send back the review data
+  });
+});
 // Thêm đánh giá
 app.post('/add-review', (req, res) => {
   const { tourId, userId, rating, content } = req.body;
@@ -1193,6 +1227,38 @@ app.post('/add-review', (req, res) => {
   });
 });
 
+// Edit Review
+app.put('/update-reviews/:id', (req, res) => {
+  const reviewId = req.params.id; // Get the review ID from the URL parameters
+  const { NOIDUNG, SOSAO, IDNGUOIDUNG, IDTOUR } = req.body; // Destructure the data from the request body
+
+  // Check if all required fields are provided
+  if (!NOIDUNG || !SOSAO || !IDNGUOIDUNG || !IDTOUR) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the review
+  const query = `
+    UPDATE danhgia
+    SET NOIDUNG = ?, SOSAO = ?, IDNGUOIDUNG = ?, IDTOUR = ?
+    WHERE ID = ?
+  `;
+
+  // Execute the update query
+  db.query(query, [NOIDUNG, SOSAO, IDNGUOIDUNG, IDTOUR, reviewId], (err, results) => {
+    if (err) {
+      console.error('Error updating review:', err);
+      return res.status(500).json({ error: 'Error updating review' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review updated successfully' });
+  });
+});
+
 // Sửa đánh giá
 app.put('/update-review/:id', (req, res) => {
   const reviewId = req.params.id;
@@ -1220,24 +1286,18 @@ app.put('/update-review/:id', (req, res) => {
 
 // Xóa đánh giá
 app.delete('/delete-review/:id', (req, res) => {
-  const reviewId = req.params.id;
-  const userId = req.userId;
+  const { id } = req.params;
+  const deleteReviewQuery = 'DELETE FROM danhgia WHERE ID = ?';
 
-  const deleteQuery = `
-    DELETE FROM danhgia
-    WHERE ID = ? AND IDNGUOIDUNG = ?
-  `;
-
-  db.query(deleteQuery, [reviewId, userId], (err, result) => {
+  db.query(deleteReviewQuery, [id], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Lỗi khi xóa đánh giá' });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy đánh giá hoặc bạn không có quyền xóa đánh giá này' });
+      return res.status(404).json({ error: 'Không tìm đánh giá để xóa' });
     }
-
-    res.json({ message: 'Đánh giá đã được xóa thành công' });
+    return res.status(200).json({ message: 'Đánh giá đã được xóa thành công' });
   });
 });
 

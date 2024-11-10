@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, TextField, Button, MenuItem } from "@mui/material";
+import { Box, TextField, Button, MenuItem, Typography, Autocomplete } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import "./AddTour.css";
 
@@ -33,12 +33,39 @@ const AddTour = () => {
     });
     const navigate = useNavigate();
 
+    const [searchSchedule, setSearchSchedule] = useState("");
+    const [filteredSchedules, setFilteredSchedules] = useState([]);
+
     useEffect(() => {
+        console.log('Fetching schedules...');
         fetch("http://localhost:5000/schedules")
             .then((response) => response.json())
-            .then((data) => setSchedules(data))
+            .then((data) => {
+                console.log('Received schedules:', data);
+                const currentDate = new Date();
+                currentDate.setHours(0, 0, 0, 0);
+                
+                const validSchedules = data.filter(schedule => {
+                    const endDate = new Date(schedule.NGAYVE);
+                    return endDate >= currentDate;
+                });
+                
+                console.log('Filtered schedules:', validSchedules);
+                setSchedules(validSchedules);
+                setFilteredSchedules(validSchedules);
+            })
             .catch((err) => console.error("Error fetching schedules:", err));
     }, []);
+
+    const handleScheduleSearch = (e) => {
+        const searchValue = e.target.value;
+        setSearchSchedule(searchValue);
+
+        const filtered = schedules.filter(schedule => 
+            schedule.tenlichtrinh.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setFilteredSchedules(filtered);
+    };
 
     const checkTourExists = async (tentour) => {
         try {
@@ -300,24 +327,58 @@ const AddTour = () => {
                     <MenuItem value="Hết vé">Hết vé</MenuItem>
                 </TextField>
 
-                <TextField
-                    select
-                    label="Chọn lịch trình"
-                    name="idlichtrinh"
-                    fullWidth
-                    onChange={handleChange}
-                    required
-                    value={tour.idlichtrinh || ""}
-                    error={!!errors.idlichtrinh}
-                    helperText={errors.idlichtrinh}
-                    className="text-field"
-                >
-                    {schedules.map((schedule) => (
-                        <MenuItem key={schedule.ID} value={schedule.ID}>
-                            {schedule.tenlichtrinh}
-                        </MenuItem>
-                    ))}
-                </TextField>
+                <Box sx={{ mb: 2 }}>
+                    <Autocomplete
+                        options={schedules}
+                        getOptionLabel={(option) => option.tenlichtrinh}
+                        onChange={(event, newValue) => {
+                            handleChange({
+                                target: {
+                                    name: 'idlichtrinh',
+                                    value: newValue ? newValue.ID : ''
+                                }
+                            });
+                        }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Chọn lịch trình"
+                                error={!!errors.idlichtrinh}
+                                helperText={errors.idlichtrinh}
+                                required
+                            />
+                        )}
+                        renderOption={(props, option) => (
+                            <Box component="li" {...props}>
+                                <Box>
+                                    <Typography>{option.tenlichtrinh}</Typography>
+                                    <Typography
+                                        sx={{
+                                            fontSize: '0.8rem',
+                                            color: 'text.secondary'
+                                        }}
+                                    >
+                                        {`${new Date(option.NGAYDI).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')}`}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        )}
+                        filterOptions={(options, { inputValue }) => {
+                            return options.filter(option =>
+                                option.tenlichtrinh
+                                    .toLowerCase()
+                                    .includes(inputValue.toLowerCase())
+                            );
+                        }}
+                        isOptionEqualToValue={(option, value) => option.ID === value.ID}
+                        noOptionsText="Không tìm thấy lịch trình phù hợp"
+                        sx={{
+                            '& .MuiAutocomplete-option': {
+                                padding: '8px 16px',
+                            }
+                        }}
+                    />
+                </Box>
 
                 <TextField
                     select

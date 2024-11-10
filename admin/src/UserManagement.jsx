@@ -56,22 +56,27 @@ const UserManagement = () => {
   // Handle delete button click
   const handleDelete = (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xoá người dùng này không?')) {
-      fetch(`http://localhost:5000/delete-user/${id}`, {
-        method: 'DELETE',
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Error deleting user');
-          }
+        fetch(`http://localhost:5000/delete-user/${id}`, {
+            method: 'DELETE',
         })
-        .then(() => {
-          fetchUsers(); // Refresh the list after deletion
+        .then(async response => {
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Có lỗi xảy ra khi xóa người dùng');
+            }
+            
+            // Nếu thành công
+            fetchUsers(); // Refresh danh sách
+            alert('Xóa người dùng thành công');
         })
-        .catch((err) => console.error('Error deleting user:', err));
-    }   
-  };
+        .catch(err => {
+            // Hiển thị thông báo lỗi
+            alert(err.message);
+            console.error('Error deleting user:', err);
+        });
+    }
+};
 
   // Handle view details button click
   const handleViewDetails = (user) => {

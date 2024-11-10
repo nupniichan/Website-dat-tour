@@ -67,17 +67,28 @@ const TourManagement = () => {
 };
 
   const handleDelete = (id) => {
-  if (window.confirm('Bạn có chắc chắn muốn xoá tour này không?')) {
-      fetch(`http://localhost:5000/delete-tour/${id}`, {
-          method: 'DELETE',
-      })
-      .then(response => response.json())
-      .then(data => {
-          console.log(data.message);
-          fetchTours(); // Tải lại danh sách tour
-      })
-      .catch(err => console.error('Error deleting tour:', err));
-  }
+    if (window.confirm('Bạn có chắc chắn muốn xoá tour này không?')) {
+        fetch(`http://localhost:5000/delete-tour/${id}`, {
+            method: 'DELETE',
+        })
+        .then(async response => {
+            const data = await response.json();
+            
+            if (!response.ok) {
+                // Nếu status không phải 2xx, ném lỗi với message từ server
+                throw new Error(data.error || 'Có lỗi xảy ra khi xóa tour');
+            }
+            
+            // Nếu thành công
+            fetchTours();
+            alert('Xóa tour thành công');
+        })
+        .catch(err => {
+            // Hiển thị thông báo lỗi
+            alert(err.message);
+            console.error('Error deleting tour:', err);
+        });
+    }
 };
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };

@@ -12,6 +12,7 @@ const config = require('./config');
 const session = require('express-session');
 const app = express();
 const port = 5000;
+const schedule = require('node-schedule');
 
 // Middleware CORS
 app.use(cors({
@@ -95,7 +96,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
 
-  // Lệnh truy vấn SQL thôi chứ ko có gì đâu
   const getTicketQuery = `
     SELECT v.*, t.IDLICHTRINH, l.NGAYDI 
     FROM ve v
@@ -115,7 +115,19 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
 
     const ticket = ticketResults[0];
     
-    // Kiểm tra thời gian mà user huỷ vé (24h trước khi tour khởi hành)
+    // Kiểm tra trạng thái vé
+    if (ticket.TINHTRANG === 'Chưa thanh toán') {
+      return res.status(400).json({ error: 'Không thể hủy vé chưa thanh toán' });
+    }
+
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
+    }
+
+    if (ticket.TINHTRANG === 'Đã hoàn tiền') {
+      return res.status(400).json({ error: 'Vé đã được hoàn tiền trước đó' });
+    }
+    // Kiểm tra thời gian
     const departureDate = new Date(ticket.NGAYDI);
     const now = new Date();
     const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
@@ -127,10 +139,7 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
       });
     }
 
-    if (ticket.TINHTRANG === 'Đã hủy') {
-      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
-    }
-
+    // Nếu đủ điều kiện thì mới cho hủy
     const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
     const tourId = ticket.IDTOUR;
 
@@ -466,23 +475,68 @@ app.put('/update-tour/:id', (req, res) => {
 
 // Delete Tour
 app.delete('/delete-tour/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM Tour WHERE ID = ?';
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Tour deleted successfully' });
+  const tourId = req.params.id;
+
+  // Kiểm tra xem tour có vé nào không
+  const checkBookingQuery = 'SELECT COUNT(*) as count FROM ve WHERE IDTOUR = ?';
+  
+  db.query(checkBookingQuery, [tourId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra tour' });
+    }
+
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa tour này vì đã có người đặt vé' 
+      });
+    }
+
+    // Nếu không có vé nào, tiến hành xóa tour
+    const deleteTourQuery = 'DELETE FROM tour WHERE ID = ?';
+    db.query(deleteTourQuery, [tourId], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Lỗi khi xóa tour' });
+      }
+
+      res.json({ message: 'Xóa tour thành công' });
+    });
   });
 });
 
 // Delete Schedule
 app.delete('/delete-schedule/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM LichTrinh WHERE ID = ?';
-  db.query(query, [id], (err, result) => {
+  const scheduleId = req.params.id;
+
+  // Kiểm tra xem lịch trình có đang được sử dụng trong tour không
+  const checkTourQuery = 'SELECT COUNT(*) as count FROM Tour WHERE IDLICHTRINH = ?';
+  
+  db.query(checkTourQuery, [scheduleId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra lịch trình' });
     }
-    res.json({ message: 'Schedule deleted successfully' });
+
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa lịch trình này vì đang được sử dụng trong tour' 
+      });
+    }
+
+    // Nếu không có tour nào sử dụng, tiến hành xóa
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [scheduleId], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Lỗi khi xóa chi tiết lịch trình' });
+      }
+
+      const deleteScheduleQuery = 'DELETE FROM LichTrinh WHERE ID = ?';
+      db.query(deleteScheduleQuery, [scheduleId], (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Lỗi khi xóa lịch trình' });
+        }
+
+        res.json({ message: 'Xóa lịch trình thành công' });
+      });
+    });
   });
 });
 
@@ -988,20 +1042,41 @@ app.put('/edit-user/:id', (req, res) => {
 
 
 app.delete('/delete-user/:id', (req, res) => {
-  const { id } = req.params;
-  const deleteUserQuery = 'DELETE FROM user WHERE ID = ?';
+  const userId = req.params.id;
 
-  db.query(deleteUserQuery, [id], (err, result) => {
+  // Kiểm tra xem người dùng có đặt tour nào trong 12 tháng gần đây không
+  const checkBookingQuery = `
+    SELECT COUNT(*) as count 
+    FROM ve 
+    WHERE IDNGUOIDUNG = ? 
+    AND NGAYDAT >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)`;
+  
+  db.query(checkBookingQuery, [userId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi khi xóa người dùng' });
+      console.error('Lỗi kiểm tra vé:', err);
+      return res.status(500).json({ 
+        error: 'Lỗi khi kiểm tra thông tin đặt tour' 
+      });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy người dùng để xóa' });
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa người dùng này vì họ có đặt tour trong 12 tháng gần đây' 
+      });
     }
 
-    // Trả về phản hồi thành công nếu xóa thành công
-    return res.status(200).json({ message: 'Người dùng đã được xóa thành công' });
+    // Nếu không có vé nào trong 12 tháng gần đây, tiến hành xóa người dùng
+    const deleteUserQuery = 'DELETE FROM nguoidung WHERE ID = ?';
+    db.query(deleteUserQuery, [userId], (err) => {
+      if (err) {
+        console.error('Lỗi xóa người dùng:', err);
+        return res.status(500).json({ 
+          error: 'Lỗi khi xóa người dùng' 
+        });
+      }
+
+      res.json({ message: 'Xóa người dùng thành công' });
+    });
   });
 });
 
@@ -1245,7 +1320,7 @@ app.delete('/delete-review/:id', (req, res) => {
 
   db.query(deleteQuery, [reviewId, userId], (err, result) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi khi xóa đánh giá' });
+      return res.status(500).json({ error: 'Lỗi khi xóa đánh gi' });
     }
 
     if (result.affectedRows === 0) {
@@ -1377,6 +1452,24 @@ app.put('/api/discount-codes/:id', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Discount code not found' });
     res.json({ message: 'Discount code updated successfully' });
+  });
+});
+
+// Thêm task định kỳ để kiểm tra và hủy vé chưa thanh toán
+schedule.scheduleJob('*/30 * * * *', () => { // Chạy mỗi 30 phút
+  const query = `
+    UPDATE ve 
+    SET TINHTRANG = 'Đã hủy' 
+    WHERE TINHTRANG = 'Chưa thanh toán' 
+    AND TIMESTAMPDIFF(HOUR, NGAYDAT, NOW()) >= 24
+  `;
+  
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error('Lỗi khi hủy vé quá hạn:', err);
+    } else {
+      console.log('Đã kiểm tra và hủy các vé quá hạn thanh toán');
+    }
   });
 });
 

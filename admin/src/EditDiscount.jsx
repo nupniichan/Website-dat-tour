@@ -70,28 +70,31 @@ const EditDiscount = () => {
       tempErrors.TENMGG = "Mã Giảm Giá không được để trống";
     }
 
-    if (discount.TILECHIETKHAU < 0 || discount.TILECHIETKHAU > 100) {
-      tempErrors.TILECHIETKHAU = "Phần Trăm Giảm phải từ 0 đến 100";
+    if (!Number.isInteger(Number(discount.TILECHIETKHAU))) {
+      tempErrors.TILECHIETKHAU = "Phần Trăm Giảm phải là số nguyên";
+    } else if (discount.TILECHIETKHAU <= 0 || discount.TILECHIETKHAU > 100) {
+      tempErrors.TILECHIETKHAU = "Phần Trăm Giảm phải là số nguyên dương từ 1 đến 100";
     }
+
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const applyDate = new Date(discount.NGAYAPDUNG);
+    const expireDate = new Date(discount.NGAYHETHAN);
 
     if (!discount.NGAYAPDUNG) {
       tempErrors.NGAYAPDUNG = "Ngày Áp Dụng không được để trống";
-    } else {
-      const applyDate = new Date(discount.NGAYAPDUNG);
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0); // Reset current time to midnight for accurate comparison
-      if (applyDate < currentDate) {
-        tempErrors.NGAYAPDUNG = "Ngày Áp Dụng phải là hôm nay hoặc ngày trong tương lai";
-      }
+    } else if (applyDate < currentDate) {
+      tempErrors.NGAYAPDUNG = "Ngày Áp Dụng không được là ngày trong quá khứ";
     }
 
     if (!discount.NGAYHETHAN) {
       tempErrors.NGAYHETHAN = "Ngày Hết Hạn không được để trống";
     } else {
-      const selectedDate = new Date(discount.NGAYHETHAN);
-      const currentDate = new Date();
-      if (selectedDate < currentDate) {
-        tempErrors.NGAYHETHAN = "Ngày Hết Hạn phải là hôm nay hoặc ngày trong tương lai";
+      if (expireDate < currentDate) {
+        tempErrors.NGAYHETHAN = "Ngày Hết Hạn không được là ngày trong quá khứ";
+      }
+      if (expireDate < applyDate) {
+        tempErrors.NGAYHETHAN = "Ngày Hết Hạn phải sau Ngày Áp Dụng";
       }
     }
 
@@ -157,15 +160,6 @@ const EditDiscount = () => {
         />
 
         <TextField
-          label="Điều Kiện"
-          name="DIEUKIEN"
-          fullWidth
-          value={discount.DIEUKIEN}
-          onChange={handleChange}
-          style={{ marginBottom: '10px' }}
-        />
-
-        <TextField
           label="Phần Trăm Giảm (%)"
           name="TILECHIETKHAU"
           type="number"
@@ -219,9 +213,17 @@ const EditDiscount = () => {
         >
           <MenuItem value="Còn hiệu lực">Còn hiệu lực</MenuItem>
           <MenuItem value="Hết hiệu lực">Hết hiệu lực</MenuItem>
-          <MenuItem value="Đã sử dụng">Đã sử dụng</MenuItem>
         </TextField>
 
+        <TextField
+          label="Nội dung"
+          name="DIEUKIEN"
+          fullWidth
+          value={discount.DIEUKIEN}
+          onChange={handleChange}
+          style={{ marginBottom: '10px' }}
+        />
+        
         <Button type="submit" variant="contained" color="primary" disabled={isLoading} style={{ marginRight: '10px' }}>
           {id === 'new' ? 'Tạo mới' : 'Cập nhật'}
         </Button>

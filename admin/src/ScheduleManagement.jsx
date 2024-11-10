@@ -51,17 +51,24 @@ const ScheduleManagement = () => {
       fetch(`http://localhost:5000/delete-schedule/${id}`, {
         method: 'DELETE',
       })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Error deleting schedule');
+      .then(async response => {
+        // Đọc nội dung response
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Nếu status không phải 2xx, ném lỗi với message từ server
+          throw new Error(data.error || 'Có lỗi xảy ra khi xóa lịch trình');
         }
+        
+        // Nếu thành công
+        fetchSchedules();
+        alert('Xóa lịch trình thành công');
       })
-      .then(data => {
-        fetchSchedules(); // Cập nhật lại danh sách lịch trình
-      })
-      .catch(err => console.error('Error deleting schedule:', err));
+      .catch(err => {
+        // Hiển thị thông báo lỗi
+        alert(err.message);
+        console.error('Error deleting schedule:', err);
+      });
     }
   };
 

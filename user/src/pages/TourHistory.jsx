@@ -27,7 +27,7 @@ const CancelDialog = ({ isOpen, onClose, onConfirm, cancelReason, setCancelReaso
         >
           <option value="">Chọn lý do</option>
           <option value="Bận công việc">Bận công việc</option>
-          <option value="Thay đổi kế hoạch">Thay đổi kế hoạch</option>
+          <option value="Thay đổi kế hoch">Thay đổi kế hoch</option>
           <option value="Lý do cá nhân">Lý do cá nhân</option>
         </select>
         <div className="dialog-actions">
@@ -104,7 +104,7 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
           <p><strong>Mã vé:</strong> {tour.ID}</p>
           <p><strong>Mã tour:</strong> {tour.IDTOUR}</p>
           <p><strong>Ngày đặt:</strong> {formatDate(tour.NGAYDAT)}</p>
-          <p><strong>Tổng số vé:</strong> {tour.SOVE}</p>
+          <p><strong>Tổng s�� vé:</strong> {tour.SOVE}</p>
           <p><strong>Số vé người lớn:</strong> {tour.SOVE_NGUOILON}</p>
           <p><strong>Số vé trẻ em:</strong> {tour.SOVE_TREM}</p>
           <p><strong>Số vé em bé:</strong> {tour.SOVE_EMBE}</p>
@@ -153,10 +153,20 @@ const TourHistory = () => {
   const [selectedTourForReview, setSelectedTourForReview] = useState(null);
 
   const canCancelTicket = (ticket, tourDate) => {
+    if (ticket.TINHTRANG === 'Chưa thanh toán' || ticket.TINHTRANG === 'Đã hủy' || ticket.TINHTRANG === 'Đã hoàn tiền') {
+      return false;
+    }
+
     const departureDate = new Date(tourDate);
     const now = new Date();
+    
+    if (now > departureDate) {
+      return false;
+    }
+
     const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
-    return hoursDifference >= 24;
+    
+    return hoursDifference > 24;
   };
 
   useEffect(() => {
@@ -174,9 +184,11 @@ const TourHistory = () => {
         const ticketsWithTourDates = await Promise.all(
           response.data.map(async (ticket) => {
             const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            const scheduleResponse = await axios.get(`http://localhost:5000/schedules/${tourResponse.data.IDLICHTRINH}`);
             return {
               ...ticket,
-              NGAYDI: tourResponse.data.NGAYDI
+              NGAYDI: tourResponse.data.NGAYDI,
+              NGAYVE: scheduleResponse.data.schedule.NGAYVE
             };
           })
         );
@@ -212,28 +224,20 @@ const TourHistory = () => {
   };
 
   const handleCancelTicket = async () => {
-    if (!cancelReason) {
-      alert('Vui lòng chọn lý do hủy.');
-      return;
-    }
-
-    setIsProcessing(true);
+    if (!selectedTicket) return;
+    
     try {
-      await axios.post(`http://localhost:5000/api/tour-history/cancel/${selectedTicket.ID}`, {
-        reason: cancelReason,
-      });
-      alert(`Vé có ID ${selectedTicket.ID} đã được hủy.`);
-
-      setTourHistory((prev) =>
-        prev.map((item) =>
-          item.ID === selectedTicket.ID ? { ...item, TINHTRANG: 'Đã hủy' } : item
-        )
-      );
-
-      closeCancelDialog();
+      setIsProcessing(true);
+      const response = await axios.post(`http://localhost:5000/api/tour-history/cancel/${selectedTicket.ID}`);
+      
+      if (response.data.message) {
+        alert('Hủy vé thành công');
+        // Refresh lại danh sách vé
+        fetchTourHistory();
+      }
     } catch (error) {
-      console.error('Error canceling ticket:', error);
-      alert('Hủy vé thất bại.');
+      const errorMessage = error.response?.data?.error || 'Có lỗi xảy ra khi hủy vé';
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -279,16 +283,39 @@ const TourHistory = () => {
     }
   };
 
-  const canReview = (tourEndDate) => {
-    // Tạm thời return true để luôn hiển thị nút đánh giá
-    return true;
+  const canReview = (ticket) => {
+    // Kiểm tra điều kiện đánh giá
+    if (ticket.TINHTRANG !== 'Đã thanh toán') {
+      return false;
+    }
+
+    // Kiểm tra ngày kết thúc tour
+    const tourEndDate = new Date(ticket.NGAYVE);
+    const now = new Date();
+    return tourEndDate < now;
   };
 
   const getTicketStatus = (ticket) => {
-    if (ticket.TINHTRANG === 'Đã hủy') {
-      return 'Đã hủy';
+    switch (ticket.TINHTRANG) {
+      case 'Đã hủy':
+        return 'Đã hủy';
+      case 'Chưa thanh toán':
+        return 'Chưa thanh toán';
+      default:
+        const departureDate = new Date(ticket.NGAYDI);
+        const now = new Date();
+        
+        if (now > departureDate) {
+          return 'Tour đã diễn ra';
+        }
+        
+        const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+        if (hoursDifference <= 24) {
+          return 'Không thể hủy (dưới 24h trước tour)';
+        }
+        
+        return ticket.TINHTRANG;
     }
-    return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
   };
 
   return (
@@ -324,26 +351,46 @@ const TourHistory = () => {
                     >
                       Xem chi tiết
                     </button>
-                    {canReview(item.NGAYKETTHUC) && (
-                      <button onClick={() => openReviewDialog(item)}>
+                    {canReview(item) ? (
+                      <button 
+                        className="review-button"
+                        onClick={() => openReviewDialog(item)}
+                      >
                         Đánh giá
                       </button>
+                    ) : (
+                      <button 
+                        className="review-button" 
+                        disabled 
+                        title={
+                          item.TINHTRANG !== 'Đã thanh toán' 
+                            ? 'Vé chưa được thanh toán'
+                            : 'Tour chưa kết thúc'
+                        }
+                      >
+                        Chưa thể đánh giá
+                      </button>
                     )}
+
                     {item.TINHTRANG === 'Đã hủy' ? (
                       <button className="cancel-button" disabled>
                         Đã hủy
                       </button>
-                    ) : canCancelTicket(item, item.NGAYDI) ? (
+                    ) : item.TINHTRANG === 'Chưa thanh toán' ? (
+                      <button className="cancel-button" disabled>
+                        Chưa thanh toán
+                      </button>
+                    ) : new Date() > new Date(item.NGAYDI) ? (
+                      <button className="cancel-button" disabled>
+                        Tour đã diễn ra
+                      </button>
+                    ) : (
                       <button
                         className="cancel-button"
                         onClick={() => openCancelDialog(item)}
                         disabled={isProcessing}
                       >
                         Hủy vé
-                      </button>
-                    ) : (
-                      <button className="cancel-button" disabled>
-                        Không thể hủy
                       </button>
                     )}
                   </div>

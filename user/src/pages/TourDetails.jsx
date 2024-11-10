@@ -64,7 +64,7 @@ const TourDetails = () => {
                 <p><strong>Ngày về:</strong> {dayjs(tour.NGAYVE).format('DD-MM-YYYY')}</p>
                 <p><strong>Phương tiện:</strong> {tour.PHUONGTIENDICHUYEN}</p>
                 <p><strong>Giá:</strong> {tour.GIA ? parseFloat(tour.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}</p>
-                <p><strong>Còn lại:</strong> {tour.SOVECONLAI} vé</p>
+                <p><strong>Còn lại:</strong> {tour.SOVE} vé</p>
                 
                 {/* Thêm nút "Đặt ngay" */}
                 <div className="button-container">

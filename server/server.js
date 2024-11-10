@@ -124,7 +124,7 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
       return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
     }
 
-    if (ticket.TINHTRANG === 'Đã hoàn tiền') {
+    if (ticket.TINHTRANG === 'Đ hoàn tiền') {
       return res.status(400).json({ error: 'Vé đã được hoàn tiền trước đó' });
     }
     // Kiểm tra thời gian
@@ -332,7 +332,7 @@ app.put('/update-schedule/:id', (req, res) => {
   db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
     if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
 
-    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    // Xa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
     const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
@@ -491,7 +491,7 @@ app.delete('/delete-tour/:id', (req, res) => {
       });
     }
 
-    // Nếu không có vé nào, tiến hành xóa tour
+    // Nếu không có v nào, tiến hành xóa tour
     const deleteTourQuery = 'DELETE FROM tour WHERE ID = ?';
     db.query(deleteTourQuery, [tourId], (err) => {
       if (err) {
@@ -732,7 +732,7 @@ app.put('/update-ticket/:id', (req, res) => {
           const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE - ? WHERE ID = ?';
           db.query(updateTourQuery, [newTotalTickets, IDTOUR], (err, result) => {
             if (err) {
-              console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+              console.error('Lỗi khi cập nht SOVE trong Tour:', err);
               return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
             }
             res.json({ message: 'Cập nhật vé thành công' });
@@ -741,10 +741,10 @@ app.put('/update-ticket/:id', (req, res) => {
           const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
           db.query(updateTourQuery, [oldTotalTickets, IDTOUR], (err, result) => {
             if (err) {
-              console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+              console.error('Lỗi khi cập nht SOVE trong Tour:', err);
               return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
             }
-            res.json({ message: 'Cập nhật vé thành công' });
+            res.json({ message: 'Cập nhật vé thnh công' });
           });
         } else {
           res.json({ message: 'Cập nhật vé thành công' });
@@ -772,7 +772,7 @@ app.get('/tickets', (req, res) => {
   });
 });
 
-// API lấy thông tin vé theo ID
+// API lấy thng tin vé theo ID
 app.get('/tickets/:id', (req, res) => {
   const { id } = req.params;
 
@@ -1044,7 +1044,7 @@ app.put('/edit-user/:id', (req, res) => {
 app.delete('/delete-user/:id', (req, res) => {
   const userId = req.params.id;
 
-  // Kiểm tra xem người dùng có đặt tour nào trong 12 tháng gần đây không
+  // Kiểm tra xem người dùng có đặt tour nào trong 12 thng gần đây không
   const checkBookingQuery = `
     SELECT COUNT(*) as count 
     FROM ve 
@@ -1231,53 +1231,58 @@ app.post('/prepare-payment', (req, res) => {
 
 // Thêm đánh giá
 app.post('/add-review', (req, res) => {
-  const { tourId, userId, rating, content } = req.body;
+  const { tourId, userId, ticketId, rating, content } = req.body;
+  
+  console.log('Received review data:', { tourId, userId, ticketId, rating, content });
 
-  console.log('Received review data:', { tourId, userId, rating, content });
-
-  if (!tourId || !userId || !rating || !content) {
+  // Validate input
+  if (!tourId || !userId || !ticketId || !rating || !content) {
     return res.status(400).json({ 
       error: 'Missing required fields',
-      received: { tourId, userId, rating, content }
+      received: { tourId, userId, ticketId, rating, content }
     });
   }
 
-  // Sửa lại câu query để kiểm tra vé với IDTOUR
+  // Kiểm tra xem vé này đã được đánh giá chưa
   const checkQuery = `
-    SELECT v.ID, l.NGAYVE
-    FROM ve v
-    JOIN tour t ON v.IDTOUR = t.ID
-    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
-    WHERE v.IDNGUOIDUNG = ? 
-    AND t.ID = ? 
-    AND v.TINHTRANG = 'Đã thanh toán'
-    AND l.NGAYVE < NOW()
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? AND IDNGUOIDUNG = ? AND IDVE = ?
   `;
 
-  db.query(checkQuery, [userId, tourId], (err, results) => {
+  db.query(checkQuery, [tourId, userId, ticketId], (err, results) => {
     if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
+      console.error('Check review error:', err);
+      return res.status(500).json({ error: 'Không thể kiểm tra đánh giá', details: err.message });
     }
 
-    if (results.length === 0) {
-      return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Vé này đã được đánh giá' });
     }
 
+    // Nếu chưa có đánh giá thì thêm mới
     const insertQuery = `
-      INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, IDVE, SOSAO, NOIDUNG, thoigian)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
+    const reviewDate = new Date('2024-11-10'); // Hoặc sử dụng ngày hiện tại: new Date()
+
+    db.query(insertQuery, [
+      tourId,
+      userId,
+      ticketId,
+      rating,
+      content,
+      reviewDate
+    ], (err, result) => {
       if (err) {
-        console.error('Insert error:', err);
-        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá', details: err.message });
+        console.error('Insert review error:', err);
+        return res.status(500).json({ error: 'Không thể thêm đánh giá', details: err.message });
       }
 
-      res.json({ 
-        message: 'Đánh giá đã được thêm thành công', 
-        reviewId: result.insertId 
+      res.status(201).json({
+        message: 'Đánh giá đã được thêm thành công',
+        reviewId: result.insertId
       });
     });
   });
@@ -1320,7 +1325,7 @@ app.delete('/delete-review/:id', (req, res) => {
 
   db.query(deleteQuery, [reviewId, userId], (err, result) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi khi xóa đánh gi' });
+      return res.status(500).json({ error: 'Lỗi khi xóa đánh giá' });
     }
 
     if (result.affectedRows === 0) {
@@ -1355,7 +1360,7 @@ app.get('/reviews/:tourId', (req, res) => {
 app.get('/api/tour/:id', (req, res) => {
   const tourId = req.params.id;
   const query = `
-    SELECT t.*, l.NGAYDI 
+    SELECT t.*, l.NGAYDI, l.NGAYVE 
     FROM tour t
     JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
     WHERE t.ID = ?
@@ -1470,6 +1475,55 @@ schedule.scheduleJob('*/30 * * * *', () => { // Chạy mỗi 30 phút
     } else {
       console.log('Đã kiểm tra và hủy các vé quá hạn thanh toán');
     }
+  });
+});
+
+// Check if user has reviewed a tour
+app.get('/check-review', (req, res) => {
+  const { userId, tourId, ticketId } = req.query;
+
+  const query = `
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? 
+    AND IDNGUOIDUNG = ? 
+    AND IDVE = ?
+  `;
+
+  db.query(query, [tourId, userId, ticketId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    res.json({
+      hasReviewed: results.length > 0,
+      review: results[0] || null
+    });
+  });
+});
+
+// Thêm endpoint để lấy chi tiết đánh giá
+app.get('/get-review', (req, res) => {
+  const { userId, tourId, ticketId } = req.query;
+  
+  const query = `
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? 
+    AND IDNGUOIDUNG = ? 
+    AND IDVE = ?
+  `;
+
+  db.query(query, [tourId, userId, ticketId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Không thể lấy thông tin đánh giá' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá' });
+    }
+
+    res.json(results[0]);
   });
 });
 

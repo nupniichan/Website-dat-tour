@@ -50,23 +50,34 @@ const EditBookingManagement = () => {
 
   // Thêm useEffect để lọc tours
   useEffect(() => {
-    // Fetch tours
-    fetch('http://localhost:5000/tours')
-        .then(res => res.json())
-        .then(data => {
-            // Chỉ lọc các tour còn vé
-            const validTours = data.filter(tour => tour.TRANGTHAI === 'Còn vé');
-            setTours(validTours);
-            console.log('Fetched tours:', validTours); // Để debug
-        })
-        .catch(err => console.error('Error fetching tours:', err));
+    const fetchData = async () => {
+      try {
+        // Fetch tours
+        const toursResponse = await fetch('http://localhost:5000/tours');
+        const toursData = await toursResponse.json();
+        const validTours = toursData.filter(tour => tour.TRANGTHAI === 'Còn vé');
+        setTours(validTours);
 
-    // Fetch users
-    fetch('http://localhost:5000/users')
-        .then(res => res.json())
-        .then(data => setUsers(data))
-        .catch(err => console.error('Error fetching users:', err));
-  }, []);
+        // Fetch users
+        const usersResponse = await fetch('http://localhost:5000/users');
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
+
+        // If editing existing ticket, set the selected tour and user
+        if (id !== 'new' && booking.IDTOUR && booking.IDNGUOIDUNG) {
+          const matchingTour = validTours.find(tour => tour.ID === booking.IDTOUR);
+          const matchingUser = usersData.find(user => user.ID === booking.IDNGUOIDUNG);
+          
+          setSelectedTour(matchingTour || null);
+          setSelectedUser(matchingUser || null);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    fetchData();
+  }, [id, booking.IDTOUR, booking.IDNGUOIDUNG]);
 
   // Fetch ticket data when the component loads if ID is not "new"
   useEffect(() => {
@@ -104,11 +115,12 @@ const EditBookingManagement = () => {
         GHICHU: data.GHICHU || ''
       });
   
-      // Set selected tour and user
-      const foundTour = tours.find(tour => tour.ID === data.IDTOUR);
-      const foundUser = users.find(user => user.ID === data.IDNGUOIDUNG);
-      setSelectedTour(foundTour);
-      setSelectedUser(foundUser);
+      // Tìm và set tour và user tương ứng
+      const matchingTour = tours.find(tour => tour.ID === data.IDTOUR);
+      const matchingUser = users.find(user => user.ID === data.IDNGUOIDUNG);
+      
+      if (matchingTour) setSelectedTour(matchingTour);
+      if (matchingUser) setSelectedUser(matchingUser);
 
       // Fetch the tour price for the existing booking
       fetchTourPrice(data.IDTOUR);
@@ -261,9 +273,13 @@ const EditBookingManagement = () => {
     setIsLoading(true);
     setError(null);
 
-    // Chuyển đổi các giá trị số thành số nguyên
+    // Điều chỉnh ngày đặt để tránh vấn đề múi giờ
+    const bookingDate = new Date(booking.NGAYDAT);
+    bookingDate.setHours(7, 0, 0, 0); // Set giờ là 7:00:00 để đảm bảo khi chuyển sang UTC không bị lùi ngày
+
     const updatedBooking = {
       ...booking,
+      NGAYDAT: bookingDate.toISOString(), // Chuyển đổi sang ISO string
       IDTOUR: parseInt(booking.IDTOUR) || 0,
       IDNGUOIDUNG: parseInt(booking.IDNGUOIDUNG) || 0,
       SOVE_NGUOILON: parseInt(booking.SOVE_NGUOILON) || 0,

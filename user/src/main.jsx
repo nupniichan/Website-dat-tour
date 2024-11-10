@@ -5,7 +5,6 @@ import { ConfigProvider } from "antd";
 
 import App from "./App.jsx";
 import "./index.css";
-import "./pages/Homepage.css";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>

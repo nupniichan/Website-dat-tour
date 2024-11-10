@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import About from "../pages/About.jsx";
 import Checkout from "../pages/Checkout.jsx";
 import Contact from "../pages/Contact.jsx";
-import Homepage from "../pages/Homepage";
+import Homepage from "../pages/Homepage/Homepage.jsx";
 import PaymentFailed from "../pages/PaymentFailed.jsx";
 import PaymentResult from "../pages/PaymentResult.jsx";
 import PaymentSuccess from "../pages/PaymentSuccess.jsx";
@@ -20,7 +20,7 @@ const PageRouter = () => {
             <Route path={PagesNames.ABOUT} element={<About />} />
             <Route path={PagesNames.SEARCH_RESULTS} element={<SearchResults />} />
             <Route path={`${PagesNames.TOUR_DETAILS}/:id`} element={<TourDetails />} />
-            <Route path={`${PagesNames.CHECKOUT}/:id`} element={<Checkout />} />
+            <Route path={PagesNames.CHECKOUT} element={<Checkout />} />
             <Route path={PagesNames.TOUR_HISTORY} element={<TourHistory />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />

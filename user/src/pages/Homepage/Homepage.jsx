@@ -2,9 +2,9 @@ import { useState } from "react";
 import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import cities from "../json/cities.json";
+import cities from "../../json/cities.json";
 import "./Homepage.css";
-import PagesNames from "../Router/PagesNames.js";
+import PagesNames from "../../Router/PagesNames.js";
 
 const Homepage = () => {
     const [filteredCities, setFilteredCities] = useState(cities);

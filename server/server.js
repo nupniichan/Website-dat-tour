@@ -268,7 +268,7 @@ app.get('/schedules/:id', (req, res) => {
     if (err) return res.status(500).json({ message: 'Error fetching schedule: ' + err.message });
     if (scheduleResults.length === 0) return res.status(404).json({ message: 'Schedule not found' });
 
-    // Lấy chi tiết lịch trình
+    // Lấy chi tit lịch trình
     db.query(detailsQuery, [id], (err, detailsResults) => {
       if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
 
@@ -290,17 +290,17 @@ app.put('/update-schedule/:id', (req, res) => {
     return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
   }
 
-  // Cập nhật thông tin lịch trình
+  // Cp nhật thông tin lịch trình
   const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
   db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
     if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
 
-    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    // Xa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
     const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ thêm các chi tiết mới
+      // Bây giờ thêm các chi tit mới
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -442,7 +442,7 @@ app.get('/check-tour-exists', (req, res) => {
 // Get Tour by ID
 app.get('/tours/:id', (req, res) => {
   const { id } = req.params;
-  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trường cần thiết
+  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trưng cần thit
   const query = `
     SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
     FROM Tour 
@@ -635,7 +635,7 @@ app.post('/add-ticket', (req, res) => {
             return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
           }
 
-          res.json({ message: 'Thêm vé thành công', ticketId: newTicketId });
+          res.json({ message: 'Thm vé thành công', ticketId: newTicketId });
         });
       } else {
         res.json({ message: 'Thêm vé thành công', ticketId: newTicketId });
@@ -669,11 +669,11 @@ app.delete('/delete-ticket/:id', (req, res) => {
         return res.status(500).json({ error: 'Lỗi khi xóa vé' });
       }
 
-      if (ticket.TINHTRANG === 'Đã thanh toán') {
+      if (ticket.TINHTRANG === 'Đã thanh ton') {
         const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
         db.query(updateTourQuery, [totalTickets, tourId], (err, result) => {
           if (err) {
-            console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+            console.error('Lỗi khi cập nht SOVE trong Tour:', err);
             return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
           }
 
@@ -793,7 +793,7 @@ app.get('/tickets/:id', (req, res) => {
       return res.status(404).json({ message: 'Vé không tồn tại' });
     }
 
-    res.json(results[0]); // Trả về thông tin vé đầu tiên bao gồm FULLNAME của khách hàng
+    res.json(results[0]); // Trả về thông tin vé đu tiên bao gồm FULLNAME của khách hàng
   });
 });
 
@@ -1031,7 +1031,7 @@ app.put('/edit-user/:id', (req, res) => {
     ], (err, result) => {
       if (err) {
         console.error('Lỗi khi cập nhật người dùng:', err);
-        return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
+        return res.status(500).json({ error: 'Lỗi khi cập nht người dùng' });
       }
 
       res.json({ message: 'Cập nhật người dùng thành công' });
@@ -1061,7 +1061,7 @@ app.delete('/delete-user/:id', (req, res) => {
 
     if (results[0].count > 0) {
       return res.status(400).json({ 
-        error: 'Không thể xóa người dùng này vì họ có đặt tour trong 12 tháng gần đây' 
+        error: 'Không thể xóa người dùng này vì họ có ặt tour trong 12 tháng gần đây' 
       });
     }
 
@@ -1527,7 +1527,275 @@ app.get('/get-review', (req, res) => {
   });
 });
 
+// API để lấy tổng doanh thu theo khoảng thời gian
+// API để lấy tổng doanh thu theo khoảng thời gian
+app.get('/api/income', (req, res) => {
+  const { startDate, endDate } = req.query;
+  
+  // Log thông tin đầu vào
+  console.log('Income API called with dates:', { startDate, endDate });
+
+  // Kiểm tra tham số đầu vào
+  if (!startDate || !endDate) {
+    console.error('Missing required dates');
+    return res.status(400).json({ error: 'Start date and end date are required' });
+  }
+
+  const query = `
+    SELECT 
+      DATE(NGAYDAT) as date,
+      COUNT(*) as totalOrders,
+      SUM(TONGTIEN) as totalIncome,
+      SUM(CASE WHEN PHUONGTHUCTHANHTOAN = 'momo' THEN TONGTIEN ELSE 0 END) as momoIncome,
+      SUM(CASE WHEN PHUONGTHUCTHANHTOAN = 'Tiền mặt' THEN TONGTIEN ELSE 0 END) as cashIncome
+    FROM ve 
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND DATE(NGAYDAT) BETWEEN ? AND ?
+    GROUP BY DATE(NGAYDAT)
+    ORDER BY date`;
+
+  // Log câu query để debug
+  console.log('Executing query:', query);
+  console.log('Query parameters:', [startDate, endDate]);
+
+  db.query(query, [startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database query failed', details: err.message });
+    }
+
+    // Log kết quả
+    console.log('Query results:', results);
+
+    // Kiểm tra kết quả rỗng
+    if (!results || results.length === 0) {
+      console.log('No data found for the given date range');
+      return res.json([]);
+    }
+
+    // Format lại kết quả để đảm bảo các giá trị số
+    const formattedResults = results.map(row => ({
+      ...row,
+      totalOrders: Number(row.totalOrders),
+      totalIncome: Number(row.totalIncome || 0),
+      momoIncome: Number(row.momoIncome || 0),
+      cashIncome: Number(row.cashIncome || 0)
+    }));
+
+    res.json(formattedResults);
+  });
+});
+
+// API để lấy thống kê theo tour
+app.get('/api/income/by-tour', (req, res) => {
+  const { startDate, endDate } = req.query;
+  
+  // Log thông tin đầu vào
+  console.log('Tour income API called with dates:', { startDate, endDate });
+
+  // Kiểm tra tham số đầu vào
+  if (!startDate || !endDate) {
+    console.error('Missing required dates');
+    return res.status(400).json({ error: 'Start date and end date are required' });
+  }
+
+  const query = `
+    SELECT 
+      t.TENTOUR,
+      COUNT(v.ID) as totalOrders,
+      SUM(v.TONGTIEN) as totalIncome
+    FROM ve v
+    JOIN tour t ON v.IDTOUR = t.ID
+    WHERE v.TINHTRANG = 'Đã thanh toán'
+    AND DATE(v.NGAYDAT) BETWEEN ? AND ?
+    GROUP BY t.ID, t.TENTOUR
+    ORDER BY totalIncome DESC`;
+
+  db.query(query, [startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database query failed', details: err.message });
+    }
+
+    // Log kết quả chi tiết
+    console.log('Raw results:', results);
+
+    // Kiểm tra kết quả rỗng
+    if (!results || results.length === 0) {
+      console.log('No tour income data found for the given date range');
+      return res.json([]);
+    }
+
+    // Format lại kết quả để đảm bảo các giá trị số
+    const formattedResults = results.map(row => ({
+      TENTOUR: row.TENTOUR,
+      totalOrders: Number(row.totalOrders),
+      totalIncome: Number(row.totalIncome || 0)
+    }));
+
+    // Log kết quả đã format
+    console.log('Formatted results:', formattedResults);
+
+    res.json(formattedResults);
+  });
+});
+
+// API để lấy thống kê tổng quan
+app.get('/api/dashboard/stats', (req, res) => {
+  const queries = {
+    // Chỉ lấy tổng số user
+    userStats: `
+      SELECT COUNT(*) as totalUsers FROM user
+    `,
+    
+    // Tổng vé đã đặt và % thay đổi so với tuần trước
+    bookingStats: `
+      SELECT 
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as totalBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE)) as currentWeekBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE - INTERVAL 1 WEEK)) as lastWeekBookings
+    `,
+    
+    // Tổng doanh thu và % thay đổi so với tuần trước
+    revenueStats: `
+      SELECT 
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as totalRevenue,
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE)) as currentWeekRevenue,
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE - INTERVAL 1 WEEK)) as lastWeekRevenue
+    `,
+    
+    // Vé đã thanh toán và % thay đổi so với ngày hôm qua
+    paidBookingStats: `
+      SELECT 
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as paidBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND DATE(NGAYDAT) = CURRENT_DATE) as currentDayPaidBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND DATE(NGAYDAT) = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)) as lastDayPaidBookings
+    `
+  };
+
+  const stats = {};
+  let completedQueries = 0;
+  const totalQueries = Object.keys(queries).length;
+
+  Object.entries(queries).forEach(([key, query]) => {
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error(`Error fetching ${key}:`, err);
+        return res.status(500).json({ error: 'Database query failed' });
+      }
+
+      const result = results[0];
+
+      switch(key) {
+        case 'userStats':
+          stats.totalUsers = result.totalUsers;
+          stats.userChangePercent = 0; // Không có so sánh cho users
+          break;
+        
+        case 'bookingStats':
+          stats.totalBookings = result.totalBookings;
+          stats.bookingChangePercent = calculatePercentageChange(result.lastWeekBookings, result.currentWeekBookings);
+          break;
+        
+        case 'revenueStats':
+          stats.totalRevenue = result.totalRevenue;
+          stats.revenueChangePercent = calculatePercentageChange(result.lastWeekRevenue, result.currentWeekRevenue);
+          break;
+        
+        case 'paidBookingStats':
+          stats.paidBookings = result.paidBookings;
+          stats.paidBookingChangePercent = calculatePercentageChange(result.lastDayPaidBookings, result.currentDayPaidBookings);
+          break;
+      }
+
+      completedQueries++;
+      if (completedQueries === totalQueries) {
+        res.json(stats);
+      }
+    });
+  });
+});
+
+// Hàm tính phần trăm thay đổi
+function calculatePercentageChange(oldValue, newValue) {
+  oldValue = Number(oldValue) || 0;
+  newValue = Number(newValue) || 0;
+  if (oldValue === 0) return newValue === 0 ? 0 : 100;
+  return ((newValue - oldValue) / oldValue) * 100;
+}
+
+// API để lấy doanh số theo tháng
+app.get('/api/dashboard/monthly-revenue', (req, res) => {
+  const query = `
+    SELECT 
+      MONTH(NGAYDAT) as month,
+      YEAR(NGAYDAT) as year,
+      SUM(TONGTIEN) as revenue
+    FROM ve
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND YEAR(NGAYDAT) = YEAR(CURRENT_DATE)
+    GROUP BY YEAR(NGAYDAT), MONTH(NGAYDAT)
+    ORDER BY year, month
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching monthly revenue:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// API để lấy danh sách vé gần đây
+app.get('/api/dashboard/recent-bookings', (req, res) => {
+  const query = `
+    SELECT 
+      v.ID,
+      u.FULLNAME,
+      v.NGAYDAT,
+      v.SOVE,
+      v.TONGTIEN,
+      v.TINHTRANG
+    FROM ve v
+    JOIN user u ON v.IDNGUOIDUNG = u.ID
+    ORDER BY v.NGAYDAT DESC
+    LIMIT 5
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching recent bookings:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// API để lấy doanh số theo năm
+app.get('/api/dashboard/yearly-comparison', (req, res) => {
+  const query = `
+    SELECT 
+      YEAR(NGAYDAT) as year,
+      SUM(TONGTIEN) as revenue
+    FROM ve
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND YEAR(NGAYDAT) >= YEAR(CURRENT_DATE) - 1
+    GROUP BY YEAR(NGAYDAT)
+    ORDER BY year
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching yearly comparison:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+

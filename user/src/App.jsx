@@ -3,13 +3,13 @@ import PageRouter from "./Router/PagesRouter"; // Cập nhật đường dẫn c
 import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-
+import { useNavigate } from "react-router";
 function App() {
     const [currentUser, setCurrentUser] = useState(null); // State to hold user info
-
+    const navigate = useNavigate();
     // Kiểm tra nếu người dùng đã đăng nhập trước đó
     useEffect(() => {
-        const storedUserName = localStorage.getItem("userName");
+        const storedUserName = sessionStorage.getItem("userName");
         if (storedUserName) {
             setCurrentUser({ fullname: storedUserName });
         }
@@ -18,15 +18,17 @@ function App() {
     const handleLogin = (token, userName) => {
         setCurrentUser({ fullname: userName });
 
-        localStorage.setItem("token", token); // Lưu token nếu cần
-        localStorage.setItem("userName", userName); // Lưu tên người dùng
+        sessionStorage.setItem("token", token);
+        sessionStorage.setItem("userName", userName);
     };
 
     const handleLogout = () => {
         setCurrentUser(null);
 
-        localStorage.removeItem("token"); // Xóa token khi đăng xuất
-        localStorage.removeItem("userName"); // Xóa tên người dùng
+        sessionStorage.removeItem("token"); // Xóa token khi đăng xuất
+        sessionStorage.removeItem("userName"); // Xóa tên người dùng
+        sessionStorage.removeItem("userId"); // Xóa tên người dùng
+        navigate(`/`);
     };
 
     return (

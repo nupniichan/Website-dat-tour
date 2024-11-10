@@ -88,7 +88,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
           return res.status(500).json({ error: 'Database query failed' });
           
       }
-      console.log(results);
       res.json(results);
   });
 });
@@ -329,7 +328,7 @@ app.put('/update-schedule/:id', (req, res) => {
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ th��m các chi tiết mới
+      // Bây giờ thêm các chi tiết mới
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -935,7 +934,6 @@ app.post('/check-accountname', (req, res) => {
 
 app.post('/add-user', (req, res) => {
   const { fullname, phone, email, address, dayofbirth, accountname, password  } = req.body;
-  console.log("Received data:", req.body); 
   // Chèn người dùng mới
   const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
   
@@ -1157,28 +1155,25 @@ app.post('/prepare-payment', (req, res) => {
 });
 
 // Thêm đánh giá
-app.post('/add-review', authenticateToken, (req, res) => {
-  const { tourId, rating, content } = req.body;
-  const userId = req.userId;
+app.post('/add-review', (req, res) => {
+  const { tourId, userId, rating, content } = req.body;
 
-  // Kiểm tra xem người dùng đã mua tour và tour đã kết thúc chưa
-  const checkQuery = `
-    SELECT v.ID, t.NGAYVE
-    FROM ve v
-    JOIN tour t ON v.IDTOUR = t.ID
-    WHERE v.IDNGUOIDUNG = ? AND v.IDTOUR = ? AND v.TINHTRANG = 'Đã thanh toán' AND t.NGAYVE < NOW()
+  // Kiểm tra xem người dùng đã đánh giá tour này chưa
+  const checkExistingReviewQuery = `
+    SELECT * FROM danhgia WHERE IDTOUR = ? AND IDNGUOIDUNG = ?
   `;
 
-  db.query(checkQuery, [userId, tourId], (err, results) => {
+  db.query(checkExistingReviewQuery, [tourId, userId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu' });
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
     }
 
-    if (results.length === 0) {
-      return res.status(403).json({ error: 'Bạn không đủ điều kiện để đánh giá tour này' });
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Bạn đã đánh giá tour này rồi' });
     }
 
-    // Thêm đánh giá vào cơ sở dữ liệu
+    // Nếu chưa có đánh giá, thêm đánh giá mới
     const insertQuery = `
       INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
       VALUES (?, ?, ?, ?)
@@ -1186,16 +1181,20 @@ app.post('/add-review', authenticateToken, (req, res) => {
 
     db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá' });
+        console.error('Insert error:', err);
+        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá', details: err.message });
       }
 
-      res.json({ message: 'Đánh giá đã được thêm thành công', reviewId: result.insertId });
+      res.json({ 
+        message: 'Đánh giá đã được thêm thành công', 
+        reviewId: result.insertId 
+      });
     });
   });
 });
 
 // Sửa đánh giá
-app.put('/update-review/:id', authenticateToken, (req, res) => {
+app.put('/update-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const { rating, content } = req.body;
   const userId = req.userId;
@@ -1220,7 +1219,7 @@ app.put('/update-review/:id', authenticateToken, (req, res) => {
 });
 
 // Xóa đánh giá
-app.delete('/delete-review/:id', authenticateToken, (req, res) => {
+app.delete('/delete-review/:id', (req, res) => {
   const reviewId = req.params.id;
   const userId = req.userId;
 
@@ -1283,6 +1282,118 @@ app.get('/api/tour/:id', (req, res) => {
     }
     
     res.json(results[0]);
+  });
+});
+
+  // GET: Fetch all discount codes
+app.get('/api/discount-codes', (req, res) => {
+  const sql = 'SELECT * FROM magiamgia';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+const getNextId = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT MAX(IDMAGIAMGIA) AS max_id FROM magiamgia', (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      const nextId = results[0].max_id ? results[0].max_id + 1 : 1;  // Start at 1 if no rows exist
+      resolve(nextId);
+    });
+  });
+};
+// GET: Fetch a discount code by specific ID
+app.get('/api/discount-codes/:id', (req, res) => {
+  const discountId = req.params.id; // Get the ID from the URL params
+
+  // Query the database for the discount with the provided ID
+  const sql = 'SELECT * FROM magiamgia WHERE IDMAGIAMGIA = ?';
+  
+  db.query(sql, [discountId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    // If no results found, return 404
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Discount not found' });
+    }
+
+    // Return the discount data as JSON
+    res.json(results[0]);
+  });
+});
+
+// POST: Create a new discount code
+app.post('/api/discount-codes', async (req, res) => {
+  const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+  
+  try {
+    const nextId = await getNextId();  // Get the next ID from the DB
+
+    const query = `
+      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU)
+      VALUES (?, ?, ?, ?, ?, ?)`;
+
+    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to insert discount code' });
+      }
+      res.status(201).json({ message: 'Discount code created successfully' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT: Update an existing discount code
+app.put('/api/discount-codes/:id', (req, res) => {
+  const { id } = req.params;
+  const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+  const sql = `
+    UPDATE magiamgia
+    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?
+    WHERE IDMAGIAMGIA = ?
+  `;
+  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, id];
+  db.query(sql, values, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Discount code not found' });
+    res.json({ message: 'Discount code updated successfully' });
+  });
+});
+
+// Check if user has reviewed a tour
+app.get('/check-review', (req, res) => {
+  const { userId, tourId } = req.query;
+
+  const query = `
+    SELECT d.*, u.FULLNAME
+    FROM danhgia d
+    JOIN USER u ON d.IDNGUOIDUNG = u.ID
+    WHERE d.IDTOUR = ? AND d.IDNGUOIDUNG = ?
+  `;
+
+  db.query(query, [tourId, userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra đánh giá' });
+    }
+
+    if (results.length > 0) {
+      // User has already reviewed this tour
+      res.json({
+        hasReviewed: true,
+        review: results[0]
+      });
+    } else {
+      // User hasn't reviewed this tour yet
+      res.json({
+        hasReviewed: false,
+        review: null
+      });
+    }
   });
 });
 

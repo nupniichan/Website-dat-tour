@@ -1,9 +1,12 @@
-import PropTypes from "prop-types";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import "../App.css";
-import "../pages/Registration.css";
+import PagesNames from "../Router/PagesNames.js";
+import "../pages/Registration.css"
 
 const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         fullname: "",
         phoneNumber: "",
@@ -140,7 +143,7 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
 Register.propTypes = {
     onRegisterSuccess: PropTypes.func, // Callback for registration success
     onClose: PropTypes.func, // Function to close the modal
-    onOpenLogin: PropTypes.func,
+    onOpenLogin: PropTypes.func
 };
 
 export default Register;

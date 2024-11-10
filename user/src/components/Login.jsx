@@ -1,9 +1,12 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
+import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
 import "../pages/Registration.css";
 
 const Login = ({ onLogin, onClose, onOpenRegister }) => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: "",
         password: "",

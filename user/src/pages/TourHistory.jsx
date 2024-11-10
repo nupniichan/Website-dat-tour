@@ -142,6 +142,39 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
   );
 };
 
+const ViewReviewDialog = ({ isOpen, onClose, review }) => {
+  if (!isOpen || !review) return null;
+
+  return (
+    <div className="dialog-overlay" onClick={onClose}>
+      <div className="ticket-details-dialog" onClick={(e) => e.stopPropagation()}>
+        <h2>Chi tiết đánh giá</h2>
+        <div className="review-details">
+          <p><strong>Số sao đánh giá:</strong></p>
+          <div className="star-rating-display">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`star ${star <= review.SOSAO ? 'active' : ''}`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <p><strong>Nội dung đánh giá:</strong></p>
+          <p className="review-content">{review.NOIDUNG}</p>
+          <p><strong>Thời gian đánh giá:</strong> {formatDate(review.THOIGIAN || new Date())}</p>
+        </div>
+        <div className="dialog-actions">
+          <button className="dialog-cancel" onClick={onClose}>
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TourHistory = () => {
   const [tourHistory, setTourHistory] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -151,6 +184,8 @@ const TourHistory = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [selectedTourForReview, setSelectedTourForReview] = useState(null);
+  const [isViewReviewDialogOpen, setIsViewReviewDialogOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState(null);
 
   const canCancelTicket = (ticket, tourDate) => {
     const departureDate = new Date(tourDate);
@@ -170,17 +205,30 @@ const TourHistory = () => {
 
       try {
         const response = await axios.get(`http://localhost:5000/api/tour-history/${userId}`);
-        // Fetch tour dates for each ticket
-        const ticketsWithTourDates = await Promise.all(
+        
+        // Fetch tour dates and review status for each ticket
+        const ticketsWithDetails = await Promise.all(
           response.data.map(async (ticket) => {
+            // Fetch tour details
             const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            
+            // Check if user has already reviewed this tour
+            const reviewResponse = await axios.get(`http://localhost:5000/check-review`, {
+              params: {
+                userId: userId,
+                tourId: ticket.IDTOUR
+              }
+            });
+
             return {
               ...ticket,
-              NGAYDI: tourResponse.data.NGAYDI
+              NGAYDI: tourResponse.data.NGAYDI,
+              hasReviewed: reviewResponse.data.hasReviewed,
+              review: reviewResponse.data.review
             };
           })
         );
-        setTourHistory(ticketsWithTourDates);
+        setTourHistory(ticketsWithDetails);
       } catch (error) {
         console.error('Error fetching tour history:', error);
         alert('Lỗi khi lấy lịch sử đặt tour.');
@@ -264,17 +312,28 @@ const TourHistory = () => {
         content
       };
 
-      console.log('Sending review data:', reviewData);
-
       const response = await axios.post('http://localhost:5000/add-review', reviewData);
       
-      console.log('Review submission response:', response.data);
+      setTourHistory(prev =>
+        prev.map(item =>
+          item.ID === selectedTourForReview.ID
+            ? {
+                ...item,
+                hasReviewed: true,
+                review: {
+                  SOSAO: rating,
+                  NOIDUNG: content,
+                  IDNGUOIDUNG: userId
+                }
+              }
+            : item
+        )
+      );
+
       alert('Đánh giá đã được gửi thành công!');
       closeReviewDialog();
     } catch (error) {
       console.error('Error submitting review:', error);
-      console.error('Full error response:', error.response);
-      console.error('Lỗi từ server:', error.response?.data);
       alert(`Không thể gửi đánh giá: ${error.response?.data?.error || error.message}`);
     }
   };
@@ -289,6 +348,16 @@ const TourHistory = () => {
       return 'Đã hủy';
     }
     return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
+  };
+
+  const openViewReviewDialog = (tour) => {
+    setSelectedReview(tour.review);
+    setIsViewReviewDialogOpen(true);
+  };
+
+  const closeViewReviewDialog = () => {
+    setIsViewReviewDialogOpen(false);
+    setSelectedReview(null);
   };
 
   return (
@@ -324,11 +393,12 @@ const TourHistory = () => {
                     >
                       Xem chi tiết
                     </button>
-                    {canReview(item.NGAYKETTHUC) && (
-                      <button onClick={() => openReviewDialog(item)}>
-                        Đánh giá
-                      </button>
-                    )}
+                    <button 
+                      className="view-details-link"
+                      onClick={() => item.hasReviewed ? openViewReviewDialog(item) : openReviewDialog(item)}
+                    >
+                      {item.hasReviewed ? 'Xem đánh giá' : 'Đánh giá'}
+                    </button>
                     {item.TINHTRANG === 'Đã hủy' ? (
                       <button className="cancel-button" disabled>
                         Đã hủy
@@ -378,6 +448,12 @@ const TourHistory = () => {
         onClose={closeReviewDialog}
         onSubmit={handleSubmitReview}
         tour={selectedTourForReview}
+      />
+
+      <ViewReviewDialog
+        isOpen={isViewReviewDialogOpen}
+        onClose={closeViewReviewDialog}
+        review={selectedReview}
       />
     </div>
   );

@@ -1,11 +1,11 @@
 import { Modal } from "antd"; // Importing Modal from antd for better styling
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PagesNames from "../Router/PagesNames.js";
 import "../components/Header.css";
 import Login from "./Login";
 import Register from "./Register";
-import Logo3 from '../assets/images/Logo3.png'
+import Logo3 from "../assets/images/Logo3.png";
 
 const Header = ({ user, onLogout }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,6 +51,10 @@ const Header = ({ user, onLogout }) => {
         window.location.reload(); // Refreshes page on login success
     };
 
+    const handleMobileMenuToggle = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
     useEffect(() => {
         document.onclick = (e) => {
             const target = e.target;
@@ -67,8 +71,8 @@ const Header = ({ user, onLogout }) => {
             </button>
             <div className="md:hidden">
                 <button
-                    className="menu-btn text-gray-400 hover:text-gray-300"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="menu-btn text-gray-400 hover:text-gray-300 z-99"
+                    onClick={handleMobileMenuToggle}
                 >
                     {isMobileMenuOpen ? (
                         <svg
@@ -104,8 +108,23 @@ const Header = ({ user, onLogout }) => {
         </div>
     );
 
+    const location = useLocation();
+    const [isHomepage, setIsHomepage] = useState(
+        location.pathname === PagesNames.HOMEPAGE
+    );
+
+    useEffect(() => {
+        setIsHomepage(location.pathname === PagesNames.HOMEPAGE);
+    }, [location.pathname]);
+
     return (
-        <header>
+        <header
+            className={
+                isHomepage
+                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-20"
+                    : "sticky bg-gray-800 backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full"
+            }
+        >
             <div
                 className={`md:hidden ${
                     isMobileMenuOpen ? "mx-2 pb-5" : "hidden"
@@ -114,13 +133,13 @@ const Header = ({ user, onLogout }) => {
                 <BrandLogo />
             </div>
             <nav
-                className={`md:text-sm bg-gray-900 ${
+                className={`md:text-sm  ${
                     isMobileMenuOpen
-                        ? "absolute z-20 top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent"
+                        ? "absolute z-20 w-full top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
                         : ""
                 }`}
             >
-                <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex md:px-8">
+                <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex justify-center md:px-8">
                     <BrandLogo />
                     <div
                         className={`flex-1 items-center mt-8 md:mt-0 md:flex ${

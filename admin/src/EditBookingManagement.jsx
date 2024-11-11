@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, MenuItem, Autocomplete, Typography, Grid, InputAdornment } from '@mui/material';
+import {
+  Box, TextField, Button, MenuItem, Typography,
+  Card, CardContent, Grid, IconButton, Paper,
+  Divider, Autocomplete, InputAdornment, Alert,
+  Chip, Stack, Tooltip
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PersonIcon from '@mui/icons-material/Person';
+import EventIcon from '@mui/icons-material/Event';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import PaymentIcon from '@mui/icons-material/Payment';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import NoteIcon from '@mui/icons-material/Note';
+import GroupIcon from '@mui/icons-material/Group';
+import ChildCareIcon from '@mui/icons-material/ChildCare';
+import BabyChangingStationIcon from '@mui/icons-material/BabyChangingStation';
 
 // Thêm hàm helper để format giá
 const formatToVND = (price) => {
@@ -319,310 +334,422 @@ const EditBookingManagement = () => {
   };
 
   return (
-    <Box padding={3}>
-      <h3>{id === 'new' ? 'Thêm Đặt Chỗ' : 'Sửa Đặt Chỗ'}</h3>
-
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-      {isLoading && <p>Loading...</p>}
-
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <TextField
-              label="Mã Tour"
-              name="IDTOUR"
-              value={booking.IDTOUR}
-              disabled={true} // Khóa trường mã tour
-              error={!!errors.IDTOUR}
-              helperText={errors.IDTOUR}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Autocomplete
-              options={tours}
-              getOptionLabel={(option) => {
-                if (!option) return '';
-                return `${option.TENTOUR || ''} (${new Date(option.NGAYDI).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')})`;
-              }}
-              value={selectedTour}
-              onChange={(event, newValue) => {
-                console.log('Selected tour:', newValue);
-                setSelectedTour(newValue);
-                if (newValue) {
-                  handleChange({
-                    target: {
-                      name: 'IDTOUR',
-                      value: newValue.ID
-                    }
-                  });
-                  fetchTourPrice(newValue.ID);
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Tên Tour"
-                  error={!!errors.IDTOUR}
-                  helperText={errors.IDTOUR}
-                  required
-                />
-              )}
-              renderOption={(props, option) => (
-                <Box component="li" {...props}>
-                  <Box>
-                    <Typography>
-                      {option.TENTOUR}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {`Khởi hành: ${new Date(option.KHOIHANH).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')}`}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {`Giá: ${formatToVND(option.GIA)}`}
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-              isOptionEqualToValue={(option, value) => {
-                if (!option || !value) return false;
-                return option.ID === value.ID;
-              }}
-              filterOptions={(options, { inputValue }) => {
-                const searchValue = inputValue.toLowerCase();
-                return options.filter(option => 
-                  option.TENTOUR?.toLowerCase().includes(searchValue)
-                ).slice(0, 10);
-              }}
-              noOptionsText="Không tìm thấy tour phù hợp"
-            />
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid item xs={6}>
-            <TextField
-              label="Mã Người Dùng"
-              name="IDNGUOIDUNG"
-              value={booking.IDNGUOIDUNG}
-              disabled={true} // Khóa trường mã người dùng
-              error={!!errors.IDNGUOIDUNG}
-              helperText={errors.IDNGUOIDUNG}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Autocomplete
-              options={users}
-              getOptionLabel={(option) => option.FULLNAME || ''}
-              value={selectedUser}
-              onChange={(event, newValue) => {
-                setSelectedUser(newValue);
-                if (newValue) {
-                  handleChange({
-                    target: {
-                      name: 'IDNGUOIDUNG',
-                      value: newValue.ID
-                    }
-                  });
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Tên Người Dùng"
-                  error={!!errors.IDNGUOIDUNG}
-                  helperText={errors.IDNGUOIDUNG}
-                  required
-                />
-              )}
-              renderOption={(props, option) => (
-                <Box component="li" {...props}>
-                  <Box>
-                    <Typography>
-                      {option.FULLNAME}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {`SĐT: ${option.PHONENUMBER}`}
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-              isOptionEqualToValue={(option, value) => option?.ID === value?.ID}
-              filterOptions={(options, { inputValue }) => {
-                const searchValue = inputValue.toLowerCase();
-                return options.filter(option => 
-                  option.FULLNAME?.toLowerCase().includes(searchValue)
-                ).slice(0, 10); // Giới hạn 10 kết quả
-              }}
-              noOptionsText="Không tìm thấy người dùng phù hợp"
-            />
-          </Grid>
-        </Grid>
-
-        <TextField
-          label="Ngày Đặt"
-          name="NGAYDAT"
-          type="date"
-          fullWidth
-          value={booking.NGAYDAT}
-          onChange={handleChange}
-          required
-          disabled={id !== 'new'} // Khóa trường nếu không phải là thêm mới
-          error={!!errors.NGAYDAT}
-          helperText={errors.NGAYDAT}
-          style={{ marginBottom: '10px' }}
-          InputLabelProps={{ shrink: true }}
-        />
-
-        <TextField
-          label="Số Vé Người Lớn"
-          name="SOVE_NGUOILON"
-          type="number"
-          fullWidth
-          value={booking.SOVE_NGUOILON}
-          onChange={handleChange}
-          required
-          error={!!errors.SOVE_NGUOILON}
-          helperText={errors.SOVE_NGUOILON}
-          style={{ marginBottom: '10px' }}
-          inputProps={{ min: 1 }}
-        />
-
-        <TextField
-          label="Số Vé Trẻ Em"
-          name="SOVE_TREM"
-          type="number"
-          fullWidth
-          value={booking.SOVE_TREM}
-          onChange={handleChange}
-          required
-          error={!!errors.SOVE_TREM}
-          helperText={errors.SOVE_TREM}
-          style={{ marginBottom: '10px' }}
-          inputProps={{ min: 0 }}
-        />
-
-        <TextField
-          label="Số Vé Em Bé"
-          name="SOVE_EMBE"
-          type="number"
-          fullWidth
-          value={booking.SOVE_EMBE}
-          onChange={handleChange}
-          required
-          error={!!errors.SOVE_EMBE}
-          helperText={errors.SOVE_EMBE}
-          style={{ marginBottom: '10px' }}
-          inputProps={{ min: 0 }}
-        />
-
-        <TextField
-          label="Tình Trạng"
-          name="TINHTRANG"
-          select
-          fullWidth
-          value={booking.TINHTRANG}
-          onChange={handleChange}
-          required
-          style={{ marginBottom: '10px' }}
-        >
-          <MenuItem value="Đã thanh toán">Đã thanh toán</MenuItem>
-          <MenuItem value="Đã xác nhận">Đã xác nhận</MenuItem>
-          <MenuItem value="Đã hủy">Đã hủy</MenuItem>
-          <MenuItem value="Đã hoàn tiền">Đã hoàn tiền</MenuItem>
-        </TextField>
-
-        <TextField
-          label="Tổng Tiền"
-          name="TONGTIEN"
-          fullWidth
-          value={formatToVND(booking.TONGTIEN)}
-          InputProps={{
-            readOnly: true,
-            startAdornment: (
-                <InputAdornment position="start">
-                    <Typography color="text.secondary">
-                        Tổng cộng:
-                    </Typography>
-                </InputAdornment>
-            ),
-            style: { 
-                backgroundColor: '#f5f5f5',  // Màu nền nhạt để thể hiện trường readonly
-                cursor: 'default'            // Con trỏ mặc định thay vì text
-            }
-          }}
-          sx={{ 
-              mb: 2,
-              '& .MuiInputBase-input': {
-                  cursor: 'default',
-                  color: 'text.primary',
-                  WebkitTextFillColor: 'initial', // Fix cho Safari
-                  '-webkit-opacity': '1'          // Fix cho Safari
-              }
-          }}
-        />
-
-        <TextField
-          label="Phương Thức Thanh Toán"
-          name="PHUONGTHUCTHANHTOAN"
-          select
-          fullWidth
-          value={booking.PHUONGTHUCTHANHTOAN}
-          onChange={handleChange}
-          required
-          style={{ marginBottom: '10px' }}
-        >
-          <MenuItem value="VNPay">VNPay</MenuItem>
-          <MenuItem value="momo">Momo</MenuItem>
-          <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
-        </TextField>
-
-        <TextField
-          label="Ghi Chú"
-          name="GHICHU"
-          fullWidth
-          value={booking.GHICHU}
-          onChange={handleChange}
-          style={{ marginBottom: '10px' }}
-        />
-
-        <Box sx={{ mb: 2, mt: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            Chi tiết giá:
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {`Người lớn: ${formatToVND(tourPrice)} x ${booking.SOVE_NGUOILON} = ${formatToVND(tourPrice * booking.SOVE_NGUOILON)}`}
-          </Typography>
-          {booking.SOVE_TREM > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {`Trẻ em: ${formatToVND(tourPrice * 0.8)} x ${booking.SOVE_TREM} = ${formatToVND(tourPrice * 0.8 * booking.SOVE_TREM)}`}
+    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+      <Card elevation={3}>
+        <CardContent>
+          {/* Header */}
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={() => navigate('/ticket')} sx={{ color: 'primary.main' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              {id === 'new' ? 'Thêm Đặt Chỗ Mới' : 'Chỉnh Sửa Đặt Chỗ'}
             </Typography>
-          )}
-          {booking.SOVE_EMBE > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {`Em bé: ${formatToVND(tourPrice * 0.5)} x ${booking.SOVE_EMBE} = ${formatToVND(tourPrice * 0.5 * booking.SOVE_EMBE)}`}
-            </Typography>
-          )}
-        </Box>
+          </Box>
 
-        <Button type="submit" variant="contained" color="primary" disabled={isLoading} style={{ marginRight: '10px' }}>
-          {id === 'new' ? 'Tạo mới' : 'Cập nhật'}
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={() => navigate('/ticket')}>
-          Hủy
-        </Button>
-      </form>
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Thông tin Tour */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin Tour
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Mã Tour"
+                        name="IDTOUR"
+                        value={booking.IDTOUR}
+                        disabled
+                        fullWidth
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EventIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <Autocomplete
+                        options={tours}
+                        getOptionLabel={(option) => {
+                          if (!option) return '';
+                          return `${option.TENTOUR || ''} (${new Date(option.NGAYDI).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')})`;
+                        }}
+                        value={selectedTour}
+                        onChange={(event, newValue) => {
+                          setSelectedTour(newValue);
+                          if (newValue) {
+                            handleChange({
+                              target: {
+                                name: 'IDTOUR',
+                                value: newValue.ID
+                              }
+                            });
+                            fetchTourPrice(newValue.ID);
+                          }
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Chọn Tour"
+                            required
+                            error={!!errors.IDTOUR}
+                            helperText={errors.IDTOUR}
+                            sx={{ bgcolor: 'white' }}
+                          />
+                        )}
+                        renderOption={(props, option) => (
+                          <Box component="li" {...props}>
+                            <Box>
+                              <Typography variant="subtitle1">
+                                {option.TENTOUR}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {`Khởi hành: ${new Date(option.NGAYDI).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')}`}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {`Giá: ${formatToVND(option.GIA)}`}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Thông tin Khách hàng */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin Khách hàng
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Mã Khách hàng"
+                        name="IDNGUOIDUNG"
+                        value={booking.IDNGUOIDUNG}
+                        disabled
+                        fullWidth
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <Autocomplete
+                        options={users}
+                        getOptionLabel={(option) => option.FULLNAME || ''}
+                        value={selectedUser}
+                        onChange={(event, newValue) => {
+                          setSelectedUser(newValue);
+                          if (newValue) {
+                            handleChange({
+                              target: {
+                                name: 'IDNGUOIDUNG',
+                                value: newValue.ID
+                              }
+                            });
+                          }
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Chọn Khách hàng"
+                            required
+                            error={!!errors.IDNGUOIDUNG}
+                            helperText={errors.IDNGUOIDUNG}
+                            sx={{ bgcolor: 'white' }}
+                          />
+                        )}
+                        renderOption={(props, option) => (
+                          <Box component="li" {...props}>
+                            <Box>
+                              <Typography variant="subtitle1">
+                                {option.FULLNAME}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {`SĐT: ${option.PHONENUMBER}`}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Thông tin Đặt vé */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin Đặt vé
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Ngày Đặt"
+                        name="NGAYDAT"
+                        type="date"
+                        value={booking.NGAYDAT}
+                        onChange={handleChange}
+                        required
+                        disabled={id !== 'new'}
+                        fullWidth
+                        error={!!errors.NGAYDAT}
+                        helperText={errors.NGAYDAT}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EventIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Số Vé Người Lớn"
+                        name="SOVE_NGUOILON"
+                        type="number"
+                        value={booking.SOVE_NGUOILON}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.SOVE_NGUOILON}
+                        helperText={errors.SOVE_NGUOILON}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <GroupIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                          inputProps: { min: 1 }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Số Vé Trẻ Em"
+                        name="SOVE_TREM"
+                        type="number"
+                        value={booking.SOVE_TREM}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.SOVE_TREM}
+                        helperText={errors.SOVE_TREM}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <ChildCareIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                          inputProps: { min: 0 }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Số Vé Em Bé"
+                        name="SOVE_EMBE"
+                        type="number"
+                        value={booking.SOVE_EMBE}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.SOVE_EMBE}
+                        helperText={errors.SOVE_EMBE}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BabyChangingStationIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                          inputProps: { min: 0 }
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Thông tin Thanh toán */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin Thanh toán
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Tình Trạng"
+                        name="TINHTRANG"
+                        select
+                        value={booking.TINHTRANG}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        sx={{ bgcolor: 'white' }}
+                      >
+                        <MenuItem value="Đã thanh toán">Đã thanh toán</MenuItem>
+                        <MenuItem value="Đã xác nhận">Đã xác nhận</MenuItem>
+                        <MenuItem value="Đã hủy">Đã hủy</MenuItem>
+                        <MenuItem value="Đã hoàn tiền">Đã hoàn tiền</MenuItem>
+                      </TextField>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Phương Thức Thanh Toán"
+                        name="PHUONGTHUCTHANHTOAN"
+                        select
+                        value={booking.PHUONGTHUCTHANHTOAN}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PaymentIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      >
+                        <MenuItem value="VNPay">VNPay</MenuItem>
+                        <MenuItem value="momo">Momo</MenuItem>
+                        <MenuItem value="Tiền mặt">Tiền mặt</MenuItem>
+                      </TextField>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tổng Tiền"
+                        value={formatToVND(booking.TONGTIEN)}
+                        fullWidth
+                        InputProps={{
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <AttachMoneyIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{ 
+                          bgcolor: '#f5f5f5',
+                          '& .MuiInputBase-input': {
+                            cursor: 'default',
+                            color: 'text.primary',
+                          }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Ghi Chú"
+                        name="GHICHU"
+                        multiline
+                        rows={3}
+                        value={booking.GHICHU}
+                        onChange={handleChange}
+                        fullWidth
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <NoteIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Chi tiết giá */}
+                  <Box sx={{ mt: 3, p: 2, bgcolor: 'white', borderRadius: 1 }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ color: 'primary.main' }}>
+                      Chi tiết giá
+                    </Typography>
+                    <Stack spacing={1}>
+                      <Typography variant="body2">
+                        Người lớn: {formatToVND(tourPrice)} x {booking.SOVE_NGUOILON} = {formatToVND(tourPrice * booking.SOVE_NGUOILON)}
+                      </Typography>
+                      {booking.SOVE_TREM > 0 && (
+                        <Typography variant="body2">
+                          Trẻ em: {formatToVND(tourPrice * 0.8)} x {booking.SOVE_TREM} = {formatToVND(tourPrice * 0.8 * booking.SOVE_TREM)}
+                        </Typography>
+                      )}
+                      {booking.SOVE_EMBE > 0 && (
+                        <Typography variant="body2">
+                          Em bé: {formatToVND(tourPrice * 0.5)} x {booking.SOVE_EMBE} = {formatToVND(tourPrice * 0.5 * booking.SOVE_EMBE)}
+                        </Typography>
+                      )}
+                      <Divider />
+                      <Typography variant="subtitle2" sx={{ color: 'primary.main' }}>
+                        Tổng cộng: {formatToVND(booking.TONGTIEN)}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Buttons */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => navigate('/ticket')}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Đang xử lý...' : (id === 'new' ? 'Tạo mới' : 'Cập nhật')}
+              </Button>
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

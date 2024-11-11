@@ -259,23 +259,34 @@ app.get('/schedules', (req, res) => {
 // Lấy thông tin lịch trình và chi tiết lịch trình theo ID
 app.get('/schedules/:id', (req, res) => {
   const { id } = req.params;
-
-  // Truy vấn lấy thông tin lịch trình
-  const scheduleQuery = 'SELECT * FROM LichTrinh WHERE ID = ?';
-  const detailsQuery = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+  
+  const scheduleQuery = `
+    SELECT * FROM LichTrinh WHERE ID = ?
+  `;
+  
+  const detailsQuery = `
+    SELECT * FROM ChiTietLichTrinh 
+    WHERE ID_LICH_TRINH = ? 
+    ORDER BY NGAY, GIO
+  `;
 
   db.query(scheduleQuery, [id], (err, scheduleResults) => {
-    if (err) return res.status(500).json({ message: 'Error fetching schedule: ' + err.message });
-    if (scheduleResults.length === 0) return res.status(404).json({ message: 'Schedule not found' });
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi lấy thông tin lịch trình' });
+    }
 
-    // Lấy chi tit lịch trình
-    db.query(detailsQuery, [id], (err, detailsResults) => {
-      if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
+    if (scheduleResults.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch trình' });
+    }
 
-      // Trả về thông tin lịch trình và chi tiết
+    db.query(detailsQuery, [id], (detailsErr, detailsResults) => {
+      if (detailsErr) {
+        return res.status(500).json({ error: 'Lỗi khi lấy chi tiết lịch trình' });
+      }
+
       res.json({
-        schedule: scheduleResults[0],
-        details: detailsResults,
+        ...scheduleResults[0],
+        details: detailsResults
       });
     });
   });
@@ -300,7 +311,7 @@ app.put('/update-schedule/:id', (req, res) => {
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ thêm các chi tit mới
+      // Bây giờ thêm các chi tit mi
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -442,7 +453,7 @@ app.get('/check-tour-exists', (req, res) => {
 // Get Tour by ID
 app.get('/tours/:id', (req, res) => {
   const { id } = req.params;
-  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trưng cần thit
+  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trng cần thit
   const query = `
     SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
     FROM Tour 
@@ -454,9 +465,9 @@ app.get('/tours/:id', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     if (results.length > 0) {
-      res.json(results[0]); // Trả về thông tin tour đầu tiên, bao gồm ngày đi và ngày về
+      res.json(results[0]); // Trả về thông tin tour đầu tiên, bao gồm ngy đi và ngày về
     } else {
-      res.status(404).json({ message: 'Tour not found' }); // Không tìm thấy tour với ID được cung cấp
+      res.status(404).json({ message: 'Tour not found' }); // Không tìm thy tour với ID được cung cấp
     }
   });
 });
@@ -959,7 +970,7 @@ app.post('/check-email', (req, res) => {
 app.post('/check-phone', (req, res) => {
   const { phone } = req.body;
 
-  // Kiểm tra xem người dùng với cùng số điện thoại đã tồn tại hay chưa
+  // Kiểm tra xem người dùng với cùng số đin thoại đã tồn tại hay chưa
   const checkQuery = 'SELECT * FROM user WHERE PHONENUMBER = ?';
   db.query(checkQuery, [phone], (err, results) => {
       if (err) {
@@ -968,7 +979,7 @@ app.post('/check-phone', (req, res) => {
       }
 
       if (results.length > 0) {
-          // Nếu đã tồn tại người dùng với số điện thoại này
+          // Nếu đã tn tại người dùng vi số điện thoại này
           return res.status(409).json({ exists: true, message: 'Người dùng với số điện thoại này đã tồn tại' });
       } else {
           // Nếu không có người dùng với số điện thoại này
@@ -989,7 +1000,7 @@ app.post('/check-accountname', (req, res) => {
       }
 
       if (results.length > 0) {
-          // Nếu đã tồn tại người dùng với tên tài khoản này
+          // Nếu đã tồn tại ngưi dùng với tên tài khoản này
           return res.status(409).json({ exists: true, message: 'Người dùng với tên tài khoản này đã tồn tại' });
       } else {
           // Nếu không có người dùng với tên tài khoản này
@@ -1413,19 +1424,21 @@ app.delete('/delete-review/:id', (req, res) => {
 // Lấy đánh giá cho một tour cụ thể
 app.get('/reviews/:tourId', (req, res) => {
   const tourId = req.params.tourId;
+  console.log('Received request for tour ID:', tourId); // Debug log
 
   const query = `
-    SELECT d.ID, d.IDNGUOIDUNG, u.FULLNAME, d.SOSAO, d.NOIDUNG
+    SELECT d.ID, d.IDNGUOIDUNG, u.FULLNAME, d.SOSAO, d.NOIDUNG, d.IDVE, d.thoigian
     FROM danhgia d
-    JOIN USER u ON d.IDNGUOIDUNG = u.ID
+    LEFT JOIN USER u ON d.IDNGUOIDUNG = u.ID
     WHERE d.IDTOUR = ?
   `;
 
   db.query(query, [tourId], (err, results) => {
     if (err) {
+      console.error('Database error:', err);
       return res.status(500).json({ error: 'Lỗi khi lấy đánh giá' });
     }
-
+    console.log('Found reviews:', results); // Debug log
     res.json(results);
   });
 });
@@ -1456,7 +1469,16 @@ app.get('/api/tour/:id', (req, res) => {
 
   // GET: Fetch all discount codes
 app.get('/api/discount-codes', (req, res) => {
-  const sql = 'SELECT * FROM magiamgia';
+  const sql = `
+    SELECT *,
+    CASE 
+      WHEN CURDATE() > NGAYHETHAN THEN 'Hết hiệu lực'
+      WHEN CURDATE() < NGAYAPDUNG THEN 'Chưa áp dụng'
+      ELSE 'Đang áp dụng'
+    END as TRANGTHAI
+    FROM magiamgia
+  `;
+  
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
@@ -1499,14 +1521,27 @@ app.get('/api/discount-codes/:id', (req, res) => {
 app.post('/api/discount-codes', async (req, res) => {
   const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
   
+  // Validate dates
+  const currentDate = new Date();
+  const applicationDate = new Date(NGAYAPDUNG);
+  const expirationDate = new Date(NGAYHETHAN);
+
+  if (applicationDate > expirationDate) {
+    return res.status(400).json({ error: 'Ngày hết hạn phải sau ngày áp dụng' });
+  }
+
   try {
-    const nextId = await getNextId();  // Get the next ID from the DB
+    const nextId = await getNextId();
+    
+    // Xác định trạng thái ban đầu
+    const initialStatus = currentDate > expirationDate ? 'Hết hiệu lực' : 
+                         currentDate < applicationDate ? 'Chưa áp dụng' : 'Đang áp dụng';
 
     const query = `
-      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU)
-      VALUES (?, ?, ?, ?, ?, ?)`;
+      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, TRANGTHAI)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU], (err, results) => {
+    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, initialStatus], (err, results) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to insert discount code' });
       }
@@ -1521,12 +1556,28 @@ app.post('/api/discount-codes', async (req, res) => {
 app.put('/api/discount-codes/:id', (req, res) => {
   const { id } = req.params;
   const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+
+  // Validate dates
+  const currentDate = new Date();
+  const applicationDate = new Date(NGAYAPDUNG);
+  const expirationDate = new Date(NGAYHETHAN);
+
+  if (applicationDate > expirationDate) {
+    return res.status(400).json({ error: 'Ngày hết hạn phải sau ngày áp dụng' });
+  }
+
+  // Xác định trạng thái mới
+  const newStatus = currentDate > expirationDate ? 'Hết hiệu lực' : 
+                   currentDate < applicationDate ? 'Chưa áp dụng' : 'Đang áp dụng';
+
   const sql = `
     UPDATE magiamgia
-    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?
+    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?, TRANGTHAI = ?
     WHERE IDMAGIAMGIA = ?
   `;
-  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, id];
+  
+  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, newStatus, id];
+  
   db.query(sql, values, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Discount code not found' });
@@ -1868,8 +1919,104 @@ app.get('/api/dashboard/yearly-comparison', (req, res) => {
   });
 });
 
+// Thêm API endpoint để lấy danh sách tour và đánh giá trung bình
+app.get('/tour-reviews', (req, res) => {
+  const query = `
+    SELECT 
+      t.ID as tourId,
+      t.TENTOUR as tourName,
+      COUNT(d.ID) as totalReviews,
+      AVG(d.SOSAO) as averageRating
+    FROM tour t
+    LEFT JOIN danhgia d ON t.ID = d.IDTOUR
+    GROUP BY t.ID, t.TENTOUR
+    ORDER BY t.ID
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi lấy đánh giá tour' });
+    }
+    res.json(results);
+  });
+});
+
+// Lấy đánh giá cho một tour cụ thể
+app.get('/api/reviews/:tourId', (req, res) => {
+  const tourId = req.params.tourId;
+  console.log('Fetching reviews for tour:', tourId);
+  
+  const query = `
+    SELECT 
+      d.ID,
+      d.IDTOUR,
+      d.IDNGUOIDUNG,
+      d.IDVE,
+      d.SOSAO,
+      d.NOIDUNG,
+      d.thoigian,
+      u.FULLNAME
+    FROM danhgia d
+    LEFT JOIN user u ON d.IDNGUOIDUNG = u.ID
+    WHERE d.IDTOUR = ?
+    ORDER BY d.thoigian DESC
+  `;
+
+  db.query(query, [tourId], (err, results) => {
+    if (err) {
+      console.error('Error fetching review details:', err);
+      return res.status(500).json({ error: 'Lỗi khi lấy đánh giá' });
+    }
+    
+    console.log('Found reviews:', results);
+    res.json(results);
+  });
+});
+
+// Thêm scheduled job để kiểm tra và cập nhật trạng thái mã giảm giá
+schedule.scheduleJob('0 0 * * *', () => { // Chạy hàng ngày lúc 00:00
+  const updateQuery = `
+    UPDATE magiamgia 
+    SET TRANGTHAI = 'Hết hiệu lực'
+    WHERE NGAYHETHAN < CURDATE() 
+    AND TRANGTHAI != 'Hết hiệu lực'
+  `;
+  
+  db.query(updateQuery, (err, result) => {
+    if (err) {
+      console.error('Lỗi khi cập nhật trạng thái mã giảm giá:', err);
+    } else {
+      console.log('Đã cập nhật trạng thái các mã giảm giá hết hạn');
+    }
+  });
+});
+
+// API để lấy random featured tours
+app.get('/api/featured-tours', (req, res) => {
+  const query = `
+    SELECT t.*, l.NGAYDI, l.NGAYVE,
+           (SELECT AVG(SOSAO) FROM danhgia WHERE IDTOUR = t.ID) as rating,
+           (SELECT COUNT(*) FROM danhgia WHERE IDTOUR = t.ID) as review_count
+    FROM tour t
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE t.TRANGTHAI = 'Còn vé'
+    AND l.NGAYDI > CURDATE()  /* Thêm điều kiện này để chỉ lấy tour có ngày đi trong tương lai */
+    ORDER BY l.NGAYDI ASC     /* Sắp xếp theo ngày đi gần nhất */
+    LIMIT 3
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching featured tours:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
 

@@ -9,8 +9,11 @@ import ScheduleManagement from './ScheduleManagement.jsx';
 import AddSchedule from './AddSchedule.jsx';
 import ScheduleDetail from './ScheduleDetail.jsx';
 import AddTour from './AddTour.jsx';
+import AddReview from './AddReview.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
+import EditReview from './EditReview.jsx';
+import ReviewManagement from './ReviewManagement.jsx';
 import BookingManagement from './BookingManagement.jsx';
 import EditBookingManagement from './EditBookingManagement.jsx';
 import UserManagement from './UserManagement.jsx';
@@ -64,13 +67,15 @@ function App() {
                     <Route path="/add-schedule" element={<AddSchedule />} />
                     <Route path="/edit-schedule/:id" element={<EditSchedule />} />
                     <Route path="/add-tour" element={<AddTour />} />
+                    <Route path="/add-review" element={<AddReview />} />
                     <Route path="/edit-tour/:id" element={<EditTour />} />
+                    <Route path="/edit-review/:id" element={<EditReview />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<BookingManagement />} />
                     <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
-                    <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<DiscountManagement/>} />
                     <Route path="/edit-voucher/:id" element={<EditDiscount/>} />
+                    <Route path="/review" element={<ReviewManagement />} />
                     <Route path="/user" element={<UserManagement />} />
                     <Route path="/add-user" element={<AddUser/>} />
                     <Route path="/edit-user/:id" element={<EditUser/>} />

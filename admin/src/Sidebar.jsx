@@ -34,7 +34,7 @@ const Sidebar = ({ selectedContent, onLogout }) => {
           <img className="menu-icon" src="src/img/icon/ticket.png" alt="Quản lý danh sách đặt" />
           <span>Quản lý danh sách đặt</span>
         </li>
-        <li className={`menu-item ${selectedContent === 'rate' ? 'active' : ''}`} onClick={() => handleNavigation('/rate')}>
+        <li className={`menu-item ${selectedContent === 'review' ? 'active' : ''}`} onClick={() => handleNavigation('/review')}>
           <img className="menu-icon" src="src/img/icon/star.png" alt="Quản lý đánh giá" />
           <span>Quản lý đánh giá</span>
         </li>

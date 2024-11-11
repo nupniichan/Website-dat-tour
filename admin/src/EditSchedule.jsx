@@ -17,6 +17,7 @@ const EditSchedule = () => {
   const [descriptionContent, setDescriptionContent] = useState('');
   const [editingDetailIndex, setEditingDetailIndex] = useState(null);
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetch(`http://localhost:5000/schedules/${id}`)
@@ -47,25 +48,110 @@ const EditSchedule = () => {
     if (name === 'descriptionContent') setDescriptionContent(value);
   };
 
+  const validateForm = () => {
+    let tempErrors = {};
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(schedule.startDate);
+    const endDate = new Date(schedule.endDate);
+
+    // Validate tên lịch trình
+    if (!schedule.name.trim()) {
+      tempErrors.name = "Tên lịch trình không được để trống";
+    }
+
+    // Validate ngày đi
+    if (!schedule.startDate) {
+      tempErrors.startDate = "Ngày đi không được để trống";
+    } else if (startDate < currentDate) {
+      tempErrors.startDate = "Ngày đi không được là ngày trong quá khứ";
+    }
+
+    // Validate ngày về
+    if (!schedule.endDate) {
+      tempErrors.endDate = "Ngày về không được để trống";
+    } else {
+      if (endDate < currentDate) {
+        tempErrors.endDate = "Ngày về không được là ngày trong quá khứ";
+      }
+      if (endDate < startDate) {
+        tempErrors.endDate = "Ngày về phải sau ngày đi";
+      }
+    }
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
+  const validateDetail = () => {
+    let tempErrors = {};
+
+    if (!eventDate) {
+      tempErrors.eventDate = "Ngày không được để trống";
+    } else {
+      const detailDate = new Date(eventDate);
+      const startDate = new Date(schedule.startDate);
+      const endDate = new Date(schedule.endDate);
+      
+      if (!schedule.startDate || !schedule.endDate) {
+        tempErrors.eventDate = "Vui lòng nhập ngày đi và ngày về trước";
+      } else if (detailDate < startDate || detailDate > endDate) {
+        tempErrors.eventDate = "Ngày phải nằm trong khoảng thời gian của lịch trình";
+      }
+    }
+
+    if (!eventTime) {
+      tempErrors.eventTime = "Thời gian không được để trống";
+    }
+
+    if (!eventContent.trim()) {
+      tempErrors.eventContent = "Sự kiện không được để trống";
+    }
+
+    setErrors(prev => ({ ...prev, ...tempErrors }));
+    return Object.keys(tempErrors).length === 0;
+  };
+
   const handleAddDetail = () => {
-    if (eventDate && eventContent && eventTime) {
+    if (validateDetail()) {
       if (editingDetailIndex !== null) {
-        const updatedDetails = schedule.details.map((detail, index) =>
-          index === editingDetailIndex
-            ? { NGAY: eventDate, SUKIEN: eventContent, MOTA: descriptionContent, GIO: eventTime }
-            : detail
-        );
-        setSchedule(prev => ({ ...prev, details: updatedDetails }));
+        const updatedDetails = [...schedule.details];
+        updatedDetails[editingDetailIndex] = {
+          NGAY: eventDate,
+          SUKIEN: eventContent,
+          MOTA: descriptionContent,
+          GIO: eventTime
+        };
+        
+        // Sắp xếp lại chi tiết theo thời gian
+        const sortedDetails = updatedDetails.sort((a, b) => {
+          const dateA = new Date(`${a.NGAY} ${a.GIO}`);
+          const dateB = new Date(`${b.NGAY} ${b.GIO}`);
+          return dateA - dateB;
+        });
+
+        setSchedule(prev => ({ ...prev, details: sortedDetails }));
         setEditingDetailIndex(null);
       } else {
-        setSchedule(prev => ({
-          ...prev,
-          details: [
-            ...prev.details,
-            { NGAY: eventDate, SUKIEN: eventContent, MOTA: descriptionContent, GIO: eventTime }
-          ],
-        }));
+        const newDetail = {
+          NGAY: eventDate,
+          SUKIEN: eventContent,
+          MOTA: descriptionContent,
+          GIO: eventTime
+        };
+
+        // Thêm và sắp xếp chi tiết mới
+        setSchedule(prev => {
+          const updatedDetails = [...prev.details, newDetail].sort((a, b) => {
+            const dateA = new Date(`${a.NGAY} ${a.GIO}`);
+            const dateB = new Date(`${b.NGAY} ${b.GIO}`);
+            return dateA - dateB;
+          });
+          return { ...prev, details: updatedDetails };
+        });
       }
+
+      // Reset form
       setEventDate('');
       setEventContent('');
       setEventTime('');
@@ -91,6 +177,11 @@ const EditSchedule = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     console.log('Dữ liệu gửi đi:', schedule);
     fetch(`http://localhost:5000/update-schedule/${id}`, {
       method: 'PUT',
@@ -124,6 +215,20 @@ const EditSchedule = () => {
   const formattedStartDate = schedule.startDate ? schedule.startDate.slice(0, 10) : '';
   const formattedEndDate = schedule.endDate ? schedule.endDate.slice(0, 10) : '';
 
+  // Thêm hàm format date
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return '';
+    
+    // Nếu dateString chứa T hoặc Z, lấy phần ngày
+    if (dateString.includes('T')) {
+        dateString = dateString.split('T')[0];
+    }
+    
+    // Chuyển trực tiếp từ YYYY-MM-DD sang DD/MM/YYYY
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <Box padding={3}>
       <h3>Sửa Lịch Trình</h3>
@@ -135,6 +240,8 @@ const EditSchedule = () => {
           value={schedule.name}
           onChange={handleChange}
           required
+          error={!!errors.name}
+          helperText={errors.name}
           style={{ marginBottom: '10px' }}
         />
         <TextField
@@ -145,6 +252,8 @@ const EditSchedule = () => {
           value={formattedStartDate}
           onChange={handleChange}
           required
+          error={!!errors.startDate}
+          helperText={errors.startDate}
           style={{ marginBottom: '10px' }}
         />
         <TextField
@@ -155,6 +264,8 @@ const EditSchedule = () => {
           value={formattedEndDate}
           onChange={handleChange}
           required
+          error={!!errors.endDate}
+          helperText={errors.endDate}
           style={{ marginBottom: '10px' }}
         />
 
@@ -168,6 +279,8 @@ const EditSchedule = () => {
           onChange={handleDetailChange}
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          error={!!errors.eventDate}
+          helperText={errors.eventDate}
         />
         <TextField
           label="Giờ"
@@ -177,6 +290,9 @@ const EditSchedule = () => {
           value={eventTime}
           onChange={handleDetailChange}
           margin="normal"
+          error={!!errors.eventTime}
+          helperText={errors.eventTime}
+          required
         />
         <TextField
           label="Sự kiện"
@@ -185,6 +301,9 @@ const EditSchedule = () => {
           value={eventContent}
           onChange={handleDetailChange}
           margin="normal"
+          error={!!errors.eventContent}
+          helperText={errors.eventContent}
+          required
         />
         <TextField
           label="Mô tả"
@@ -202,7 +321,8 @@ const EditSchedule = () => {
           {schedule.details.length ? (
             schedule.details.map((detail, index) => (
               <li key={index}>
-                {`Ngày ${detail.NGAY ? detail.NGAY.slice(0, 10) : 'Chưa có ngày'} ${detail.GIO ? `- Giờ ${detail.GIO}` : ''}: ${detail.SUKIEN || 'Chưa có sự kiện'} - Mô tả: ${detail.MOTA || 'Chưa có mô tả'}`}
+                {`Ngày ${formatDisplayDate(detail.NGAY)} - ${detail.GIO}: ${detail.SUKIEN || 'Chưa có sự kiện'}`}
+                {detail.MOTA && ` - Mô tả: ${detail.MOTA}`}
                 <IconButton color="primary" onClick={() => handleEditDetail(index)}>
                   Sửa
                 </IconButton>

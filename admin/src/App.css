@@ -34,3 +34,6 @@
       flex-basis: auto;
     }
   }
+  .address-container {
+    width: 200px; /* Đặt chiều rộng mong muốn */
+}

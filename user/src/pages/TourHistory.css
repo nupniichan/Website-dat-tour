@@ -1,6 +1,36 @@
+.button-group {
+  display: flex;
+  justify-content: space-between; /* Căn giữa và phân chia không gian */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  width: 100%; /* Đảm bảo nó chiếm toàn bộ chiều rộng */
+  padding: 0 10px; /* Thêm một chút đệm để các nút không dính vào nhau */
+  height: 100%; /* Đảm bảo chiều cao đầy đủ để căn giữa theo chiều dọc */
+}
+
+.button-group button {
+  flex: 1; /* Cho các nút cùng chiếm không gian đều */
+  margin: 0 5px; /* Thêm khoảng cách giữa các nút */
+}
+
+
+.view-details-link, 
+.cancel-button {
+  flex: 1; /* Các nút chiếm bằng nhau */
+  margin: 0 10px; /* Khoảng cách bên trái và bên phải */
+}
+
+.view-details-link {
+  max-width: 150px; /* Kích thước tối đa của nút xem chi tiết */
+}
+
+.cancel-button {
+  max-width: 150px; /* Kích thước tối đa của nút hủy vé */
+}
+
+/* Các phần còn lại của CSS của bạn */
 .tour-history-container {
   padding: 20px;
-  max-width: 1000px;
+  max-width: auto;
   margin: auto;
   font-family: Arial, sans-serif;
 }
@@ -20,7 +50,7 @@
 .tour-history-table td {
   border: 1px solid #ddd;
   padding: 12px;
-  text-align: left;
+  text-align: center;
 }
 
 .tour-history-table th {
@@ -64,7 +94,6 @@
   font-size: 14px; /* Kích thước chữ */
   transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu */
   white-space: nowrap; /* Ngăn không cho chữ bị xuống dòng */
-  min-width: 100px; /* Đặt chiều rộng tối thiểu cho nút */
   text-align: center; /* Canh giữa chữ trong nút */
 }
 
@@ -161,7 +190,156 @@
   font-weight: bold;
 }
 
+/* Styles cho dialog đánh giá */
+.review-dialog {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+
+.review-details {
+  margin: 20px 0;
+}
+
+.star-rating-display {
+  margin: 15px 0;
+}
+
+.star-rating-display .star {
+  font-size: 24px;
+  color: #ddd;
+  margin-right: 5px;
+}
+
+.star-rating-display .star.active {
+  color: #ffd700;
+}
+
+.review-content-section {
+  margin-top: 15px;
+}
+
+.review-content {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.review-dialog h2 {
+  margin-bottom: 15px;
+}
+
+.star-rating {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.star {
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffd700;
+}
+
+.review-dialog textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+/* Điều chỉnh button-group để chứa nút Đánh giá */
 .button-group {
   display: flex;
-  gap: 10px; /* Khoảng cách giữa các nút */
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button-group button {
+  flex: 1;
+  min-width: 100px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.button-group button:hover {
+  opacity: 0.9;
+}
+
+/* Style cho nút Đánh giá */
+.button-group button:nth-child(2) {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.tour-details {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.tour-details p {
+  margin: 5px 0;
+}
+
+.tour-history-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin: 20px 0;
+  padding: 10px;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  letter-spacing: 1px;
+}
+
+.view-details-link {
+  background: none;
+  border: none;
+  color: #007bff; /* Link blue color */
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+}
+
+.view-details-link:hover {
+  color: #0056b3; /* Darker blue on hover */
+  text-decoration: underline;
+}
+
+th.payment-method, td.payment-method {
+  max-width: 150px; /* Adjust width as needed */
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.view-details-link:disabled {
+  background-color: #cccccc;
+  border-color: #999999;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+.view-details-link:disabled:hover {
+  background-color: #cccccc;
+  border-color: #999999;
 }

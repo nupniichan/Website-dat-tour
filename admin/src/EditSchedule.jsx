@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, IconButton } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import {
+  Box, TextField, Button, Typography, Card, CardContent,
+  Grid, Paper, IconButton, InputAdornment, Alert,
+  Tooltip, Divider, List, ListItem, ListItemText,
+  ListItemSecondaryAction, Collapse
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EventIcon from '@mui/icons-material/Event';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TitleIcon from '@mui/icons-material/Title';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const EditSchedule = () => {
   const { id } = useParams();
@@ -18,6 +34,7 @@ const EditSchedule = () => {
   const [editingDetailIndex, setEditingDetailIndex] = useState(null);
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:5000/schedules/${id}`)
@@ -230,122 +247,290 @@ const EditSchedule = () => {
   };
 
   return (
-    <Box padding={3}>
-      <h3>Sửa Lịch Trình</h3>
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Tên lịch trình"
-          name="name"
-          fullWidth
-          value={schedule.name}
-          onChange={handleChange}
-          required
-          error={!!errors.name}
-          helperText={errors.name}
-          style={{ marginBottom: '10px' }}
-        />
-        <TextField
-          label="Ngày đi"
-          name="startDate"
-          type="date"
-          fullWidth
-          value={formattedStartDate}
-          onChange={handleChange}
-          required
-          error={!!errors.startDate}
-          helperText={errors.startDate}
-          style={{ marginBottom: '10px' }}
-        />
-        <TextField
-          label="Ngày về"
-          name="endDate"
-          type="date"
-          fullWidth
-          value={formattedEndDate}
-          onChange={handleChange}
-          required
-          error={!!errors.endDate}
-          helperText={errors.endDate}
-          style={{ marginBottom: '10px' }}
-        />
+    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+      <Card elevation={3}>
+        <CardContent>
+          {/* Header */}
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={() => navigate('/schedule')} sx={{ color: 'primary.main' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              Chỉnh Sửa Lịch Trình
+            </Typography>
+          </Box>
 
-        <h4>Chi tiết lịch trình</h4>
-        <TextField
-          label="Ngày"
-          type="date"
-          fullWidth
-          name="eventDate"
-          value={eventDate}
-          onChange={handleDetailChange}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-          error={!!errors.eventDate}
-          helperText={errors.eventDate}
-        />
-        <TextField
-          label="Giờ"
-          type="time"
-          fullWidth
-          name="eventTime"
-          value={eventTime}
-          onChange={handleDetailChange}
-          margin="normal"
-          error={!!errors.eventTime}
-          helperText={errors.eventTime}
-          required
-        />
-        <TextField
-          label="Sự kiện"
-          fullWidth
-          name="eventContent"
-          value={eventContent}
-          onChange={handleDetailChange}
-          margin="normal"
-          error={!!errors.eventContent}
-          helperText={errors.eventContent}
-          required
-        />
-        <TextField
-          label="Mô tả"
-          fullWidth
-          name="descriptionContent"
-          value={descriptionContent}
-          onChange={handleDetailChange}
-          margin="normal"
-        />
-        <IconButton color="primary" onClick={handleAddDetail}>
-          <AddIcon />
-        </IconButton>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Thông tin cơ bản */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin cơ bản
+                  </Typography>
 
-        <ul>
-          {schedule.details.length ? (
-            schedule.details.map((detail, index) => (
-              <li key={index}>
-                {`Ngày ${formatDisplayDate(detail.NGAY)} - ${detail.GIO}: ${detail.SUKIEN || 'Chưa có sự kiện'}`}
-                {detail.MOTA && ` - Mô tả: ${detail.MOTA}`}
-                <IconButton color="primary" onClick={() => handleEditDetail(index)}>
-                  Sửa
-                </IconButton>
-                <IconButton color="error" onClick={() => handleDeleteDetail(index)}>
-                  Xoá
-                </IconButton>
-              </li>
-            ))
-          ) : (
-            <li>Chưa có chi tiết nào</li>
-          )}
-        </ul>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tên lịch trình"
+                        name="name"
+                        value={schedule.name}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.name}
+                        helperText={errors.name}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <TitleIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
 
-        <Button type="submit" variant="contained" color="primary" style={{ marginRight: '10px' }} onClick={() => navigate('/schedule')}>
-          Cập nhật
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={() => navigate('/schedule')}>
-          Hủy
-        </Button>
-        <Button variant="outlined" color="error" onClick={handleDeleteSchedule}>
-          Xoá lịch trình
-        </Button>
-      </form>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Ngày đi"
+                        name="startDate"
+                        type="date"
+                        value={formattedStartDate}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.startDate}
+                        helperText={errors.startDate}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EventIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Ngày về"
+                        name="endDate"
+                        type="date"
+                        value={formattedEndDate}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        error={!!errors.endDate}
+                        helperText={errors.endDate}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EventIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Chi tiết lịch trình */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h6" sx={{ color: 'text.primary' }}>
+                      Chi tiết lịch trình
+                    </Typography>
+                    <IconButton onClick={() => setExpanded(!expanded)}>
+                      {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                  </Box>
+
+                  <Collapse in={expanded}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Ngày"
+                          type="date"
+                          fullWidth
+                          name="eventDate"
+                          value={eventDate}
+                          onChange={handleDetailChange}
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.eventDate}
+                          helperText={errors.eventDate}
+                          sx={{ bgcolor: 'white' }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <EventIcon color="primary" />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Giờ"
+                          type="time"
+                          fullWidth
+                          name="eventTime"
+                          value={eventTime}
+                          onChange={handleDetailChange}
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.eventTime}
+                          helperText={errors.eventTime}
+                          required
+                          sx={{ bgcolor: 'white' }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <AccessTimeIcon color="primary" />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Sự kiện"
+                          fullWidth
+                          name="eventContent"
+                          value={eventContent}
+                          onChange={handleDetailChange}
+                          error={!!errors.eventContent}
+                          helperText={errors.eventContent}
+                          required
+                          sx={{ bgcolor: 'white' }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <DescriptionIcon color="primary" />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Mô tả"
+                          fullWidth
+                          multiline
+                          rows={3}
+                          name="descriptionContent"
+                          value={descriptionContent}
+                          onChange={handleDetailChange}
+                          sx={{ bgcolor: 'white' }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <DescriptionIcon color="primary" />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleAddDetail}
+                          startIcon={editingDetailIndex !== null ? <SaveIcon /> : <AddIcon />}
+                          fullWidth
+                        >
+                          {editingDetailIndex !== null ? 'Cập nhật chi tiết' : 'Thêm chi tiết'}
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Collapse>
+
+                  {/* Danh sách chi tiết */}
+                  <List sx={{ mt: 2 }}>
+                    {schedule.details.length > 0 ? (
+                      schedule.details.map((detail, index) => (
+                        <Paper key={index} sx={{ mb: 2, bgcolor: 'white' }}>
+                          <ListItem
+                            sx={{
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              py: 2
+                            }}
+                          >
+                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                              <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 'bold' }}>
+                                {formatDisplayDate(detail.NGAY)} - {detail.GIO}
+                              </Typography>
+                              <Box>
+                                <IconButton color="primary" onClick={() => handleEditDetail(index)}>
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton color="error" onClick={() => handleDeleteDetail(index)}>
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                              {detail.SUKIEN}
+                            </Typography>
+                            {detail.MOTA && (
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                {detail.MOTA}
+                              </Typography>
+                            )}
+                          </ListItem>
+                        </Paper>
+                      ))
+                    ) : (
+                      <Alert severity="info">Chưa có chi tiết nào</Alert>
+                    )}
+                  </List>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Buttons */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteSchedule}
+                startIcon={<DeleteIcon />}
+              >
+                Xóa lịch trình
+              </Button>
+              
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => navigate('/schedule')}
+                  startIcon={<CancelIcon />}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<SaveIcon />}
+                >
+                  Cập nhật
+                </Button>
+              </Box>
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

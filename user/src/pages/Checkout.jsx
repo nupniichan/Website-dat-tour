@@ -92,22 +92,25 @@ const Checkout = () => {
       if (!response.ok) throw new Error('Failed to fetch promotions');
       const data = await response.json();
       
-      // Format lại data để phù hợp với cấu trúc hiện tại
+      // Format lại data và thêm trạng thái
       const formattedData = data.map(promo => ({
         id: promo.IDMAGIAMGIA,
         code: promo.TENMGG,
         condition: promo.DIEUKIEN,
         discount_value: promo.TILECHIETKHAU,
         start_date: promo.NGAYAPDUNG,
-        end_date: promo.NGAYHETHAN
+        end_date: promo.NGAYHETHAN,
+        status: promo.TRANGTHAI // Thêm trạng thái
       }));
 
-      // Lọc các mã còn hiệu lực
+      // Lọc các mã còn hiệu lực và có trạng thái active
       const currentDate = new Date();
       const activePromos = formattedData.filter(promo => {
         const endDate = new Date(promo.end_date);
         const startDate = new Date(promo.start_date);
-        return currentDate >= startDate && currentDate <= endDate;
+        return currentDate >= startDate && 
+               currentDate <= endDate && 
+               promo.status !== 'Hết hiệu lực'; // Kiểm tra thêm trạng thái
       });
 
       // Sắp xếp theo giá trị giảm giá từ cao đến thấp
@@ -133,7 +136,7 @@ const Checkout = () => {
     setPromoCode(e.target.value); // Cập nhật mã giảm giá khi nhập
   };
 
-  // Cập nhật hàm xử lý áp dụng mã giảm giá
+  // Sửa lại hàm applyPromoCode để thêm validate
   const applyPromoCode = async () => {
     if (!selectedPromo) {
       alert('Vui lòng chọn mã giảm giá!');
@@ -141,6 +144,27 @@ const Checkout = () => {
     }
 
     try {
+      // Kiểm tra trạng thái
+      if (selectedPromo.status === 'Hết hiệu lực') {
+        alert('Mã giảm giá này đã hết hiệu lực!');
+        return;
+      }
+
+      // Kiểm tra thời hạn
+      const currentDate = new Date();
+      const startDate = new Date(selectedPromo.start_date);
+      const endDate = new Date(selectedPromo.end_date);
+
+      if (currentDate < startDate) {
+        alert('Mã giảm giá chưa đến thời gian áp dụng!');
+        return;
+      }
+
+      if (currentDate > endDate) {
+        alert('Mã giảm giá đã hết hạn!');
+        return;
+      }
+
       // Tính toán giá sau khi giảm
       const discountAmount = (finalPrice * selectedPromo.discount_value) / 100;
       const newPrice = finalPrice - discountAmount;
@@ -346,11 +370,19 @@ const Checkout = () => {
                 <div
                   key={promo.id}
                   onClick={() => {
+                    if (promo.status === 'Hết hiệu lực') {
+                      alert('Mã giảm giá này đã hết hiệu lực!');
+                      return;
+                    }
                     setSelectedPromo(promo);
                     setPromoCode(promo.code);
                     setShowPromoModal(false);
                   }}
-                  className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
+                  className={`p-4 border rounded-lg transition
+                    ${promo.status === 'Hết hiệu lực' 
+                      ? 'bg-gray-100 cursor-not-allowed opacity-60' 
+                      : 'cursor-pointer hover:bg-gray-50'
+                    }`}
                 >
                   <div className="flex justify-between items-center">
                     <div>
@@ -359,6 +391,11 @@ const Checkout = () => {
                       <p className="text-xs text-gray-500">
                         HSD: {new Date(promo.end_date).toLocaleDateString('vi-VN')}
                       </p>
+                      {promo.status === 'Hết hiệu lực' && (
+                        <span className="text-xs text-red-500 font-medium">
+                          Đã hết hiệu lực
+                        </span>
+                      )}
                     </div>
                     <p className="text-red-500 font-bold">-{promo.discount_value}%</p>
                   </div>

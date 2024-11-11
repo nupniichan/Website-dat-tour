@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import './AdminLogin.css';
 
 const AdminLogin = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +25,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
       if (response.ok) {
         alert('Đăng nhập thành công!');
         onLoginSuccess();
+        navigate('/dashboard'); // Redirect to the dashboard
       } else {
         setLoginError(data.message);
       }

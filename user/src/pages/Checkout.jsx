@@ -25,10 +25,32 @@ const Checkout = () => {
   // Lấy id và customerId từ sessionStorage
   const customerId = sessionStorage.getItem('userId');
 
+  // Thêm states mới
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [promoList, setPromoList] = useState([]);
+  const [selectedPromo, setSelectedPromo] = useState(null);
+
+  // Thêm states mới để quản lý phân trang
+  const [displayedPromos, setDisplayedPromos] = useState([]);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   useEffect(() => {
     fetchTourDetails(id);
     fetchCustomerInfo(customerId);
   }, [id]);
+
+  // Thêm useEffect để fetch danh sách mã giảm giá
+  useEffect(() => {
+    fetchActivePromotions();
+  }, []);
+
+  // Cập nhật useEffect để xử lý phân trang ban đầu
+  useEffect(() => {
+    if (promoList.length > 0) {
+      setDisplayedPromos(promoList.slice(0, ITEMS_PER_PAGE));
+    }
+  }, [promoList]);
 
   const fetchTourDetails = async (id) => {
     try {
@@ -63,6 +85,40 @@ const Checkout = () => {
     }
   };
 
+  // Sửa lại function để fetch mã giảm giá còn hiệu lực
+  const fetchActivePromotions = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/discount-codes');
+      if (!response.ok) throw new Error('Failed to fetch promotions');
+      const data = await response.json();
+      
+      // Format lại data để phù hợp với cấu trúc hiện tại
+      const formattedData = data.map(promo => ({
+        id: promo.IDMAGIAMGIA,
+        code: promo.TENMGG,
+        condition: promo.DIEUKIEN,
+        discount_value: promo.TILECHIETKHAU,
+        start_date: promo.NGAYAPDUNG,
+        end_date: promo.NGAYHETHAN
+      }));
+
+      // Lọc các mã còn hiệu lực
+      const currentDate = new Date();
+      const activePromos = formattedData.filter(promo => {
+        const endDate = new Date(promo.end_date);
+        const startDate = new Date(promo.start_date);
+        return currentDate >= startDate && currentDate <= endDate;
+      });
+
+      // Sắp xếp theo giá trị giảm giá từ cao đến thấp
+      const sortedPromos = activePromos.sort((a, b) => b.discount_value - a.discount_value);
+      
+      setPromoList(sortedPromos);
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+    }
+  };
+
   useEffect(() => {
     if (tourDetails?.GIA) {
       const totalPrice = tourDetails.GIA * adultCount + 
@@ -77,13 +133,23 @@ const Checkout = () => {
     setPromoCode(e.target.value); // Cập nhật mã giảm giá khi nhập
   };
 
-  // Áp dụng mã giảm giá
-  const applyPromoCode = () => {
-    if (promoCode === 'DISCOUNT10' && tourDetails) {
-      alert('Mã giảm giá hợp lệ! Bạn đã được giảm 10%.');
-      setFinalPrice(prevPrice => prevPrice * 0.9); // Giảm giá 10% nếu mã hợp lệ
-    } else {
-      alert('Mã giảm giá không hợp lệ.');
+  // Cập nhật hàm xử lý áp dụng mã giảm giá
+  const applyPromoCode = async () => {
+    if (!selectedPromo) {
+      alert('Vui lòng chọn mã giảm giá!');
+      return;
+    }
+
+    try {
+      // Tính toán giá sau khi giảm
+      const discountAmount = (finalPrice * selectedPromo.discount_value) / 100;
+      const newPrice = finalPrice - discountAmount;
+
+      setFinalPrice(newPrice);
+      alert(`Áp dụng mã giảm giá thành công! Bạn được giảm ${selectedPromo.discount_value}%`);
+    } catch (error) {
+      console.error('Error applying promotion:', error);
+      alert('Có lỗi xảy ra khi áp dụng mã giảm giá');
     }
   };
 
@@ -133,12 +199,6 @@ const Checkout = () => {
       alert('Vui lòng chọn một phương thức thanh toán');
       return;
     }
-  
-    // Kiểm tra nếu phương thức thanh toán không phải là Momo
-    if (paymentMethod !== 'momo') {
-      alert('Hiện chúng tôi chưa hỗ trợ phương thức thanh toán này');
-      return;
-    }
 
     const paymentData = {
       tourId: id,
@@ -151,30 +211,93 @@ const Checkout = () => {
       ticketType: tourDetails.LOAITOUR,
       customerNote: customerNote || '',
       bookingDate: new Date().toISOString(),
-      status: 'Đã thanh toán', // hoặc trạng thái phù hợp
+      status: paymentMethod === 'Tiền mặt' ? 'Chưa thanh toán' : 'Đã thanh toán',
       totalTickets: adultCount + childCount + infantCount,
-      discountId: null // hoặc mã giảm giá nếu có
+      discountId: selectedPromo?.id || null
     };
-  
+
     try {
-      const momoResponse = await fetch('http://localhost:5000/payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: finalPrice,
-          orderInfo: `Thanh toán tour ${tourDetails.TENTOUR}`,
-          extraData: JSON.stringify(paymentData), 
-        }),
-      });
-  
-      const data = await momoResponse.json();
-      if (data.payUrl) {
-        window.location.href = data.payUrl;
+      if (paymentMethod === 'Tiền mặt') {
+        // Xử lý thanh toán tiền mặt
+        const response = await fetch('http://localhost:5000/add-ticket', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            IDTOUR: paymentData.tourId,
+            IDNGUOIDUNG: paymentData.customerId,
+            TONGTIEN: paymentData.amount,
+            PHUONGTHUCTHANHTOAN: paymentData.paymentMethod,
+            SOVE_NGUOILON: paymentData.adultCount,
+            SOVE_TREM: paymentData.childCount,
+            SOVE_EMBE: paymentData.infantCount,
+            GHICHU: paymentData.customerNote,
+            TINHTRANG: paymentData.status,
+            NGAYDAT: paymentData.bookingDate,
+            LOAIVE: paymentData.ticketType,
+            IDMAGIAMGIA: paymentData.discountId
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          window.location.href = `/booking-success?ticketId=${result.ticketId}&paymentMethod=Tiền mặt`;
+        }
+      } else if (paymentMethod === 'momo') {
+        // Xử lý thanh toán MoMo (giữ nguyên code cũ)
+        const momoResponse = await fetch('http://localhost:5000/payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: finalPrice,
+            orderInfo: `Thanh toán tour ${tourDetails.TENTOUR}`,
+            extraData: JSON.stringify(paymentData),
+          }),
+        });
+
+        const data = await momoResponse.json();
+        if (data.payUrl) {
+          window.location.href = data.payUrl;
+        }
       }
     } catch (error) {
       console.error('Lỗi khi xử lý thanh toán:', error);
+      alert('Có lỗi xảy ra trong quá trình thanh toán');
+    }
+  };
+
+  // Thêm function để xóa mã giảm giá
+  const removePromoCode = () => {
+    if (selectedPromo) {
+      // Khôi phục lại giá ban đầu
+      const originalPrice = tourDetails.GIA * adultCount + 
+                           tourDetails.GIA * 0.8 * childCount + 
+                           tourDetails.GIA * 0.5 * infantCount;
+      setFinalPrice(originalPrice);
+      setSelectedPromo(null);
+      setPromoCode('');
+      alert('Đã xóa mã giảm giá');
+    }
+  };
+
+  // Thêm function để xử lý infinite scroll
+  const handleScroll = (e) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.target;
+    
+    // Khi người dùng kéo gần đến cuối danh sách
+    if (scrollHeight - scrollTop <= clientHeight * 1.5) {
+      const nextPage = page + 1;
+      const start = (nextPage - 1) * ITEMS_PER_PAGE;
+      const end = nextPage * ITEMS_PER_PAGE;
+      
+      // Kiểm tra xem còn mã giảm giá để hiển thị không
+      if (start < promoList.length) {
+        setDisplayedPromos([...displayedPromos, ...promoList.slice(start, end)]);
+        setPage(nextPage);
+      }
     }
   };
 
@@ -187,6 +310,75 @@ const Checkout = () => {
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
     return date.toLocaleDateString('vi-VN', options);
   }
+
+  // Cập nhật component Modal
+  const PromoModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg w-96 max-h-[80vh]">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Chọn mã giảm giá</h3>
+          <button 
+            onClick={() => setShowPromoModal(false)}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Thêm lưu ý ở đầu modal */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+          <p className="font-medium mb-1">Hướng dẫn sử dụng:</p>
+          <ul className="list-disc list-inside">
+            <li>Chọn mã giảm giá mà bạn mong muốn</li>
+            <li>Bấm vào mã để chọn, sau đó nhấn "Áp dụng" để giảm giá</li>
+            <li>Mã có tỷ lệ giảm giá cao hơn được hiển thị đầu tiên</li>
+          </ul>
+        </div>
+
+        {/* Thêm container có scroll riêng cho danh sách mã */}
+        <div 
+          className="overflow-y-auto max-h-[50vh] space-y-4 pr-2"
+          onScroll={handleScroll}
+        >
+          {displayedPromos.length > 0 ? (
+            <>
+              {displayedPromos.map((promo) => (
+                <div
+                  key={promo.id}
+                  onClick={() => {
+                    setSelectedPromo(promo);
+                    setPromoCode(promo.code);
+                    setShowPromoModal(false);
+                  }}
+                  className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-bold">{promo.code}</p>
+                      <p className="text-sm text-gray-600">{promo.condition}</p>
+                      <p className="text-xs text-gray-500">
+                        HSD: {new Date(promo.end_date).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                    <p className="text-red-500 font-bold">-{promo.discount_value}%</p>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Hiển thị loading khi đang tải thêm */}
+              {displayedPromos.length < promoList.length && (
+                <div className="text-center py-2 text-gray-500">
+                  Kéo xuống để xem thêm...
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-gray-500">Không có mã giảm giá nào khả dụng</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 grid grid-cols-12 gap-6">
@@ -204,24 +396,51 @@ const Checkout = () => {
           <p className="font-medium">Khách hàng: {adultCount} người lớn, {childCount} trẻ em, {infantCount} em bé</p>
         </div>
 
-        {/* Tui khoá lại tại vì cái này ở sprint 3. Khi nào tới sprint 3 thì mở ra */}
-        {/* Cho phép nhập mã giảm giá */}
-        {/* <div className="mt-6">
-          <label className="block font-medium">Mã giảm giá</label>
-          <input
-            type="text"
-            className="border border-gray-300 rounded-md w-full p-2 mt-2"
-            placeholder="Nhập mã giảm giá"
-            value={promoCode}  // Giá trị hiện tại của mã giảm giá
-            onChange={handlePromoCodeChange}  // Sự kiện cập nhật mã giảm giá khi thay đổi
-          />
-          <button 
-            onClick={applyPromoCode} 
-            className="mt-2 w-full bg-blue-600 text-white py-2 rounded"
-          >
-            Áp dụng
-          </button>
-        </div> */}
+        <div className="mt-6">
+          <label className="block font-medium mb-2">Mã giảm giá</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="border border-gray-300 rounded-md flex-1 p-2"
+              placeholder="Chọn mã giảm giá"
+              value={promoCode}
+              readOnly
+            />
+            <button 
+              onClick={() => setShowPromoModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Chọn
+            </button>
+          </div>
+          
+          {/* Thêm lưu ý về mã giảm giá */}
+          <div className="mt-2 text-sm text-gray-600">
+            <p>Lưu ý:</p>
+            <ul className="list-disc list-inside">
+              <li>Mỗi lần thanh toán bạn chỉ được áp dụng 1 mã giảm giá</li>
+            </ul>
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <button 
+              onClick={applyPromoCode}
+              className={`flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition
+                ${!selectedPromo ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={!selectedPromo}
+            >
+              Áp dụng
+            </button>
+            {selectedPromo && (
+              <button 
+                onClick={removePromoCode}
+                className="flex-1 bg-red-500 text-white py-2 rounded hover:bg-red-600 transition"
+              >
+                Xóa mã
+              </button>
+            )}
+          </div>
+        </div> 
 
         <div className="mt-6">
           <p className="text-2xl font-semibold text-red-500">Tổng tiền: {finalPrice.toLocaleString()} VND</p>
@@ -288,7 +507,7 @@ const Checkout = () => {
             className="border border-gray-300 rounded-md w-full p-2 mt-2"
           >
             <option value="" disabled>Chọn phương thức</option>
-            <option value="cash">Tiền mặt</option>
+            <option value="Tiền mặt">Tiền mặt</option>
             <option value="vnPay">Quét mã VNPay</option>
             <option value="momo">Thanh toán bằng Momo</option>
           </select>
@@ -309,15 +528,112 @@ const Checkout = () => {
         />
 
         {/* Điều khoản và dịch vụ */}
-        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản bắt buộc khi đặt tour online</h4>
-        <div className="h-32 overflow-y-scroll border border-gray-300 p-4 rounded-md mb-4">
-          <p>Điều khoản sử dụng dịch vụ và các lưu ý khi thanh toán tour online</p>
+        <h4 className="text-xl font-semibold mt-8 mb-4">Điều khoản và dịch vụ khi đặt tour</h4>
+        <div className="h-96 overflow-y-auto border border-gray-300 p-4 rounded-md mb-4 bg-gray-50">
+          <div className="space-y-6 w-auto mx-auto">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">1. Quy định về độ tuổi và giá vé:</h5>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li><span className="font-medium">Người lớn (từ 18 tuổi trở lên):</span> 100% giá tour
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Yêu cầu CMND/CCCD khi đi tour</li>
+                  </ul>
+                </li>
+                <li><span className="font-medium">Học sinh (từ 12-17 tuổi):</span> 100% giá tour
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Yêu cầu CMND/CCCD khi đi tour</li>
+                  </ul>
+                </li>
+                <li><span className="font-medium">Trẻ em (từ 5-11 tuổi):</span> 80% giá tour người lớn
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Được hưởng quyền lợi đầy đủ ghế ngồi, suất ăn, vé tham quan như người lớn</li>
+                    <li>Yêu cầu xuất trình được để chứng minh tuổi</li>
+                  </ul>
+                </li>
+                <li><span className="font-medium">Em bé (từ 0-4 tuổi):</span> 50% giá tour người lớn
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Được hưởng quyền lợi đầy đủ ghế ngồi, suất ăn, vé tham quan như người lớn</li>
+                    <li>Yêu cầu xuất trình được để chứng minh tuổi</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">2. Quy định thanh toán:</h5>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li><span className="font-medium">Phương thức thanh toán:</span>
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Thanh toán qua ví điện tử MoMo</li>
+                    <li>Thanh toán qua VNPay</li>
+                    <li>Thanh toán tiền mặt tại văn phòng</li>
+                  </ul>
+                </li>
+                <li><span className="font-medium">Thời hạn thanh toán:</span>
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Thanh toán 100% trong vòng 24 giờ sau khi đặt tour online</li>
+                    <li>Vé sẽ bị huỷ nếu không thanh toán đúng hạn</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">3. Chính sách hủy tour:</h5>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>Trước 7 ngày: Hoàn 80% tổng giá trị tour</li>
+                <li>Từ 3-6 ngày: Hoàn 50% tổng giá trị tour</li>
+                <li>Dưới 24h: Không hoàn tiền</li>
+                <li>Các trường hợp bất khả kháng sẽ được xem xét riêng</li>
+                <li>Khi huỷ tour, sẽ có nhân viên liên hệ với bạn thông qua số điện thoại để hỗ trợ hoàn tiền</li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">4. Quyền lợi khách hàng:</h5>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>Được tư vấn và hỗ trợ 24/7</li>
+                <li>Được bảo hiểm du lịch theo quy định</li>
+                <li>Được đổi ngày khởi hành trước 7 ngày (nếu còn chỗ)</li>
+                <li>Được hoàn tiền nếu tour bị hủy từ phía công ty</li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">5. Lưu ý quan trọng:</h5>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>Giá tour không bao gồm:
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Chi phí cá nhân, đồ uống</li>
+                    <li>Tiền tip cho hướng dẫn viên và tài xế</li>
+                    <li>Chi phí phát sinh ngoài chương trình</li>
+                  </ul>
+                </li>
+                <li>Yêu cầu giấy tờ:
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>CMND/CCCD với người lớn</li>
+                    <li>Giấy khai sinh với trẻ em</li>
+                  </ul>
+                </li>
+                <li>Quy định chung:
+                  <ul className="list-circle pl-6 mt-1 text-sm">
+                    <li>Tuân thủ giờ giấc và lịch trình</li>
+                    <li>Tôn trọng văn hóa địa phương</li>
+                    <li>Bảo vệ môi trường du lịch</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <label className="flex items-center mb-4">
           <input type="checkbox" onChange={handleTermsChange} /> <span className="ml-2">Tôi đồng ý với các điều khoản</span>
         </label>
       </div>
+
+      {/* Thêm Modal vào cuối component */}
+      {showPromoModal && <PromoModal />}
     </div>
   );
 };

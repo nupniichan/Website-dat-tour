@@ -108,7 +108,6 @@ const DiscountManagement = () => {
             <TableCell>Tên mã giảm giá</TableCell>
             <TableCell>Ngày áp dụng</TableCell>
             <TableCell>Ngày hết hạn</TableCell>
-            <TableCell>Điều kiện</TableCell>
             <TableCell>Tỉ lệ chiết khấu (%)</TableCell>
             <TableCell>Chức năng</TableCell>
           </TableRow>
@@ -120,8 +119,7 @@ const DiscountManagement = () => {
               <TableCell>{discount.TENMGG}</TableCell>
               <TableCell>{new Date(discount.NGAYAPDUNG).toLocaleDateString('vi-VN')}</TableCell>
               <TableCell>{new Date(discount.NGAYHETHAN).toLocaleDateString('vi-VN')}</TableCell>
-              <TableCell>{discount.DIEUKIEN}</TableCell>
-              <TableCell>{discount.TILECHIETKHAU}</TableCell>
+              <TableCell>{discount.TILECHIETKHAU} %</TableCell>
               <TableCell>
                 <Button variant="outlined" onClick={() => handleViewDetails(discount)}>
                   Xem Chi tiết
@@ -152,7 +150,7 @@ const DiscountManagement = () => {
                 <Typography>Tên mã giảm giá: <strong>{selectedDiscount.TENMGG}</strong></Typography>
                 <Typography>Ngày áp dụng: <strong>{new Date(selectedDiscount.NGAYAPDUNG).toLocaleDateString('vi-VN')}</strong></Typography>
                 <Typography>Ngày hết hạn: <strong>{new Date(selectedDiscount.NGAYHETHAN).toLocaleDateString('vi-VN')}</strong></Typography>
-                <Typography>Điều kiện: <strong>{selectedDiscount.DIEUKIEN}</strong></Typography>
+                <Typography>Nội dung: <strong>{selectedDiscount.DIEUKIEN}</strong></Typography>
                 <Typography>Tỉ lệ chiết khấu: <strong>{selectedDiscount.TILECHIETKHAU}%</strong></Typography>
               </Box>
             </Box>

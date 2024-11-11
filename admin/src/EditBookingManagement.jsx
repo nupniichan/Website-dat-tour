@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, MenuItem } from '@mui/material';
+import { Box, TextField, Button, MenuItem, Autocomplete, Typography, Grid, InputAdornment } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+
+// Thêm hàm helper để format giá
+const formatToVND = (price) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price);
+};
 
 const EditBookingManagement = () => {
   const { id } = useParams(); // Get booking ID from the URL
@@ -23,7 +31,53 @@ const EditBookingManagement = () => {
   const [tourPrice, setTourPrice] = useState(0); // To store fetched tour price
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [errors, setErrors] = useState({}); // New state for validation errors
+  const [errors, setErrors] = useState({
+    IDTOUR: '',
+    IDNGUOIDUNG: '',
+    NGAYDAT: '',
+    SOVE_NGUOILON: '',
+    SOVE_TREM: '',
+    SOVE_EMBE: '',
+    TINHTRANG: '',
+    PHUONGTHUCTHANHTOAN: '',
+  }); // New state for validation errors
+
+  // Thêm state mới
+  const [tours, setTours] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // Thêm useEffect để lọc tours
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch tours
+        const toursResponse = await fetch('http://localhost:5000/tours');
+        const toursData = await toursResponse.json();
+        const validTours = toursData.filter(tour => tour.TRANGTHAI === 'Còn vé');
+        setTours(validTours);
+
+        // Fetch users
+        const usersResponse = await fetch('http://localhost:5000/users');
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
+
+        // If editing existing ticket, set the selected tour and user
+        if (id !== 'new' && booking.IDTOUR && booking.IDNGUOIDUNG) {
+          const matchingTour = validTours.find(tour => tour.ID === booking.IDTOUR);
+          const matchingUser = usersData.find(user => user.ID === booking.IDNGUOIDUNG);
+          
+          setSelectedTour(matchingTour || null);
+          setSelectedUser(matchingUser || null);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    };
+
+    fetchData();
+  }, [id, booking.IDTOUR, booking.IDNGUOIDUNG]);
 
   // Fetch ticket data when the component loads if ID is not "new"
   useEffect(() => {
@@ -61,6 +115,13 @@ const EditBookingManagement = () => {
         GHICHU: data.GHICHU || ''
       });
   
+      // Tìm và set tour và user tương ứng
+      const matchingTour = tours.find(tour => tour.ID === data.IDTOUR);
+      const matchingUser = users.find(user => user.ID === data.IDNGUOIDUNG);
+      
+      if (matchingTour) setSelectedTour(matchingTour);
+      if (matchingUser) setSelectedUser(matchingUser);
+
       // Fetch the tour price for the existing booking
       fetchTourPrice(data.IDTOUR);
     } catch (err) {
@@ -94,15 +155,32 @@ const EditBookingManagement = () => {
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setBooking((prev) => ({
+    setBooking(prev => ({
       ...prev,
-      [name]: value,
-      SOVE: parseInt(booking.SOVE_NGUOILON || 0) + parseInt(booking.SOVE_TREM || 0) + parseInt(booking.SOVE_EMBE || 0)
+      [name]: value
     }));
 
-    // If the Tour ID changes, fetch the tour price
-    if (name === 'IDTOUR') {
-      fetchTourPrice(value);
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+
+    // Validate specific fields immediately
+    if (name === 'SOVE_NGUOILON' || name === 'SOVE_TREM' || name === 'SOVE_EMBE') {
+      const totalTickets = 
+        parseInt(name === 'SOVE_NGUOILON' ? value : booking.SOVE_NGUOILON || 0) +
+        parseInt(name === 'SOVE_TREM' ? value : booking.SOVE_TREM || 0) +
+        parseInt(name === 'SOVE_EMBE' ? value : booking.SOVE_EMBE || 0);
+      
+      if (totalTickets > 10) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "Tổng số vé không được vượt quá 10"
+        }));
+      }
     }
   };
 
@@ -147,15 +225,20 @@ const EditBookingManagement = () => {
       tempErrors.IDNGUOIDUNG = "Mã Người Dùng phải là số nguyên dương";
     }
 
-    // Validate NGAYDAT
-    if (!booking.NGAYDAT) {
-      tempErrors.NGAYDAT = "Ngày Đặt không được để trống";
-    } else {
-      const selectedDate = new Date(booking.NGAYDAT);
-      const currentDate = new Date();
-      if (selectedDate > currentDate) {
-        tempErrors.NGAYDAT = "Ngày Đặt không thể là ngày trong tương lai";
-      }
+    // Chỉ validate NGAYDAT khi thêm mới
+    if (id === 'new') {
+        if (!booking.NGAYDAT) {
+            tempErrors.NGAYDAT = "Ngày Đặt không được để trống";
+        } else {
+            const selectedDate = new Date(booking.NGAYDAT);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0); // Reset time part
+            selectedDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate.getTime() !== currentDate.getTime()) {
+                tempErrors.NGAYDAT = "Ngày Đặt phải là ngày hiện tại";
+            }
+        }
     }
 
     // Validate ticket numbers
@@ -167,6 +250,14 @@ const EditBookingManagement = () => {
     }
     if (booking.SOVE_EMBE < 0) {
       tempErrors.SOVE_EMBE = "Số vé em bé không thể âm";
+    }
+
+    // Validate total tickets
+    const totalTickets = parseInt(booking.SOVE_NGUOILON || 0) + 
+                        parseInt(booking.SOVE_TREM || 0) + 
+                        parseInt(booking.SOVE_EMBE || 0);
+    if (totalTickets > 10) {
+      tempErrors.SOVE_NGUOILON = "Tổng số vé không được vượt quá 10";
     }
 
     setErrors(tempErrors);
@@ -182,15 +273,19 @@ const EditBookingManagement = () => {
     setIsLoading(true);
     setError(null);
 
-    // Chuyển đổi các giá trị số thành số nguyên
+    // Điều chỉnh ngày đặt để tránh vấn đề múi giờ
+    const bookingDate = new Date(booking.NGAYDAT);
+    bookingDate.setHours(7, 0, 0, 0); // Set giờ là 7:00:00 để đảm bảo khi chuyển sang UTC không bị lùi ngày
+
     const updatedBooking = {
       ...booking,
-      IDTOUR: parseInt(booking.IDTOUR) || 0, // Chuyển IDTOUR thành số
-      IDNGUOIDUNG: parseInt(booking.IDNGUOIDUNG) || 0, // Chuyển IDNGUOIDUNG thành số
-      SOVE_NGUOILON: parseInt(booking.SOVE_NGUOILON) || 0, // Chuyển số vé người lớn thành số
-      SOVE_TREM: parseInt(booking.SOVE_TREM) || 0, // Chuyển số vé trẻ em thành số
-      SOVE_EMBE: parseInt(booking.SOVE_EMBE) || 0, // Chuyển số vé em bé thành số
-      SOVE: parseInt(booking.SOVE) || 0 // Tổng số vé thành số
+      NGAYDAT: bookingDate.toISOString(), // Chuyển đổi sang ISO string
+      IDTOUR: parseInt(booking.IDTOUR) || 0,
+      IDNGUOIDUNG: parseInt(booking.IDNGUOIDUNG) || 0,
+      SOVE_NGUOILON: parseInt(booking.SOVE_NGUOILON) || 0,
+      SOVE_TREM: parseInt(booking.SOVE_TREM) || 0,
+      SOVE_EMBE: parseInt(booking.SOVE_EMBE) || 0,
+      SOVE: parseInt(booking.SOVE) || 0
     };
 
     const requestUrl = id === 'new'
@@ -231,29 +326,149 @@ const EditBookingManagement = () => {
       {isLoading && <p>Loading...</p>}
 
       <form onSubmit={handleSubmit}>
-        <TextField
-          label="Mã Tour"
-          name="IDTOUR"
-          fullWidth
-          value={booking.IDTOUR}
-          onChange={handleChange}
-          required
-          error={!!errors.IDTOUR}
-          helperText={errors.IDTOUR}
-          style={{ marginBottom: '10px' }}
-        />
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <TextField
+              label="Mã Tour"
+              name="IDTOUR"
+              value={booking.IDTOUR}
+              disabled={true} // Khóa trường mã tour
+              error={!!errors.IDTOUR}
+              helperText={errors.IDTOUR}
+              fullWidth
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <Autocomplete
+              options={tours}
+              getOptionLabel={(option) => {
+                if (!option) return '';
+                return `${option.TENTOUR || ''} (${new Date(option.NGAYDI).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')})`;
+              }}
+              value={selectedTour}
+              onChange={(event, newValue) => {
+                console.log('Selected tour:', newValue);
+                setSelectedTour(newValue);
+                if (newValue) {
+                  handleChange({
+                    target: {
+                      name: 'IDTOUR',
+                      value: newValue.ID
+                    }
+                  });
+                  fetchTourPrice(newValue.ID);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Tên Tour"
+                  error={!!errors.IDTOUR}
+                  helperText={errors.IDTOUR}
+                  required
+                />
+              )}
+              renderOption={(props, option) => (
+                <Box component="li" {...props}>
+                  <Box>
+                    <Typography>
+                      {option.TENTOUR}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      {`Khởi hành: ${new Date(option.KHOIHANH).toLocaleDateString('vi-VN')} - ${new Date(option.NGAYVE).toLocaleDateString('vi-VN')}`}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      {`Giá: ${formatToVND(option.GIA)}`}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              isOptionEqualToValue={(option, value) => {
+                if (!option || !value) return false;
+                return option.ID === value.ID;
+              }}
+              filterOptions={(options, { inputValue }) => {
+                const searchValue = inputValue.toLowerCase();
+                return options.filter(option => 
+                  option.TENTOUR?.toLowerCase().includes(searchValue)
+                ).slice(0, 10);
+              }}
+              noOptionsText="Không tìm thấy tour phù hợp"
+            />
+          </Grid>
+        </Grid>
 
-        <TextField
-          label="Mã Người Dùng"
-          name="IDNGUOIDUNG"
-          fullWidth
-          value={booking.IDNGUOIDUNG}
-          onChange={handleChange}
-          required
-          error={!!errors.IDNGUOIDUNG}
-          helperText={errors.IDNGUOIDUNG}
-          style={{ marginBottom: '10px' }}
-        />
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Grid item xs={6}>
+            <TextField
+              label="Mã Người Dùng"
+              name="IDNGUOIDUNG"
+              value={booking.IDNGUOIDUNG}
+              disabled={true} // Khóa trường mã người dùng
+              error={!!errors.IDNGUOIDUNG}
+              helperText={errors.IDNGUOIDUNG}
+              fullWidth
+              required
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <Autocomplete
+              options={users}
+              getOptionLabel={(option) => option.FULLNAME || ''}
+              value={selectedUser}
+              onChange={(event, newValue) => {
+                setSelectedUser(newValue);
+                if (newValue) {
+                  handleChange({
+                    target: {
+                      name: 'IDNGUOIDUNG',
+                      value: newValue.ID
+                    }
+                  });
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Tên Người Dùng"
+                  error={!!errors.IDNGUOIDUNG}
+                  helperText={errors.IDNGUOIDUNG}
+                  required
+                />
+              )}
+              renderOption={(props, option) => (
+                <Box component="li" {...props}>
+                  <Box>
+                    <Typography>
+                      {option.FULLNAME}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      {`SĐT: ${option.PHONENUMBER}`}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              isOptionEqualToValue={(option, value) => option?.ID === value?.ID}
+              filterOptions={(options, { inputValue }) => {
+                const searchValue = inputValue.toLowerCase();
+                return options.filter(option => 
+                  option.FULLNAME?.toLowerCase().includes(searchValue)
+                ).slice(0, 10); // Giới hạn 10 kết quả
+              }}
+              noOptionsText="Không tìm thấy người dùng phù hợp"
+            />
+          </Grid>
+        </Grid>
 
         <TextField
           label="Ngày Đặt"
@@ -263,6 +478,7 @@ const EditBookingManagement = () => {
           value={booking.NGAYDAT}
           onChange={handleChange}
           required
+          disabled={id !== 'new'} // Khóa trường nếu không phải là thêm mới
           error={!!errors.NGAYDAT}
           helperText={errors.NGAYDAT}
           style={{ marginBottom: '10px' }}
@@ -328,16 +544,32 @@ const EditBookingManagement = () => {
         </TextField>
 
         <TextField
-          label="Tổng Tiền (VNĐ)"
+          label="Tổng Tiền"
           name="TONGTIEN"
-          type="number"
           fullWidth
-          value={booking.TONGTIEN}
-          onChange={handleChange}
-          required
-          style={{ marginBottom: '10px' }}
+          value={formatToVND(booking.TONGTIEN)}
           InputProps={{
-            readOnly: true // Make it read-only since it is calculated
+            readOnly: true,
+            startAdornment: (
+                <InputAdornment position="start">
+                    <Typography color="text.secondary">
+                        Tổng cộng:
+                    </Typography>
+                </InputAdornment>
+            ),
+            style: { 
+                backgroundColor: '#f5f5f5',  // Màu nền nhạt để thể hiện trường readonly
+                cursor: 'default'            // Con trỏ mặc định thay vì text
+            }
+          }}
+          sx={{ 
+              mb: 2,
+              '& .MuiInputBase-input': {
+                  cursor: 'default',
+                  color: 'text.primary',
+                  WebkitTextFillColor: 'initial', // Fix cho Safari
+                  '-webkit-opacity': '1'          // Fix cho Safari
+              }
           }}
         />
 
@@ -364,6 +596,25 @@ const EditBookingManagement = () => {
           onChange={handleChange}
           style={{ marginBottom: '10px' }}
         />
+
+        <Box sx={{ mb: 2, mt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Chi tiết giá:
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {`Người lớn: ${formatToVND(tourPrice)} x ${booking.SOVE_NGUOILON} = ${formatToVND(tourPrice * booking.SOVE_NGUOILON)}`}
+          </Typography>
+          {booking.SOVE_TREM > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {`Trẻ em: ${formatToVND(tourPrice * 0.8)} x ${booking.SOVE_TREM} = ${formatToVND(tourPrice * 0.8 * booking.SOVE_TREM)}`}
+            </Typography>
+          )}
+          {booking.SOVE_EMBE > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {`Em bé: ${formatToVND(tourPrice * 0.5)} x ${booking.SOVE_EMBE} = ${formatToVND(tourPrice * 0.5 * booking.SOVE_EMBE)}`}
+            </Typography>
+          )}
+        </Box>
 
         <Button type="submit" variant="contained" color="primary" disabled={isLoading} style={{ marginRight: '10px' }}>
           {id === 'new' ? 'Tạo mới' : 'Cập nhật'}

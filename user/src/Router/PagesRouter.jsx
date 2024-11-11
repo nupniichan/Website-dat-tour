@@ -14,6 +14,7 @@ import PaymentFailed from "../pages/PaymentFailed.jsx";
 import PaymentSuccess from "../pages/PaymentSuccess.jsx";
 import Profile from "../pages/Profile.jsx";
 import TourHistory from "../pages/TourHistory.jsx";
+import BookingSuccess from "../pages/BookingSuccess.jsx";
 
 const PageRouter = ({ onLogin }) => {
     return (
@@ -35,6 +36,7 @@ const PageRouter = ({ onLogin }) => {
             <Route path={PagesNames.PAYMENTRESULT} element={<PaymentResult />} /> 
             <Route path={PagesNames.PAYMENTSUCCESS} element={<PaymentSuccess />} /> 
             <Route path={PagesNames.PAYMENTFAILED} element={<PaymentFailed />} /> 
+            <Route path="/booking-success" element={<BookingSuccess />} />
         </Routes>
     );
 };

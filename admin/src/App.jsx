@@ -21,7 +21,7 @@ import EditDiscount from './EditDiscount.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
-
+import IncomeManagement from './IncomeManagement.jsx';
 function App() {
   // Kiểm tra trạng thái đăng nhập từ sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(sessionStorage.getItem('isLoggedIn') === 'true');
@@ -73,7 +73,7 @@ function App() {
                     <Route path="/user" element={<UserManagement />} />
                     <Route path="/add-user" element={<AddUser/>} />
                     <Route path="/edit-user/:id" element={<EditUser/>} />
-                    <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
+                    <Route path="/income" element={<IncomeManagement/>} />
                   </Routes>
                 </div>
               </main>

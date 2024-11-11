@@ -211,23 +211,27 @@ const TourHistory = () => {
           response.data.map(async (ticket) => {
             // Fetch tour details
             const tourResponse = await axios.get(`http://localhost:5000/api/tour/${ticket.IDTOUR}`);
+            console.log('Tour Response for ID', ticket.IDTOUR, ':', tourResponse.data);
             
-            // Check if user has already reviewed this tour
+            // Check if user has already reviewed this specific ticket
             const reviewResponse = await axios.get(`http://localhost:5000/check-review`, {
               params: {
                 userId: userId,
-                tourId: ticket.IDTOUR
+                tourId: ticket.IDTOUR,
+                ticketId: ticket.ID
               }
             });
 
             return {
               ...ticket,
               NGAYDI: tourResponse.data.NGAYDI,
+              NGAYVE: tourResponse.data.NGAYVE,
               hasReviewed: reviewResponse.data.hasReviewed,
               review: reviewResponse.data.review
             };
           })
         );
+        console.log('Tickets with details:', ticketsWithDetails);
         setTourHistory(ticketsWithDetails);
       } catch (error) {
         console.error('Error fetching tour history:', error);
@@ -308,6 +312,7 @@ const TourHistory = () => {
       const reviewData = {
         tourId: selectedTourForReview.IDTOUR,
         userId,
+        ticketId: selectedTourForReview.ID,
         rating,
         content
       };
@@ -323,7 +328,9 @@ const TourHistory = () => {
                 review: {
                   SOSAO: rating,
                   NOIDUNG: content,
-                  IDNGUOIDUNG: userId
+                  THOIGIAN: new Date().toISOString(),
+                  IDNGUOIDUNG: userId,
+                  IDVE: selectedTourForReview.ID
                 }
               }
             : item
@@ -338,26 +345,85 @@ const TourHistory = () => {
     }
   };
 
-  const canReview = (tourEndDate) => {
-    // Tạm thời return true để luôn hiển thị nút đánh giá
-    return true;
-  };
-
-  const getTicketStatus = (ticket) => {
-    if (ticket.TINHTRANG === 'Đã hủy') {
-      return 'Đã hủy';
+  const canReview = (ticket) => {
+    if (!ticket.NGAYDI || !ticket.NGAYVE) {
+      console.log('Không có ngày đi hoặc ngày về');
+      return false;
     }
-    return canCancelTicket(ticket, ticket.NGAYDI) ? ticket.TINHTRANG : 'Không thể hủy vé';
+
+    const tourStartDate = new Date(ticket.NGAYDI);
+    const tourEndDate = new Date(ticket.NGAYVE);
+    const now = new Date();
+
+    // Log chi tiết để debug
+    console.log('Tour Details:', {
+      tourId: ticket.IDTOUR,
+      startDate: tourStartDate.toISOString(),
+      endDate: tourEndDate.toISOString(),
+      currentDate: now.toISOString(),
+      status: ticket.TINHTRANG,
+      hasReviewed: ticket.hasReviewed
+    });
+    
+    console.log('Conditions:', {
+      isValidStatus: ticket.TINHTRANG === 'Đã thanh toán' || ticket.TINHTRANG === 'Đã xác nhận',
+      isTourEnded: now > tourEndDate,
+      notReviewed: !ticket.hasReviewed,
+      notRefunded: ticket.TINHTRANG !== 'Đã hoàn tiền',
+      notCancelled: ticket.TINHTRANG !== 'Đã hủy'
+    });
+    
+    return (
+      (ticket.TINHTRANG === 'Đã thanh toán' || ticket.TINHTRANG === 'Đã xác nhận') && 
+      now > tourEndDate && 
+      !ticket.hasReviewed &&
+      ticket.TINHTRANG !== 'Đã hoàn tiền' &&
+      ticket.TINHTRANG !== 'Đã hủy'
+    );
   };
 
-  const openViewReviewDialog = (tour) => {
-    setSelectedReview(tour.review);
-    setIsViewReviewDialogOpen(true);
+  const openViewReviewDialog = async (tour) => {
+    try {
+      const userId = sessionStorage.getItem('userId');
+      // Lấy chi tiết đánh giá từ server
+      const response = await axios.get('http://localhost:5000/get-review', {
+        params: {
+          userId: userId,
+          tourId: tour.IDTOUR,
+          ticketId: tour.ID
+        }
+      });
+      
+      setSelectedReview(response.data);
+      setIsViewReviewDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching review:', error);
+      alert('Không thể lấy thông tin đánh giá');
+    }
   };
 
   const closeViewReviewDialog = () => {
     setIsViewReviewDialogOpen(false);
     setSelectedReview(null);
+  };
+
+  // Thêm hàm để lấy message thông báo
+  const getReviewMessage = (ticket) => {
+    if (!ticket.NGAYDI || !ticket.NGAYVE) return 'Không tìm thấy thông tin ngày tour';
+    if (ticket.hasReviewed) return 'Bạn đã đánh giá tour này';
+    if (ticket.TINHTRANG === 'Đã hủy') return 'Không thể đánh giá tour đã hủy';
+    if (ticket.TINHTRANG === 'Đã hoàn tiền') return 'Không thể đánh giá tour đã hoàn tiền';
+    if (ticket.TINHTRANG !== 'Đã thanh toán' && ticket.TINHTRANG !== 'Đã xác nhận') 
+      return 'Chỉ có thể đánh giá tour đã thanh toán';
+    
+    const tourEndDate = new Date(ticket.NGAYVE);
+    const now = new Date();
+    if (now < tourEndDate) {
+      const remainingDays = Math.ceil((tourEndDate - now) / (1000 * 60 * 60 * 24));
+      return `Chỉ có thể đánh giá sau khi tour kết thúc (còn ${remainingDays} ngày)`;
+    }
+    
+    return '';
   };
 
   return (
@@ -382,7 +448,7 @@ const TourHistory = () => {
                 <td>{item.ID}</td>
                 <td>{formatDate(item.NGAYDAT)}</td>
                 <td>{item.SOVE}</td>
-                <td>{getTicketStatus(item)}</td>
+                <td>{item.TINHTRANG}</td>
                 <td>{formatCurrency(item.TONGTIEN)}</td>
                 <td>{item.PHUONGTHUCTHANHTOAN}</td>
                 <td>
@@ -395,7 +461,18 @@ const TourHistory = () => {
                     </button>
                     <button 
                       className="view-details-link"
-                      onClick={() => item.hasReviewed ? openViewReviewDialog(item) : openReviewDialog(item)}
+                      onClick={() => {
+                        if (!canReview(item) && !item.hasReviewed) {
+                          alert(getReviewMessage(item));
+                          return;
+                        }
+                        item.hasReviewed ? openViewReviewDialog(item) : openReviewDialog(item);
+                      }}
+                      disabled={!canReview(item) && !item.hasReviewed}
+                      style={{ 
+                        opacity: (!canReview(item) && !item.hasReviewed) ? 0.5 : 1,
+                        cursor: (!canReview(item) && !item.hasReviewed) ? 'not-allowed' : 'pointer'
+                      }}
                     >
                       {item.hasReviewed ? 'Xem đánh giá' : 'Đánh giá'}
                     </button>

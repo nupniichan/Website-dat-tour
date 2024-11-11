@@ -13,7 +13,7 @@ const Homepage = () => {
     const navigate = useNavigate();
 
     const disablePastDates = (current) => {
-        return current && current < dayjs().startOf("day");
+        return current && current < dayjs().endOf('day');
     };
 
     const onCityChange = (value) => {

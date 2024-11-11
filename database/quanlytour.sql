@@ -60,6 +60,13 @@ CREATE TABLE `danhgia` (
   `IDTOUR` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+--
+-- Dumping data for table `danhgia`
+--
+
+INSERT INTO `danhgia` (`ID`, `NOIDUNG`, `SOSAO`, `IDNGUOIDUNG`,`IDTOUR`) VALUES
+(3, 'good', 5, 2, 3),
+(4, 'bad', 1, 3, 2);
 -- --------------------------------------------------------
 
 --
@@ -264,6 +271,12 @@ ALTER TABLE `tour`
 ALTER TABLE `user`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
+--
+-- AUTO_INCREMENT for table `user`
+--
+
+ALTER TABLE `danhgia`
+MODIFY COLUMN `ID` NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 --
 -- Constraints for dumped tables
 --

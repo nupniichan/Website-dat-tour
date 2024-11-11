@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar.jsx';
 import Header from './Header.jsx';
 import Dashboard from './Dashboard.jsx';
@@ -9,8 +9,11 @@ import ScheduleManagement from './ScheduleManagement.jsx';
 import AddSchedule from './AddSchedule.jsx';
 import ScheduleDetail from './ScheduleDetail.jsx';
 import AddTour from './AddTour.jsx';
+import AddReview from './AddReview.jsx';
 import EditSchedule from './EditSchedule.jsx';
 import EditTour from './EditTour.jsx';
+import EditReview from './EditReview.jsx';
+import ReviewManagement from './ReviewManagement.jsx';
 import BookingManagement from './BookingManagement.jsx';
 import EditBookingManagement from './EditBookingManagement.jsx';
 import UserManagement from './UserManagement.jsx';
@@ -21,7 +24,7 @@ import EditDiscount from './EditDiscount.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
-
+import IncomeManagement from './IncomeManagement.jsx';
 function App() {
   // Kiểm tra trạng thái đăng nhập từ sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(sessionStorage.getItem('isLoggedIn') === 'true');
@@ -57,23 +60,26 @@ function App() {
               <main className="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div className="main-content">
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Navigate to="/dashboard" />} /> {/* Default route */}
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/tour" element={<TourManagement />} />
                     <Route path="/schedule" element={<ScheduleManagement />} />
                     <Route path="/add-schedule" element={<AddSchedule />} />
                     <Route path="/edit-schedule/:id" element={<EditSchedule />} />
                     <Route path="/add-tour" element={<AddTour />} />
+                    <Route path="/add-review" element={<AddReview />} />
                     <Route path="/edit-tour/:id" element={<EditTour />} />
+                    <Route path="/edit-review/:id" element={<EditReview />} />
                     <Route path="/schedule/:id" element={<ScheduleDetail />} />
                     <Route path="/ticket" element={<BookingManagement />} />
                     <Route path="/edit-ticket/:id" element={<EditBookingManagement />} />
-                    <Route path="/rate" element={<h1>Quản lý đánh giá</h1>} />
                     <Route path="/voucher" element={<DiscountManagement/>} />
                     <Route path="/edit-voucher/:id" element={<EditDiscount/>} />
+                    <Route path="/review" element={<ReviewManagement />} />
                     <Route path="/user" element={<UserManagement />} />
                     <Route path="/add-user" element={<AddUser/>} />
                     <Route path="/edit-user/:id" element={<EditUser/>} />
-                    <Route path="/income" element={<h1>Quản lý thu nhập</h1>} />
+                    <Route path="/income" element={<IncomeManagement/>} />
                   </Routes>
                 </div>
               </main>

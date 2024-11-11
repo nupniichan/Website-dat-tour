@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Snackbar, Alert } from '@mui/material';
+import {
+  Box, TextField, Button, Typography, Card, CardContent,
+  Grid, Paper, IconButton, InputAdornment, Alert,
+  Tooltip, Divider
+} from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import HomeIcon from '@mui/icons-material/Home';
+import CakeIcon from '@mui/icons-material/Cake';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const EditUser = () => {
   const { id } = useParams();
@@ -14,12 +25,10 @@ const EditUser = () => {
     ACCOUNTNAME: '',
   });
 
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [errors, setErrors] = useState({});
   const [emailExists, setEmailExists] = useState(false);
-  const [phoneExists, setPhoneExists] = useState(false); // Biến để theo dõi số điện thoại tồn tại
-  const [accountNameExists, setAccountNameExists] = useState(false); // Biến để theo dõi tên tài khoản tồn tại
+  const [phoneExists, setPhoneExists] = useState(false);
+  const [accountNameExists, setAccountNameExists] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:5000/user/${id}`)
@@ -42,7 +51,6 @@ const EditUser = () => {
       }
     }
 
-    // Kiểm tra số điện thoại đã tồn tại khi người dùng nhập số điện thoại
     if (name === 'PHONENUMBER') {
       if (value) {
         checkPhoneExists(value);
@@ -51,7 +59,6 @@ const EditUser = () => {
       }
     }
 
-    // Kiểm tra tên tài khoản đã tồn tại khi người dùng nhập tên tài khoản
     if (name === 'ACCOUNTNAME') {
       if (value) {
         checkAccountNameExists(value);
@@ -63,257 +70,291 @@ const EditUser = () => {
 
   const checkEmailExists = (email) => {
     fetch('http://localhost:5000/check-email', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     })
-    .then((response) => {
+      .then(response => {
         if (response.ok) {
-            return response.json();
+          return response.json();
         } else if (response.status === 409) {
-            setEmailExists(true);
-        } else if (response.status === 400) {
-            setSnackbarMessage('Email không được cung cấp.');
-            setSnackbarSeverity('error');
-            setOpenSnackbar(true);
+          setEmailExists(true);
         }
-    })
-    .catch((err) => {
-        console.error('Lỗi khi kiểm tra email:', err);
-    });
+      })
+      .catch(err => console.error('Lỗi khi kiểm tra email:', err));
   };
 
   const checkPhoneExists = (phone) => {
     fetch('http://localhost:5000/check-phone', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone }),
     })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else if (response.status === 409) {
-        setPhoneExists(true);
-      }
-    })
-    .catch((err) => {
-      console.error('Lỗi khi kiểm tra số điện thoại:', err);
-    });
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else if (response.status === 409) {
+          setPhoneExists(true);
+        }
+      })
+      .catch(err => console.error('Lỗi khi kiểm tra số điện thoại:', err));
   };
 
   const checkAccountNameExists = (accountName) => {
     fetch('http://localhost:5000/check-accountname', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ accountName }),
     })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else if (response.status === 409) {
-        setAccountNameExists(true);
-      }
-    })
-    .catch((err) => {
-      console.error('Lỗi khi kiểm tra tên tài khoản:', err);
-    });
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else if (response.status === 409) {
+          setAccountNameExists(true);
+        }
+      })
+      .catch(err => console.error('Lỗi khi kiểm tra tên tài khoản:', err));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!user.FULLNAME) {
+      newErrors.FULLNAME = 'Tên đầy đủ không được để trống';
+    } else if (!/\s/.test(user.FULLNAME)) {
+      newErrors.FULLNAME = 'Tên đầy đủ phải có ít nhất một khoảng trắng';
+    }
+    if (!user.PHONENUMBER) newErrors.PHONENUMBER = 'Số điện thoại không được để trống';
+    if (!user.EMAIL) newErrors.EMAIL = 'Email không được để trống';
+    else if (!/\S+@\S+\.\S+/.test(user.EMAIL)) newErrors.EMAIL = 'Email không hợp lệ';
+    if (!user.DAYOFBIRTH) newErrors.DAYOFBIRTH = 'Ngày sinh không được để trống';
+    if (!user.ACCOUNTNAME) newErrors.ACCOUNTNAME = 'Tên tài khoản không được để trống';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!user.FULLNAME || !user.PHONENUMBER || !user.EMAIL  || !user.DAYOFBIRTH || !user.ACCOUNTNAME) {
-      setSnackbarMessage('Vui lòng điền đầy đủ thông tin.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
+    if (!validateForm()) return;
 
-    if (user.PHONENUMBER.length !== 10) {
-      setSnackbarMessage('Số điện thoại phải đủ 10 số.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    if (!user.EMAIL.includes('@gmail.com')) {
-      setSnackbarMessage('Email phải có ký tự @gmail.com.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    if (!user.FULLNAME.includes(' ')) {
-      setSnackbarMessage('Tên đầy đủ phải có ít nhất một khoảng cách.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    // Kiểm tra nếu email, số điện thoại, hoặc tên tài khoản đã tồn tại
-    if (emailExists) {
-      setSnackbarMessage('Email đã tồn tại. Lỗi nhập dữ liệu.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-    
-    if (phoneExists) {
-      setSnackbarMessage('Số điện thoại đã tồn tại. Lỗi nhập dữ liệu.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    if (accountNameExists) {
-      setSnackbarMessage('Tên tài khoản đã tồn tại. Lỗi nhập dữ liệu.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
+    if (emailExists || phoneExists || accountNameExists) {
       return;
     }
 
     fetch(`http://localhost:5000/edit-user/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(user),
     })
-      .then((response) => {
+      .then(response => {
         if (response.ok) {
-          setSnackbarMessage('Cập nhật thông tin thành công!');
-          setSnackbarSeverity('success');
-          setOpenSnackbar(true);
+          alert('Cập nhật thông tin thành công!');
           navigate('/user');
         } else {
           throw new Error('Có lỗi xảy ra khi cập nhật thông tin người dùng');
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error('Lỗi khi cập nhật thông tin người dùng:', err);
-        setSnackbarMessage('Có lỗi xảy ra. Vui lòng thử lại.');
-        setSnackbarSeverity('error');
-        setOpenSnackbar(true);
+        alert('Có lỗi xảy ra. Vui lòng thử lại.');
       });
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  const formatDateToISODateOnly = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formattedDate = formatDateToISODateOnly(user.DAYOFBIRTH);
-
   return (
-    <Box padding={3}>
-      <Typography variant="h4" gutterBottom>
-        Chỉnh sửa thông tin người dùng
-      </Typography>
+    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+      <Card elevation={3}>
+        <CardContent>
+          {/* Header */}
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={() => navigate('/user')} sx={{ color: 'primary.main' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              Chỉnh sửa thông tin người dùng
+            </Typography>
+          </Box>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Tên đầy đủ"
-          name="FULLNAME"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={user.FULLNAME}
-          onChange={handleChange}
-          InputLabelProps={{ style: { color: 'red' } }}
-          required
-        />
-        <TextField
-          label="Số điện thoại"
-          name="PHONENUMBER"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={user.PHONENUMBER}
-          onChange={handleChange}
-          InputLabelProps={{ style: { color: 'red' } }}
-          required
-        />
-        <TextField
-          label="Email"
-          name="EMAIL"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={user.EMAIL}
-          onChange={handleChange}
-          InputLabelProps={{ style: { color: 'red' } }}
-          required
-        />
-        <TextField
-          label="Địa chỉ"
-          name="ADDRESS"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={user.ADDRESS}
-          onChange={handleChange}
-        />
-        <TextField
-          label="Ngày sinh"
-          name="DAYOFBIRTH"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          type="date"
-          value={formattedDate}
-          onChange={handleChange}
-          InputLabelProps={{ style: { color: 'red' } }}
-          required
-        />
-        <TextField
-          label="Tên tài khoản"
-          name="ACCOUNTNAME"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={user.ACCOUNTNAME}
-          onChange={handleChange}
-          InputLabelProps={{ style: { color: 'red' } }}
-          required
-        />
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Thông tin cá nhân */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin cá nhân
+                  </Typography>
 
-        <Box marginTop={2}>
-          <Button
-            type="submit"
-            variant="contained"
-            style={{ backgroundColor: '#FFA500', color: 'white' }}
-          >
-            Lưu thay đổi
-          </Button>
-          <Button
-            variant="outlined"
-            style={{ marginLeft: '10px' }}
-            onClick={() => navigate('/user')}
-          >
-            Hủy
-          </Button>
-        </Box>
-      </form>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tên đầy đủ"
+                        fullWidth
+                        name="FULLNAME"
+                        value={user.FULLNAME}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.FULLNAME}
+                        helperText={errors.FULLNAME}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
 
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Email"
+                        type="email"
+                        fullWidth
+                        name="EMAIL"
+                        value={user.EMAIL}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.EMAIL}
+                        helperText={errors.EMAIL}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EmailIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Số điện thoại"
+                        fullWidth
+                        name="PHONENUMBER"
+                        value={user.PHONENUMBER}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.PHONENUMBER}
+                        helperText={errors.PHONENUMBER}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PhoneIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Địa chỉ"
+                        fullWidth
+                        name="ADDRESS"
+                        value={user.ADDRESS}
+                        onChange={handleChange}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <HomeIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Ngày sinh"
+                        type="date"
+                        fullWidth
+                        name="DAYOFBIRTH"
+                        value={user.DAYOFBIRTH ? user.DAYOFBIRTH.split('T')[0] : ''}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.DAYOFBIRTH}
+                        helperText={errors.DAYOFBIRTH}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CakeIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Thông tin tài khoản */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin tài khoản
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tên tài khoản"
+                        fullWidth
+                        name="ACCOUNTNAME"
+                        value={user.ACCOUNTNAME}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.ACCOUNTNAME}
+                        helperText={errors.ACCOUNTNAME}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <AccountCircleIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Validation Messages */}
+            {(emailExists || phoneExists || accountNameExists) && (
+              <Alert severity="warning" sx={{ mt: 3 }}>
+                {emailExists && <div>Email đã tồn tại trong hệ thống</div>}
+                {phoneExists && <div>Số điện thoại đã tồn tại trong hệ thống</div>}
+                {accountNameExists && <div>Tên tài khoản đã tồn tại trong hệ thống</div>}
+              </Alert>
+            )}
+
+            {/* Buttons */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => navigate('/user')}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+              >
+                Lưu thay đổi
+              </Button>
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

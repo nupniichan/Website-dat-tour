@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Grid, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import {
+  Timeline,
+  TimelineItem,
+  TimelineContent,
+  TimelineSeparator,
+  TimelineDot,
+  TimelineConnector
+} from '@mui/lab';
+import {
+  Schedule as ScheduleIcon,
+  CalendarToday,
+  LocationOn,
+  AccessTime,
+  Description,
+  ArrowBack
+} from '@mui/icons-material';
 
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
@@ -51,23 +67,35 @@ const ScheduleManagement = () => {
       fetch(`http://localhost:5000/delete-schedule/${id}`, {
         method: 'DELETE',
       })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Error deleting schedule');
+      .then(async response => {
+        // Đọc nội dung response
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Nếu status không phải 2xx, ném lỗi với message từ server
+          throw new Error(data.error || 'Có lỗi xảy ra khi xóa lịch trình');
         }
+        
+        // Nếu thành công
+        fetchSchedules();
+        alert('Xóa lịch trình thành công');
       })
-      .then(data => {
-        fetchSchedules(); // Cập nhật lại danh sách lịch trình
-      })
-      .catch(err => console.error('Error deleting schedule:', err));
+      .catch(err => {
+        // Hiển thị thông báo lỗi
+        alert(err.message);
+        console.error('Error deleting schedule:', err);
+      });
     }
   };
 
   // Handle view details button click
   const handleViewDetails = (id) => {
-    navigate(`/schedules/${id}`);
+    fetch(`http://localhost:5000/schedules/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        setSelectedSchedule(data);
+      })
+      .catch(err => console.error('Error fetching schedule details:', err));
   };
 
   // Handle dialog close
@@ -138,12 +166,119 @@ const ScheduleManagement = () => {
       </Table>
 
       {selectedSchedule && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết lịch trình</DialogTitle>
+        <Dialog 
+          open={true} 
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box display="flex" alignItems="center" gap={1}>
+              <IconButton onClick={handleCloseDialog} size="small">
+                <ArrowBack />
+              </IconButton>
+              <Typography variant="h6">Chi tiết lịch trình</Typography>
+            </Box>
+          </DialogTitle>
           <DialogContent>
-            <Typography>Tên lịch trình: {selectedSchedule.tenlichtrinh}</Typography>
-            <Typography>Ngày đi: {new Date(selectedSchedule.NGAYDI).toLocaleDateString('vi-VN')}</Typography>
-            <Typography>Ngày về: {new Date(selectedSchedule.NGAYVE).toLocaleDateString('vi-VN')}</Typography>
+            <Box sx={{ p: 2 }}>
+              {/* Thông tin cơ bản */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ScheduleIcon /> Thông tin lịch trình
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">Tên lịch trình</Typography>
+                    <Typography variant="h6" fontWeight="500">{selectedSchedule.tenlichtrinh}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarToday color="primary" fontSize="small" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày đi</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedSchedule.NGAYDI).toLocaleDateString('vi-VN', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarToday color="primary" fontSize="small" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày về</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedSchedule.NGAYVE).toLocaleDateString('vi-VN', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Chi tiết lịch trình */}
+              <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Description /> Chi tiết các hoạt động
+                </Typography>
+                
+                <Timeline>
+                  {selectedSchedule.details?.map((detail, index) => (
+                    <TimelineItem key={index}>
+                      <TimelineSeparator>
+                        <TimelineDot color="primary" />
+                        {index < selectedSchedule.details.length - 1 && <TimelineConnector />}
+                      </TimelineSeparator>
+                      <TimelineContent>
+                        <Box sx={{ mb: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <CalendarToday fontSize="small" color="action" />
+                            <Typography variant="subtitle2" color="primary">
+                              {new Date(detail.NGAY).toLocaleDateString('vi-VN', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </Typography>
+                            <AccessTime fontSize="small" color="action" />
+                            <Typography variant="subtitle2" color="primary">
+                              {detail.GIO}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body1" fontWeight="500" gutterBottom>
+                            {detail.SUKIEN}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ 
+                              bgcolor: 'background.paper',
+                              p: 1.5,
+                              borderRadius: 1,
+                              border: '1px dashed rgba(0, 0, 0, 0.12)'
+                            }}
+                          >
+                            {detail.MOTA}
+                          </Typography>
+                        </Box>
+                      </TimelineContent>
+                    </TimelineItem>
+                  ))}
+                </Timeline>
+              </Paper>
+            </Box>
           </DialogContent>
         </Dialog>
       )}

@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Button, Table, TableHead, TableRow, TableCell, TableBody,
-  Dialog, DialogTitle, DialogContent, Typography, TextField
+  Dialog, DialogTitle, DialogContent, Typography, TextField,
+  Paper,
+  Grid,
+  IconButton,
+  Chip,
+  Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import {
+  LocalOffer,
+  CalendarToday,
+  Description,
+  PercentOutlined,
+  ArrowBack,
+  AccessTime,
+  Info
+} from '@mui/icons-material';
 
 const DiscountManagement = () => {
   const [discounts, setDiscounts] = useState([]);
@@ -108,7 +122,6 @@ const DiscountManagement = () => {
             <TableCell>Tên mã giảm giá</TableCell>
             <TableCell>Ngày áp dụng</TableCell>
             <TableCell>Ngày hết hạn</TableCell>
-            <TableCell>Điều kiện</TableCell>
             <TableCell>Tỉ lệ chiết khấu (%)</TableCell>
             <TableCell>Chức năng</TableCell>
           </TableRow>
@@ -120,8 +133,7 @@ const DiscountManagement = () => {
               <TableCell>{discount.TENMGG}</TableCell>
               <TableCell>{new Date(discount.NGAYAPDUNG).toLocaleDateString('vi-VN')}</TableCell>
               <TableCell>{new Date(discount.NGAYHETHAN).toLocaleDateString('vi-VN')}</TableCell>
-              <TableCell>{discount.DIEUKIEN}</TableCell>
-              <TableCell>{discount.TILECHIETKHAU}</TableCell>
+              <TableCell>{discount.TILECHIETKHAU} %</TableCell>
               <TableCell>
                 <Button variant="outlined" onClick={() => handleViewDetails(discount)}>
                   Xem Chi tiết
@@ -140,21 +152,133 @@ const DiscountManagement = () => {
 
       {/* Discount details dialog */}
       {selectedDiscount && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết mã giảm giá</DialogTitle>
+        <Dialog 
+          open={true} 
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box display="flex" alignItems="center" gap={1}>
+              <IconButton onClick={handleCloseDialog} size="small">
+                <ArrowBack />
+              </IconButton>
+              <Typography variant="h6">Chi tiết mã giảm giá</Typography>
+            </Box>
+          </DialogTitle>
           <DialogContent>
-            <Box padding={2}>
-              <Typography variant="h6" gutterBottom>
-                Thông tin mã giảm giá
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-                <Typography>Mã giảm giá: <strong>{selectedDiscount.IDMAGIAMGIA}</strong></Typography>
-                <Typography>Tên mã giảm giá: <strong>{selectedDiscount.TENMGG}</strong></Typography>
-                <Typography>Ngày áp dụng: <strong>{new Date(selectedDiscount.NGAYAPDUNG).toLocaleDateString('vi-VN')}</strong></Typography>
-                <Typography>Ngày hết hạn: <strong>{new Date(selectedDiscount.NGAYHETHAN).toLocaleDateString('vi-VN')}</strong></Typography>
-                <Typography>Điều kiện: <strong>{selectedDiscount.DIEUKIEN}</strong></Typography>
-                <Typography>Tỉ lệ chiết khấu: <strong>{selectedDiscount.TILECHIETKHAU}%</strong></Typography>
-              </Box>
+            <Box sx={{ p: 2 }}>
+              {/* Thông tin cơ bản */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocalOffer /> Thông tin mã giảm giá
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Typography variant="h5" fontWeight="bold" color="primary">
+                        {selectedDiscount.TENMGG}
+                      </Typography>
+                      <Chip 
+                        label={new Date(selectedDiscount.NGAYHETHAN) > new Date() ? "Còn hiệu lực" : "Hết hiệu lực"}
+                        color={new Date(selectedDiscount.NGAYHETHAN) > new Date() ? "success" : "error"}
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Mã giảm giá: <strong>{selectedDiscount.IDMAGIAMGIA}</strong>
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Thời gian áp dụng */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AccessTime /> Thời gian áp dụng
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarToday color="primary" fontSize="small" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày bắt đầu</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedDiscount.NGAYAPDUNG).toLocaleDateString('vi-VN', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarToday color="primary" fontSize="small" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày kết thúc</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedDiscount.NGAYHETHAN).toLocaleDateString('vi-VN', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Thông tin chi tiết */}
+              <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Info /> Thông tin chi tiết
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      p: 2,
+                      borderRadius: 1
+                    }}>
+                      <PercentOutlined fontSize="large" />
+                      <Box>
+                        <Typography variant="overline">Tỉ lệ chiết khấu</Typography>
+                        <Typography variant="h4" fontWeight="bold">
+                          {selectedDiscount.TILECHIETKHAU}%
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Điều kiện áp dụng
+                      </Typography>
+                      <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'background.paper',
+                          border: '1px dashed rgba(0, 0, 0, 0.12)'
+                        }}
+                      >
+                        <Typography variant="body1">
+                          {selectedDiscount.DIEUKIEN || 'Không có điều kiện đặc biệt'}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
             </Box>
           </DialogContent>
         </Dialog>

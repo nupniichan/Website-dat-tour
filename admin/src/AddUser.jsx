@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import {
+  Box, TextField, Button, Typography, Card, CardContent,
+  Grid, Paper, IconButton, InputAdornment, Alert,
+  Tooltip, Divider
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import HomeIcon from '@mui/icons-material/Home';
+import CakeIcon from '@mui/icons-material/Cake';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 const AddUser = () => {
   const [user, setUser] = useState({
@@ -17,6 +30,8 @@ const AddUser = () => {
   const [emailExists, setEmailExists] = useState(false);
   const [phoneExists, setPhoneExists] = useState(false); // New state for phone existence
   const [accountNameExists, setAccountNameExists] = useState(false); // New state for account name existence
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -149,143 +164,254 @@ const AddUser = () => {
   };
 
   return (
-    <Box padding={3}>
-      <h3>Thêm người dùng mới</h3>
+    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+      <Card elevation={3}>
+        <CardContent>
+          {/* Header */}
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={() => navigate('/user')} sx={{ color: 'primary.main' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              Thêm người dùng mới
+            </Typography>
+          </Box>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Tên đầy đủ"
-          fullWidth
-          name="fullName"
-          value={user.fullName}
-          onChange={handleChange}
-          margin="normal"
-          error={!!errors.fullName}
-          helperText={errors.fullName}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Số điện thoại"
-          type="tel"
-          fullWidth
-          name="phone"
-          value={user.phone}
-          onChange={handlePhoneChange} // Changed to handlePhoneChange
-          margin="normal"
-          error={!!errors.phone}
-          helperText={errors.phone}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Email"
-          type="email"
-          fullWidth
-          name="email"
-          value={user.email}
-          onChange={handleEmailChange}
-          margin="normal"
-          error={!!errors.email}
-          helperText={errors.email}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Địa chỉ"
-          fullWidth
-          name="address"
-          value={user.address}
-          onChange={handleChange}
-          margin="normal"
-          InputLabelProps={{ 
-            shrink: true
-          }}
-          
-        />
-        <TextField
-          label="Ngày sinh"
-          type="date"
-          fullWidth
-          name="dayOfBirth"
-          value={user.dayOfBirth}
-          onChange={handleChange}
-          margin="normal"
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Tên tài khoản"
-          fullWidth
-          name="accountName"
-          value={user.accountName}
-          onChange={handleAccountNameChange} // Changed to handleAccountNameChange
-          margin="normal"
-          error={!!errors.accountName}
-          helperText={errors.accountName}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Mật khẩu"
-          type="password"
-          fullWidth
-          name="userPassword"
-          value={userPassword}
-          onChange={handleDetailChange}
-          margin="normal"
-          error={!!errors.userPassword}
-          helperText={errors.userPassword}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
-        <TextField
-          label="Xác nhận mật khẩu"
-          type="password"
-          fullWidth
-          name="rePassword"
-          value={rePassword}
-          onChange={handleDetailChange}
-          margin="normal"
-          error={!!errors.rePassword}
-          helperText={errors.rePassword}
-          InputLabelProps={{ 
-            shrink: true,
-            style: { color: 'red' } // Đặt màu chữ thành đỏ
-          }}
-          required
-        />
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Thông tin cá nhân */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin cá nhân
+                  </Typography>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          className="submit-button"
-        >
-          Lưu
-        </Button>
-        <Button variant="outlined" color="secondary" onClick={() => navigate('/user')}>
-          Hủy
-        </Button>
-      </form>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tên đầy đủ"
+                        fullWidth
+                        name="fullName"
+                        value={user.fullName}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.fullName}
+                        helperText={errors.fullName}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Email"
+                        type="email"
+                        fullWidth
+                        name="email"
+                        value={user.email}
+                        onChange={handleEmailChange}
+                        required
+                        error={!!errors.email}
+                        helperText={errors.email}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EmailIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Số điện thoại"
+                        type="tel"
+                        fullWidth
+                        name="phone"
+                        value={user.phone}
+                        onChange={handlePhoneChange}
+                        required
+                        error={!!errors.phone}
+                        helperText={errors.phone}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PhoneIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Địa chỉ"
+                        fullWidth
+                        name="address"
+                        value={user.address}
+                        onChange={handleChange}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <HomeIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Ngày sinh"
+                        type="date"
+                        fullWidth
+                        name="dayOfBirth"
+                        value={user.dayOfBirth}
+                        onChange={handleChange}
+                        required
+                        error={!!errors.dayOfBirth}
+                        helperText={errors.dayOfBirth}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CakeIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Thông tin tài khoản */}
+              <Grid item xs={12}>
+                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'text.primary', mb: 3 }}>
+                    Thông tin tài khoản
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Tên tài khoản"
+                        fullWidth
+                        name="accountName"
+                        value={user.accountName}
+                        onChange={handleAccountNameChange}
+                        required
+                        error={!!errors.accountName}
+                        helperText={errors.accountName}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <AccountCircleIcon color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Mật khẩu"
+                        type={showPassword ? "text" : "password"}
+                        fullWidth
+                        name="userPassword"
+                        value={userPassword}
+                        onChange={handleDetailChange}
+                        required
+                        error={!!errors.userPassword}
+                        helperText={errors.userPassword}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                              >
+                                {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        label="Xác nhận mật khẩu"
+                        type={showRePassword ? "text" : "password"}
+                        fullWidth
+                        name="rePassword"
+                        value={rePassword}
+                        onChange={handleDetailChange}
+                        required
+                        error={!!errors.rePassword}
+                        helperText={errors.rePassword}
+                        sx={{ bgcolor: 'white' }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowRePassword(!showRePassword)}
+                                edge="end"
+                              >
+                                {showRePassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Validation Messages */}
+            {(emailExists || phoneExists || accountNameExists) && (
+              <Alert severity="warning" sx={{ mt: 3 }}>
+                {emailExists && <div>Email đã tồn tại trong hệ thống</div>}
+                {phoneExists && <div>Số điện thoại đã tồn tại trong hệ thống</div>}
+                {accountNameExists && <div>Tên tài khoản đã tồn tại trong hệ thống</div>}
+              </Alert>
+            )}
+
+            {/* Buttons */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => navigate('/user')}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+              >
+                Lưu người dùng
+              </Button>
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

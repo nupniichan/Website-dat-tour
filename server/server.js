@@ -12,6 +12,7 @@ const config = require('./config');
 const session = require('express-session');
 const app = express();
 const port = 5000;
+const schedule = require('node-schedule');
 
 // Middleware CORS
 app.use(cors({
@@ -95,7 +96,6 @@ app.get('/api/tour-history/:userId', (req, res) => {
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
 
-  // Lệnh truy vấn SQL thôi chứ ko có gì đâu
   const getTicketQuery = `
     SELECT v.*, t.IDLICHTRINH, l.NGAYDI 
     FROM ve v
@@ -115,7 +115,19 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
 
     const ticket = ticketResults[0];
     
-    // Kiểm tra thời gian mà user huỷ vé (24h trước khi tour khởi hành)
+    // Kiểm tra trạng thái vé
+    if (ticket.TINHTRANG === 'Chưa thanh toán') {
+      return res.status(400).json({ error: 'Không thể hủy vé chưa thanh toán' });
+    }
+
+    if (ticket.TINHTRANG === 'Đã hủy') {
+      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
+    }
+
+    if (ticket.TINHTRANG === 'Đ hoàn tiền') {
+      return res.status(400).json({ error: 'Vé đã được hoàn tiền trước đó' });
+    }
+    // Kiểm tra thời gian
     const departureDate = new Date(ticket.NGAYDI);
     const now = new Date();
     const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
@@ -127,10 +139,7 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
       });
     }
 
-    if (ticket.TINHTRANG === 'Đã hủy') {
-      return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
-    }
-
+    // Nếu đủ điều kiện thì mới cho hủy
     const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
     const tourId = ticket.IDTOUR;
 
@@ -250,23 +259,34 @@ app.get('/schedules', (req, res) => {
 // Lấy thông tin lịch trình và chi tiết lịch trình theo ID
 app.get('/schedules/:id', (req, res) => {
   const { id } = req.params;
-
-  // Truy vấn lấy thông tin lịch trình
-  const scheduleQuery = 'SELECT * FROM LichTrinh WHERE ID = ?';
-  const detailsQuery = 'SELECT * FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+  
+  const scheduleQuery = `
+    SELECT * FROM LichTrinh WHERE ID = ?
+  `;
+  
+  const detailsQuery = `
+    SELECT * FROM ChiTietLichTrinh 
+    WHERE ID_LICH_TRINH = ? 
+    ORDER BY NGAY, GIO
+  `;
 
   db.query(scheduleQuery, [id], (err, scheduleResults) => {
-    if (err) return res.status(500).json({ message: 'Error fetching schedule: ' + err.message });
-    if (scheduleResults.length === 0) return res.status(404).json({ message: 'Schedule not found' });
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi lấy thông tin lịch trình' });
+    }
 
-    // Lấy chi tiết lịch trình
-    db.query(detailsQuery, [id], (err, detailsResults) => {
-      if (err) return res.status(500).json({ message: 'Error fetching schedule details: ' + err.message });
+    if (scheduleResults.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy lịch trình' });
+    }
 
-      // Trả về thông tin lịch trình và chi tiết
+    db.query(detailsQuery, [id], (detailsErr, detailsResults) => {
+      if (detailsErr) {
+        return res.status(500).json({ error: 'Lỗi khi lấy chi tiết lịch trình' });
+      }
+
       res.json({
-        schedule: scheduleResults[0],
-        details: detailsResults,
+        ...scheduleResults[0],
+        details: detailsResults
       });
     });
   });
@@ -281,17 +301,17 @@ app.put('/update-schedule/:id', (req, res) => {
     return res.status(400).json({ message: 'Ngày đi và ngày về là bắt buộc' });
   }
 
-  // Cập nhật thông tin lịch trình
+  // Cp nhật thông tin lịch trình
   const updateScheduleQuery = 'UPDATE LichTrinh SET tenlichtrinh = ?, NGAYDI = ?, NGAYVE = ? WHERE ID = ?';
   db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
     if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
 
-    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    // Xa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
     const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
 
-      // Bây giờ thêm các chi tiết mới
+      // Bây giờ thêm các chi tit mi
       const detailQueries = details.map(detail => {
         return new Promise((resolve, reject) => {
           const insertDetailQuery = 'INSERT INTO ChiTietLichTrinh (ID_LICH_TRINH, NGAY, SUKIEN, MOTA, GIO) VALUES (?, ?, ?, ?, ?)';
@@ -323,7 +343,7 @@ app.put('/update-schedule/:id', (req, res) => {
   db.query(updateScheduleQuery, [req.body.name, startDate, endDate, id], (err) => {
     if (err) return res.status(500).json({ message: 'Error updating schedule: ' + err.message });
 
-    // Xóa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
+    // Xa chi tiết cũ chỉ khi có chi tiết mới được gửi đến
     const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
     db.query(deleteDetailsQuery, [id], (err) => {
       if (err) return res.status(500).json({ message: 'Error deleting old schedule details: ' + err.message });
@@ -433,7 +453,7 @@ app.get('/check-tour-exists', (req, res) => {
 // Get Tour by ID
 app.get('/tours/:id', (req, res) => {
   const { id } = req.params;
-  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trường cần thiết
+  // Truy vấn này sẽ liên kết bảng Tour với bảng LichTrinh và lấy các trng cần thit
   const query = `
     SELECT Tour.*, LichTrinh.NGAYDI, LichTrinh.NGAYVE 
     FROM Tour 
@@ -445,9 +465,9 @@ app.get('/tours/:id', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     if (results.length > 0) {
-      res.json(results[0]); // Trả về thông tin tour đầu tiên, bao gồm ngày đi và ngày về
+      res.json(results[0]); // Trả về thông tin tour đầu tiên, bao gồm ngy đi và ngày về
     } else {
-      res.status(404).json({ message: 'Tour not found' }); // Không tìm thấy tour với ID được cung cấp
+      res.status(404).json({ message: 'Tour not found' }); // Không tìm thy tour với ID được cung cấp
     }
   });
 });
@@ -466,23 +486,68 @@ app.put('/update-tour/:id', (req, res) => {
 
 // Delete Tour
 app.delete('/delete-tour/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM Tour WHERE ID = ?';
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Tour deleted successfully' });
+  const tourId = req.params.id;
+
+  // Kiểm tra xem tour có vé nào không
+  const checkBookingQuery = 'SELECT COUNT(*) as count FROM ve WHERE IDTOUR = ?';
+  
+  db.query(checkBookingQuery, [tourId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra tour' });
+    }
+
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa tour này vì đã có người đặt vé' 
+      });
+    }
+
+    // Nếu không có v nào, tiến hành xóa tour
+    const deleteTourQuery = 'DELETE FROM tour WHERE ID = ?';
+    db.query(deleteTourQuery, [tourId], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Lỗi khi xóa tour' });
+      }
+
+      res.json({ message: 'Xóa tour thành công' });
+    });
   });
 });
 
 // Delete Schedule
 app.delete('/delete-schedule/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM LichTrinh WHERE ID = ?';
-  db.query(query, [id], (err, result) => {
+  const scheduleId = req.params.id;
+
+  // Kiểm tra xem lịch trình có đang được sử dụng trong tour không
+  const checkTourQuery = 'SELECT COUNT(*) as count FROM Tour WHERE IDLICHTRINH = ?';
+  
+  db.query(checkTourQuery, [scheduleId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Lỗi khi kiểm tra lịch trình' });
     }
-    res.json({ message: 'Schedule deleted successfully' });
+
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa lịch trình này vì đang được sử dụng trong tour' 
+      });
+    }
+
+    // Nếu không có tour nào sử dụng, tiến hành xóa
+    const deleteDetailsQuery = 'DELETE FROM ChiTietLichTrinh WHERE ID_LICH_TRINH = ?';
+    db.query(deleteDetailsQuery, [scheduleId], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Lỗi khi xóa chi tiết lịch trình' });
+      }
+
+      const deleteScheduleQuery = 'DELETE FROM LichTrinh WHERE ID = ?';
+      db.query(deleteScheduleQuery, [scheduleId], (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Lỗi khi xóa lịch trình' });
+        }
+
+        res.json({ message: 'Xóa lịch trình thành công' });
+      });
+    });
   });
 });
 
@@ -494,14 +559,28 @@ app.post('/register', (req, res) => {
     return res.status(400).json({ message: 'All fields are required!' });
   }
 
-  const query = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [fullname, phoneNumber, email, address, dayOfBirth, accountName, password], (err, result) => {
+  // Kiểm tra email trùng lặp
+  const checkEmailQuery = 'SELECT * FROM USER WHERE EMAIL = ?';
+  db.query(checkEmailQuery, [email], (err, result) => {
     if (err) {
       return res.status(500).json({ message: 'Database error: ' + err.message });
     }
-    res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+    
+    if (result.length > 0) {
+      return res.status(400).json({ message: 'Email already exists!' });
+    }
+
+    // Chèn dữ liệu nếu email chưa tồn tại
+    const insertQuery = 'INSERT INTO USER (FULLNAME, PHONENUMBER, EMAIL, ADDRESS, DAYOFBIRTH, ACCOUNTNAME, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(insertQuery, [fullname, phoneNumber, email, address, dayOfBirth, accountName, password], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: 'Database error: ' + err.message });
+      }
+      res.status(201).json({ message: 'User registered successfully!', userId: result.insertId });
+    });
   });
 });
+
 
 // User Login
 app.post('/login', (req, res) => {
@@ -581,7 +660,7 @@ app.post('/add-ticket', (req, res) => {
             return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
           }
 
-          res.json({ message: 'Thêm vé thành công', ticketId: newTicketId });
+          res.json({ message: 'Thm vé thành công', ticketId: newTicketId });
         });
       } else {
         res.json({ message: 'Thêm vé thành công', ticketId: newTicketId });
@@ -615,11 +694,11 @@ app.delete('/delete-ticket/:id', (req, res) => {
         return res.status(500).json({ error: 'Lỗi khi xóa vé' });
       }
 
-      if (ticket.TINHTRANG === 'Đã thanh toán') {
+      if (ticket.TINHTRANG === 'Đã thanh ton') {
         const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
         db.query(updateTourQuery, [totalTickets, tourId], (err, result) => {
           if (err) {
-            console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+            console.error('Lỗi khi cập nht SOVE trong Tour:', err);
             return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
           }
 
@@ -678,7 +757,7 @@ app.put('/update-ticket/:id', (req, res) => {
           const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE - ? WHERE ID = ?';
           db.query(updateTourQuery, [newTotalTickets, IDTOUR], (err, result) => {
             if (err) {
-              console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+              console.error('Lỗi khi cập nht SOVE trong Tour:', err);
               return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
             }
             res.json({ message: 'Cập nhật vé thành công' });
@@ -687,10 +766,10 @@ app.put('/update-ticket/:id', (req, res) => {
           const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
           db.query(updateTourQuery, [oldTotalTickets, IDTOUR], (err, result) => {
             if (err) {
-              console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
+              console.error('Lỗi khi cập nht SOVE trong Tour:', err);
               return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
             }
-            res.json({ message: 'Cập nhật vé thành công' });
+            res.json({ message: 'Cập nhật vé thnh công' });
           });
         } else {
           res.json({ message: 'Cập nhật vé thành công' });
@@ -718,7 +797,7 @@ app.get('/tickets', (req, res) => {
   });
 });
 
-// API lấy thông tin vé theo ID
+// API lấy thng tin vé theo ID
 app.get('/tickets/:id', (req, res) => {
   const { id } = req.params;
 
@@ -739,7 +818,7 @@ app.get('/tickets/:id', (req, res) => {
       return res.status(404).json({ message: 'Vé không tồn tại' });
     }
 
-    res.json(results[0]); // Trả về thông tin vé đầu tiên bao gồm FULLNAME của khách hàng
+    res.json(results[0]); // Trả về thông tin vé đu tiên bao gồm FULLNAME của khách hàng
   });
 });
 
@@ -891,7 +970,7 @@ app.post('/check-email', (req, res) => {
 app.post('/check-phone', (req, res) => {
   const { phone } = req.body;
 
-  // Kiểm tra xem người dùng với cùng số điện thoại đã tồn tại hay chưa
+  // Kiểm tra xem người dùng với cùng số đin thoại đã tồn tại hay chưa
   const checkQuery = 'SELECT * FROM user WHERE PHONENUMBER = ?';
   db.query(checkQuery, [phone], (err, results) => {
       if (err) {
@@ -900,7 +979,7 @@ app.post('/check-phone', (req, res) => {
       }
 
       if (results.length > 0) {
-          // Nếu đã tồn tại người dùng với số điện thoại này
+          // Nếu đã tn tại người dùng vi số điện thoại này
           return res.status(409).json({ exists: true, message: 'Người dùng với số điện thoại này đã tồn tại' });
       } else {
           // Nếu không có người dùng với số điện thoại này
@@ -921,7 +1000,7 @@ app.post('/check-accountname', (req, res) => {
       }
 
       if (results.length > 0) {
-          // Nếu đã tồn tại người dùng với tên tài khoản này
+          // Nếu đã tồn tại ngưi dùng với tên tài khoản này
           return res.status(409).json({ exists: true, message: 'Người dùng với tên tài khoản này đã tồn tại' });
       } else {
           // Nếu không có người dùng với tên tài khoản này
@@ -977,7 +1056,7 @@ app.put('/edit-user/:id', (req, res) => {
     ], (err, result) => {
       if (err) {
         console.error('Lỗi khi cập nhật người dùng:', err);
-        return res.status(500).json({ error: 'Lỗi khi cập nhật người dùng' });
+        return res.status(500).json({ error: 'Lỗi khi cập nht người dùng' });
       }
 
       res.json({ message: 'Cập nhật người dùng thành công' });
@@ -988,20 +1067,41 @@ app.put('/edit-user/:id', (req, res) => {
 
 
 app.delete('/delete-user/:id', (req, res) => {
-  const { id } = req.params;
-  const deleteUserQuery = 'DELETE FROM user WHERE ID = ?';
+  const userId = req.params.id;
 
-  db.query(deleteUserQuery, [id], (err, result) => {
+  // Kiểm tra xem người dùng có đặt tour nào trong 12 thng gần đây không
+  const checkBookingQuery = `
+    SELECT COUNT(*) as count 
+    FROM ve 
+    WHERE IDNGUOIDUNG = ? 
+    AND NGAYDAT >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)`;
+  
+  db.query(checkBookingQuery, [userId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi khi xóa người dùng' });
+      console.error('Lỗi kiểm tra vé:', err);
+      return res.status(500).json({ 
+        error: 'Lỗi khi kiểm tra thông tin đặt tour' 
+      });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy người dùng để xóa' });
+    if (results[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Không thể xóa người dùng này vì họ có ặt tour trong 12 tháng gần đây' 
+      });
     }
 
-    // Trả về phản hồi thành công nếu xóa thành công
-    return res.status(200).json({ message: 'Người dùng đã được xóa thành công' });
+    // Nếu không có vé nào trong 12 tháng gần đây, tiến hành xóa người dùng
+    const deleteUserQuery = 'DELETE FROM nguoidung WHERE ID = ?';
+    db.query(deleteUserQuery, [userId], (err) => {
+      if (err) {
+        console.error('Lỗi xóa người dùng:', err);
+        return res.status(500).json({ 
+          error: 'Lỗi khi xóa người dùng' 
+        });
+      }
+
+      res.json({ message: 'Xóa người dùng thành công' });
+    });
   });
 });
 
@@ -1154,42 +1254,128 @@ app.post('/prepare-payment', (req, res) => {
   res.json({ message: 'Session data saved successfully' });
 });
 
+// Fetch all reviews
+app.get('/reviews', (req, res) => {
+  const query = 'SELECT * FROM danhgia'; // Query to fetch reviews (adjust the table name and fields as needed)
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching reviews:', err);
+      return res.status(500).json({ error: 'Error fetching reviews' });
+    }
+    res.json(results); // Send the reviews as JSON response
+  });
+});
+
+// Fetch review by id
+app.get('/reviews/:id', (req, res) => {
+  const reviewId = req.params.id;
+
+  // Query the database for the review with the given ID
+  const query = 'SELECT * FROM danhgia WHERE ID = ?'; // Modify the table and column names as per your schema
+  db.query(query, [reviewId], (err, results) => {
+    if (err) {
+      console.error('Error fetching review:', err);
+      res.status(500).json({ error: 'Error fetching review' });
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+
+    res.json(results[0]); // Send back the review data
+  });
+});
 // Thêm đánh giá
 app.post('/add-review', (req, res) => {
-  const { tourId, userId, rating, content } = req.body;
+  const { tourId, userId, ticketId, rating, content } = req.body;
+  
+  console.log('Received review data:', { tourId, userId, ticketId, rating, content });
 
-  // Kiểm tra xem người dùng đã đánh giá tour này chưa
-  const checkExistingReviewQuery = `
-    SELECT * FROM danhgia WHERE IDTOUR = ? AND IDNGUOIDUNG = ?
+  // Validate input
+  if (!tourId || !userId || !ticketId || !rating || !content) {
+    return res.status(400).json({ 
+      error: 'Missing required fields',
+      received: { tourId, userId, ticketId, rating, content }
+    });
+  }
+
+  // Kiểm tra xem vé này đã được đánh giá chưa
+  const checkQuery = `
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? AND IDNGUOIDUNG = ? AND IDVE = ?
   `;
 
-  db.query(checkExistingReviewQuery, [tourId, userId], (err, results) => {
+  db.query(checkQuery, [tourId, userId, ticketId], (err, results) => {
     if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Lỗi truy vấn cơ sở dữ liệu', details: err.message });
+      console.error('Check review error:', err);
+      return res.status(500).json({ error: 'Không thể kiểm tra đánh giá', details: err.message });
     }
 
     if (results.length > 0) {
-      return res.status(400).json({ error: 'Bạn đã đánh giá tour này rồi' });
+      return res.status(400).json({ error: 'Vé này đã được đánh giá' });
     }
 
-    // Nếu chưa có đánh giá, thêm đánh giá mới
+    // Nếu chưa có đánh giá thì thêm mới
     const insertQuery = `
-      INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, SOSAO, NOIDUNG)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO danhgia (IDTOUR, IDNGUOIDUNG, IDVE, SOSAO, NOIDUNG, thoigian)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(insertQuery, [tourId, userId, rating, content], (err, result) => {
+    const reviewDate = new Date('2024-11-10'); // Hoặc sử dụng ngày hiện tại: new Date()
+
+    db.query(insertQuery, [
+      tourId,
+      userId,
+      ticketId,
+      rating,
+      content,
+      reviewDate
+    ], (err, result) => {
       if (err) {
-        console.error('Insert error:', err);
-        return res.status(500).json({ error: 'Lỗi khi thêm đánh giá', details: err.message });
+        console.error('Insert review error:', err);
+        return res.status(500).json({ error: 'Không thể thêm đánh giá', details: err.message });
       }
 
-      res.json({ 
-        message: 'Đánh giá đã được thêm thành công', 
-        reviewId: result.insertId 
+      res.status(201).json({
+        message: 'Đánh giá đã được thêm thành công',
+        reviewId: result.insertId
       });
     });
+  });
+});
+
+// Edit Review
+app.put('/update-reviews/:id', (req, res) => {
+  const reviewId = req.params.id; // Get the review ID from the URL parameters
+  const { NOIDUNG, SOSAO, IDNGUOIDUNG, IDTOUR } = req.body; // Destructure the data from the request body
+
+  // Check if all required fields are provided
+  if (!NOIDUNG || !SOSAO || !IDNGUOIDUNG || !IDTOUR) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the review
+  const query = `
+    UPDATE danhgia
+    SET NOIDUNG = ?, SOSAO = ?, IDNGUOIDUNG = ?, IDTOUR = ?
+    WHERE ID = ?
+  `;
+
+  // Execute the update query
+  db.query(query, [NOIDUNG, SOSAO, IDNGUOIDUNG, IDTOUR, reviewId], (err, results) => {
+    if (err) {
+      console.error('Error updating review:', err);
+      return res.status(500).json({ error: 'Error updating review' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review updated successfully' });
   });
 });
 
@@ -1220,43 +1406,39 @@ app.put('/update-review/:id', (req, res) => {
 
 // Xóa đánh giá
 app.delete('/delete-review/:id', (req, res) => {
-  const reviewId = req.params.id;
-  const userId = req.userId;
+  const { id } = req.params;
+  const deleteReviewQuery = 'DELETE FROM danhgia WHERE ID = ?';
 
-  const deleteQuery = `
-    DELETE FROM danhgia
-    WHERE ID = ? AND IDNGUOIDUNG = ?
-  `;
-
-  db.query(deleteQuery, [reviewId, userId], (err, result) => {
+  db.query(deleteReviewQuery, [id], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Lỗi khi xóa đánh giá' });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy đánh giá hoặc bạn không có quyền xóa đánh giá này' });
+      return res.status(404).json({ error: 'Không tìm đánh giá để xóa' });
     }
-
-    res.json({ message: 'Đánh giá đã được xóa thành công' });
+    return res.status(200).json({ message: 'Đánh giá đã được xóa thành công' });
   });
 });
 
 // Lấy đánh giá cho một tour cụ thể
 app.get('/reviews/:tourId', (req, res) => {
   const tourId = req.params.tourId;
+  console.log('Received request for tour ID:', tourId); // Debug log
 
   const query = `
-    SELECT d.ID, d.IDNGUOIDUNG, u.FULLNAME, d.SOSAO, d.NOIDUNG
+    SELECT d.ID, d.IDNGUOIDUNG, u.FULLNAME, d.SOSAO, d.NOIDUNG, d.IDVE, d.thoigian
     FROM danhgia d
-    JOIN USER u ON d.IDNGUOIDUNG = u.ID
+    LEFT JOIN USER u ON d.IDNGUOIDUNG = u.ID
     WHERE d.IDTOUR = ?
   `;
 
   db.query(query, [tourId], (err, results) => {
     if (err) {
+      console.error('Database error:', err);
       return res.status(500).json({ error: 'Lỗi khi lấy đánh giá' });
     }
-
+    console.log('Found reviews:', results); // Debug log
     res.json(results);
   });
 });
@@ -1265,7 +1447,7 @@ app.get('/reviews/:tourId', (req, res) => {
 app.get('/api/tour/:id', (req, res) => {
   const tourId = req.params.id;
   const query = `
-    SELECT t.*, l.NGAYDI 
+    SELECT t.*, l.NGAYDI, l.NGAYVE 
     FROM tour t
     JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
     WHERE t.ID = ?
@@ -1287,7 +1469,16 @@ app.get('/api/tour/:id', (req, res) => {
 
   // GET: Fetch all discount codes
 app.get('/api/discount-codes', (req, res) => {
-  const sql = 'SELECT * FROM magiamgia';
+  const sql = `
+    SELECT *,
+    CASE 
+      WHEN CURDATE() > NGAYHETHAN THEN 'Hết hiệu lực'
+      WHEN CURDATE() < NGAYAPDUNG THEN 'Chưa áp dụng'
+      ELSE 'Đang áp dụng'
+    END as TRANGTHAI
+    FROM magiamgia
+  `;
+  
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
@@ -1330,14 +1521,27 @@ app.get('/api/discount-codes/:id', (req, res) => {
 app.post('/api/discount-codes', async (req, res) => {
   const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
   
+  // Validate dates
+  const currentDate = new Date();
+  const applicationDate = new Date(NGAYAPDUNG);
+  const expirationDate = new Date(NGAYHETHAN);
+
+  if (applicationDate > expirationDate) {
+    return res.status(400).json({ error: 'Ngày hết hạn phải sau ngày áp dụng' });
+  }
+
   try {
-    const nextId = await getNextId();  // Get the next ID from the DB
+    const nextId = await getNextId();
+    
+    // Xác định trạng thái ban đầu
+    const initialStatus = currentDate > expirationDate ? 'Hết hiệu lực' : 
+                         currentDate < applicationDate ? 'Chưa áp dụng' : 'Đang áp dụng';
 
     const query = `
-      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU)
-      VALUES (?, ?, ?, ?, ?, ?)`;
+      INSERT INTO magiamgia (IDMAGIAMGIA, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, TRANGTHAI)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU], (err, results) => {
+    db.query(query, [nextId, TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, initialStatus], (err, results) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to insert discount code' });
       }
@@ -1352,12 +1556,28 @@ app.post('/api/discount-codes', async (req, res) => {
 app.put('/api/discount-codes/:id', (req, res) => {
   const { id } = req.params;
   const { TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU } = req.body;
+
+  // Validate dates
+  const currentDate = new Date();
+  const applicationDate = new Date(NGAYAPDUNG);
+  const expirationDate = new Date(NGAYHETHAN);
+
+  if (applicationDate > expirationDate) {
+    return res.status(400).json({ error: 'Ngày hết hạn phải sau ngày áp dụng' });
+  }
+
+  // Xác định trạng thái mới
+  const newStatus = currentDate > expirationDate ? 'Hết hiệu lực' : 
+                   currentDate < applicationDate ? 'Chưa áp dụng' : 'Đang áp dụng';
+
   const sql = `
     UPDATE magiamgia
-    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?
+    SET TENMGG = ?, NGAYAPDUNG = ?, NGAYHETHAN = ?, DIEUKIEN = ?, TILECHIETKHAU = ?, TRANGTHAI = ?
     WHERE IDMAGIAMGIA = ?
   `;
-  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, id];
+  
+  const values = [TENMGG, NGAYAPDUNG, NGAYHETHAN, DIEUKIEN, TILECHIETKHAU, newStatus, id];
+  
   db.query(sql, values, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Discount code not found' });
@@ -1365,35 +1585,432 @@ app.put('/api/discount-codes/:id', (req, res) => {
   });
 });
 
+// Thêm task định kỳ để kiểm tra và hủy vé chưa thanh toán
+schedule.scheduleJob('*/30 * * * *', () => { // Chạy mỗi 30 phút
+  const query = `
+    UPDATE ve 
+    SET TINHTRANG = 'Đã hủy' 
+    WHERE TINHTRANG = 'Chưa thanh toán' 
+    AND TIMESTAMPDIFF(HOUR, NGAYDAT, NOW()) >= 24
+  `;
+  
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error('Lỗi khi hủy vé quá hạn:', err);
+    } else {
+      console.log('Đã kiểm tra và hủy các vé quá hạn thanh toán');
+    }
+  });
+});
+
 // Check if user has reviewed a tour
 app.get('/check-review', (req, res) => {
-  const { userId, tourId } = req.query;
+  const { userId, tourId, ticketId } = req.query;
 
   const query = `
-    SELECT d.*, u.FULLNAME
-    FROM danhgia d
-    JOIN USER u ON d.IDNGUOIDUNG = u.ID
-    WHERE d.IDTOUR = ? AND d.IDNGUOIDUNG = ?
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? 
+    AND IDNGUOIDUNG = ? 
+    AND IDVE = ?
   `;
 
-  db.query(query, [tourId, userId], (err, results) => {
+  db.query(query, [tourId, userId, ticketId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'Lỗi khi kiểm tra đánh giá' });
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
     }
 
-    if (results.length > 0) {
-      // User has already reviewed this tour
-      res.json({
-        hasReviewed: true,
-        review: results[0]
-      });
-    } else {
-      // User hasn't reviewed this tour yet
-      res.json({
-        hasReviewed: false,
-        review: null
-      });
+    res.json({
+      hasReviewed: results.length > 0,
+      review: results[0] || null
+    });
+  });
+});
+
+// Thêm endpoint để lấy chi tiết đánh giá
+app.get('/get-review', (req, res) => {
+  const { userId, tourId, ticketId } = req.query;
+  
+  const query = `
+    SELECT * FROM danhgia 
+    WHERE IDTOUR = ? 
+    AND IDNGUOIDUNG = ? 
+    AND IDVE = ?
+  `;
+
+  db.query(query, [tourId, userId, ticketId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Không thể lấy thông tin đánh giá' });
     }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy đánh giá' });
+    }
+
+    res.json(results[0]);
+  });
+});
+
+// API để lấy tổng doanh thu theo khoảng thời gian
+// API để lấy tổng doanh thu theo khoảng thời gian
+app.get('/api/income', (req, res) => {
+  const { startDate, endDate } = req.query;
+  
+  // Log thông tin đầu vào
+  console.log('Income API called with dates:', { startDate, endDate });
+
+  // Kiểm tra tham số đầu vào
+  if (!startDate || !endDate) {
+    console.error('Missing required dates');
+    return res.status(400).json({ error: 'Start date and end date are required' });
+  }
+
+  const query = `
+    SELECT 
+      DATE(NGAYDAT) as date,
+      COUNT(*) as totalOrders,
+      SUM(TONGTIEN) as totalIncome,
+      SUM(CASE WHEN PHUONGTHUCTHANHTOAN = 'momo' THEN TONGTIEN ELSE 0 END) as momoIncome,
+      SUM(CASE WHEN PHUONGTHUCTHANHTOAN = 'Tiền mặt' THEN TONGTIEN ELSE 0 END) as cashIncome
+    FROM ve 
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND DATE(NGAYDAT) BETWEEN ? AND ?
+    GROUP BY DATE(NGAYDAT)
+    ORDER BY date`;
+
+  // Log câu query để debug
+  console.log('Executing query:', query);
+  console.log('Query parameters:', [startDate, endDate]);
+
+  db.query(query, [startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database query failed', details: err.message });
+    }
+
+    // Log kết quả
+    console.log('Query results:', results);
+
+    // Kiểm tra kết quả rỗng
+    if (!results || results.length === 0) {
+      console.log('No data found for the given date range');
+      return res.json([]);
+    }
+
+    // Format lại kết quả để đảm bảo các giá trị số
+    const formattedResults = results.map(row => ({
+      ...row,
+      totalOrders: Number(row.totalOrders),
+      totalIncome: Number(row.totalIncome || 0),
+      momoIncome: Number(row.momoIncome || 0),
+      cashIncome: Number(row.cashIncome || 0)
+    }));
+
+    res.json(formattedResults);
+  });
+});
+
+// API để lấy thống kê theo tour
+app.get('/api/income/by-tour', (req, res) => {
+  const { startDate, endDate } = req.query;
+  
+  // Log thông tin đầu vào
+  console.log('Tour income API called with dates:', { startDate, endDate });
+
+  // Kiểm tra tham số đầu vào
+  if (!startDate || !endDate) {
+    console.error('Missing required dates');
+    return res.status(400).json({ error: 'Start date and end date are required' });
+  }
+
+  const query = `
+    SELECT 
+      t.TENTOUR,
+      COUNT(v.ID) as totalOrders,
+      SUM(v.TONGTIEN) as totalIncome
+    FROM ve v
+    JOIN tour t ON v.IDTOUR = t.ID
+    WHERE v.TINHTRANG = 'Đã thanh toán'
+    AND DATE(v.NGAYDAT) BETWEEN ? AND ?
+    GROUP BY t.ID, t.TENTOUR
+    ORDER BY totalIncome DESC`;
+
+  db.query(query, [startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database query failed', details: err.message });
+    }
+
+    // Log kết quả chi tiết
+    console.log('Raw results:', results);
+
+    // Kiểm tra kết quả rỗng
+    if (!results || results.length === 0) {
+      console.log('No tour income data found for the given date range');
+      return res.json([]);
+    }
+
+    // Format lại kết quả để đảm bảo các giá trị số
+    const formattedResults = results.map(row => ({
+      TENTOUR: row.TENTOUR,
+      totalOrders: Number(row.totalOrders),
+      totalIncome: Number(row.totalIncome || 0)
+    }));
+
+    // Log kết quả đã format
+    console.log('Formatted results:', formattedResults);
+
+    res.json(formattedResults);
+  });
+});
+
+// API để lấy thống kê tổng quan
+app.get('/api/dashboard/stats', (req, res) => {
+  const queries = {
+    // Chỉ lấy tổng số user
+    userStats: `
+      SELECT COUNT(*) as totalUsers FROM user
+    `,
+    
+    // Tổng vé đã đặt và % thay đổi so với tuần trước
+    bookingStats: `
+      SELECT 
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as totalBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE)) as currentWeekBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE - INTERVAL 1 WEEK)) as lastWeekBookings
+    `,
+    
+    // Tổng doanh thu và % thay đổi so với tuần trước
+    revenueStats: `
+      SELECT 
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as totalRevenue,
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE)) as currentWeekRevenue,
+        (SELECT COALESCE(SUM(TONGTIEN), 0) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND WEEK(NGAYDAT) = WEEK(CURRENT_DATE - INTERVAL 1 WEEK)) as lastWeekRevenue
+    `,
+    
+    // Vé đã thanh toán và % thay đổi so với ngày hôm qua
+    paidBookingStats: `
+      SELECT 
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán') as paidBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND DATE(NGAYDAT) = CURRENT_DATE) as currentDayPaidBookings,
+        (SELECT COUNT(*) FROM ve WHERE TINHTRANG = 'Đã thanh toán' AND DATE(NGAYDAT) = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)) as lastDayPaidBookings
+    `
+  };
+
+  const stats = {};
+  let completedQueries = 0;
+  const totalQueries = Object.keys(queries).length;
+
+  Object.entries(queries).forEach(([key, query]) => {
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error(`Error fetching ${key}:`, err);
+        return res.status(500).json({ error: 'Database query failed' });
+      }
+
+      const result = results[0];
+
+      switch(key) {
+        case 'userStats':
+          stats.totalUsers = result.totalUsers;
+          stats.userChangePercent = 0; // Không có so sánh cho users
+          break;
+        
+        case 'bookingStats':
+          stats.totalBookings = result.totalBookings;
+          stats.bookingChangePercent = calculatePercentageChange(result.lastWeekBookings, result.currentWeekBookings);
+          break;
+        
+        case 'revenueStats':
+          stats.totalRevenue = result.totalRevenue;
+          stats.revenueChangePercent = calculatePercentageChange(result.lastWeekRevenue, result.currentWeekRevenue);
+          break;
+        
+        case 'paidBookingStats':
+          stats.paidBookings = result.paidBookings;
+          stats.paidBookingChangePercent = calculatePercentageChange(result.lastDayPaidBookings, result.currentDayPaidBookings);
+          break;
+      }
+
+      completedQueries++;
+      if (completedQueries === totalQueries) {
+        res.json(stats);
+      }
+    });
+  });
+});
+
+// Hàm tính phần trăm thay đổi
+function calculatePercentageChange(oldValue, newValue) {
+  oldValue = Number(oldValue) || 0;
+  newValue = Number(newValue) || 0;
+  if (oldValue === 0) return newValue === 0 ? 0 : 100;
+  return ((newValue - oldValue) / oldValue) * 100;
+}
+
+// API để lấy doanh số theo tháng
+app.get('/api/dashboard/monthly-revenue', (req, res) => {
+  const query = `
+    SELECT 
+      MONTH(NGAYDAT) as month,
+      YEAR(NGAYDAT) as year,
+      SUM(TONGTIEN) as revenue
+    FROM ve
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND YEAR(NGAYDAT) = YEAR(CURRENT_DATE)
+    GROUP BY YEAR(NGAYDAT), MONTH(NGAYDAT)
+    ORDER BY year, month
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching monthly revenue:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// API để lấy danh sách vé gần đây
+app.get('/api/dashboard/recent-bookings', (req, res) => {
+  const query = `
+    SELECT 
+      v.ID,
+      u.FULLNAME,
+      v.NGAYDAT,
+      v.SOVE,
+      v.TONGTIEN,
+      v.TINHTRANG
+    FROM ve v
+    JOIN user u ON v.IDNGUOIDUNG = u.ID
+    ORDER BY v.NGAYDAT DESC
+    LIMIT 5
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching recent bookings:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// API để lấy doanh số theo năm
+app.get('/api/dashboard/yearly-comparison', (req, res) => {
+  const query = `
+    SELECT 
+      YEAR(NGAYDAT) as year,
+      SUM(TONGTIEN) as revenue
+    FROM ve
+    WHERE TINHTRANG = 'Đã thanh toán'
+    AND YEAR(NGAYDAT) >= YEAR(CURRENT_DATE) - 1
+    GROUP BY YEAR(NGAYDAT)
+    ORDER BY year
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching yearly comparison:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// Thêm API endpoint để lấy danh sách tour và đánh giá trung bình
+app.get('/tour-reviews', (req, res) => {
+  const query = `
+    SELECT 
+      t.ID as tourId,
+      t.TENTOUR as tourName,
+      COUNT(d.ID) as totalReviews,
+      AVG(d.SOSAO) as averageRating
+    FROM tour t
+    LEFT JOIN danhgia d ON t.ID = d.IDTOUR
+    GROUP BY t.ID, t.TENTOUR
+    ORDER BY t.ID
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Lỗi khi lấy đánh giá tour' });
+    }
+    res.json(results);
+  });
+});
+
+// Lấy đánh giá cho một tour cụ thể
+app.get('/api/reviews/:tourId', (req, res) => {
+  const tourId = req.params.tourId;
+  console.log('Fetching reviews for tour:', tourId);
+  
+  const query = `
+    SELECT 
+      d.ID,
+      d.IDTOUR,
+      d.IDNGUOIDUNG,
+      d.IDVE,
+      d.SOSAO,
+      d.NOIDUNG,
+      d.thoigian,
+      u.FULLNAME
+    FROM danhgia d
+    LEFT JOIN user u ON d.IDNGUOIDUNG = u.ID
+    WHERE d.IDTOUR = ?
+    ORDER BY d.thoigian DESC
+  `;
+
+  db.query(query, [tourId], (err, results) => {
+    if (err) {
+      console.error('Error fetching review details:', err);
+      return res.status(500).json({ error: 'Lỗi khi lấy đánh giá' });
+    }
+    
+    console.log('Found reviews:', results);
+    res.json(results);
+  });
+});
+
+// Thêm scheduled job để kiểm tra và cập nhật trạng thái mã giảm giá
+schedule.scheduleJob('0 0 * * *', () => { // Chạy hàng ngày lúc 00:00
+  const updateQuery = `
+    UPDATE magiamgia 
+    SET TRANGTHAI = 'Hết hiệu lực'
+    WHERE NGAYHETHAN < CURDATE() 
+    AND TRANGTHAI != 'Hết hiệu lực'
+  `;
+  
+  db.query(updateQuery, (err, result) => {
+    if (err) {
+      console.error('Lỗi khi cập nhật trạng thái mã giảm giá:', err);
+    } else {
+      console.log('Đã cập nhật trạng thái các mã giảm giá hết hạn');
+    }
+  });
+});
+
+// API để lấy random featured tours
+app.get('/api/featured-tours', (req, res) => {
+  const query = `
+    SELECT t.*, l.NGAYDI, l.NGAYVE,
+           (SELECT AVG(SOSAO) FROM danhgia WHERE IDTOUR = t.ID) as rating,
+           (SELECT COUNT(*) FROM danhgia WHERE IDTOUR = t.ID) as review_count
+    FROM tour t
+    JOIN lichtrinh l ON t.IDLICHTRINH = l.ID
+    WHERE t.TRANGTHAI = 'Còn vé'
+    AND l.NGAYDI > CURDATE()  /* Thêm điều kiện này để chỉ lấy tour có ngày đi trong tương lai */
+    ORDER BY l.NGAYDI ASC     /* Sắp xếp theo ngày đi gần nhất */
+    LIMIT 3
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching featured tours:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
   });
 });
 
@@ -1401,3 +2018,5 @@ app.get('/check-review', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+

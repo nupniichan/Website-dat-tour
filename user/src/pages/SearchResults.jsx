@@ -91,37 +91,92 @@ const SearchResults = () => {
                 {currentTours && currentTours.length > 0 ? (
                     currentTours.map((item, index) => (
                         <div key={index} className="tour-card" onClick={() => goToTourDetails(item)}>
-                            <img src={`http://localhost:5000/${item.HINHANH}`} alt={item.TENTOUR} className="tour-image" onError={(e) => e.target.src = 'default-image.jpg'} />
-                            <div className="tour-info">
-                                <h3 className="tour-name">{item.TENTOUR}</h3>
-                                <div className="tour-details">
-                                    <div className="tour-dates-vehicle">
-                                        <div className="tour-di">
-                                            <img src="../assets/images/calendar_icon.png" alt="calendar icon" className="icon" />
-                                            Ngày: {dayjs(item.NGAYDI).format("DD-MM-YYYY")} {'->'} {dayjs(item.NGAYVE).format("DD-MM-YYYY")}
-                                        </div>
-                                        <div className="tour-vehicle">
-                                            <img src="../assets/images/vehicle_icon.png" alt="vehicle icon" className="icon" />
-                                            Phương tiện: {item.PHUONGTIENDICHUYEN}
-                                        </div>
+                            <div className="relative">
+                                <img 
+                                    src={`http://localhost:5000/${item.HINHANH}`} 
+                                    alt={item.TENTOUR} 
+                                    className="tour-image" 
+                                    onError={(e) => e.target.src = 'default-image.jpg'} 
+                                />
+                                <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm">
+                                    {item.LOAITOUR}
+                                </div>
+                                {item.SOVE <= 10 && (
+                                    <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm">
+                                        Còn {item.SOVE} vé!
                                     </div>
-                                    <div className="tour-ticket-available">
-                                        <img src="../assets/images/ticket_icon.png" alt="ticket icon" className="icon" />
-                                        Còn lại: {item.SOVECONLAI} vé
+                                )}
+                            </div>
+
+                            <div className="tour-info p-6">
+                                <h3 className="tour-name text-xl font-bold mb-3">{item.TENTOUR}</h3>
+                                
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="flex items-center text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span>Khởi hành: {item.KHOIHANH}</span>
                                     </div>
-                                    <div className="tour-price">
-                                        <img src="../assets/images/price_icon.png" alt="price icon" className="icon" />
-                                        {item.GIA ? parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'N/A'}
+                                    <div className="flex items-center text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{dayjs(item.NGAYVE).diff(dayjs(item.NGAYDI), 'day')} ngày {dayjs(item.NGAYVE).diff(dayjs(item.NGAYDI), 'day') - 1} đêm</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="button-container">
-                                <button onClick={(e) => {
-                                    e.stopPropagation(); // Ngăn chặn sự kiện nổi lên thẻ cha
-                                    goToCheckout(item); // Điều hướng đến trang checkout
-                                }}>
-                                    Đặt ngay
-                                </button>
+
+                                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <div>
+                                                <div className="text-sm text-gray-500">Ngày đi</div>
+                                                <div className="font-medium">{dayjs(item.NGAYDI).format('DD/MM/YYYY')}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <div>
+                                                <div className="text-sm text-gray-500">Ngày về</div>
+                                                <div className="font-medium">{dayjs(item.NGAYVE).format('DD/MM/YYYY')}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                        </svg>
+                                        <span className="text-gray-600">{item.PHUONGTIENDICHUYEN}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-sm text-gray-500">Giá từ</div>
+                                        <div className="text-2xl font-bold text-orange-500">
+                                            {parseFloat(item.GIA).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.MOTA}</p>
+
+                                <div className="flex justify-end">
+                                    <button 
+                                        onClick={(e) => { 
+                                            e.stopPropagation();
+                                            goToCheckout(item);
+                                        }}
+                                        className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                                    >
+                                        Đặt ngay
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))

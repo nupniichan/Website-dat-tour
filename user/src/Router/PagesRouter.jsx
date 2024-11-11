@@ -11,6 +11,7 @@ import Schedule from "../pages/Schedule.jsx";
 import SearchResults from "../pages/SearchResults.jsx";
 import TourDetails from "../pages/TourDetails.jsx";
 import TourHistory from "../pages/TourHistory.jsx";
+import BookingSuccess from "../pages/BookingSuccess.jsx";
 import PagesNames from "./PagesNames.js";
 
 const PageRouter = () => {
@@ -25,9 +26,10 @@ const PageRouter = () => {
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />
             <Route path={PagesNames.CONTACT} element={<Contact />} />
             <Route path={PagesNames.PROFILE} element={<Profile />} />
+            <Route path={PagesNames.PAYMENT_RESULT} element={<PaymentResult />} />
             <Route path={PagesNames.PAYMENT_SUCCESS} element={<PaymentSuccess />} />
             <Route path={PagesNames.PAYMENT_FAILED} element={<PaymentFailed />} />
-            <Route path={PagesNames.PAYMENT_RESULT} element={<PaymentResult />} />
+            <Route path={PagesNames.BOOKING_SUCCESS} element={<BookingSuccess />} />
         </Routes>
     );
 };

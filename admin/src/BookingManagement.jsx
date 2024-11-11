@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Paper, Grid, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import TourIcon from '@mui/icons-material/Tour';
+import PersonIcon from '@mui/icons-material/Person';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import InfoIcon from '@mui/icons-material/Info';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -146,41 +151,98 @@ const BookingManagement = () => {
 
       {/* Booking details dialog */}
       {selectedBooking && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết đặt chỗ</DialogTitle>
+        <Dialog 
+          open={true} 
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box display="flex" alignItems="center" gap={1}>
+              <IconButton onClick={handleCloseDialog} size="small">
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6">Chi tiết đặt chỗ #{selectedBooking.ID}</Typography>
+            </Box>
+          </DialogTitle>
           <DialogContent>
-            <Box padding={2}>
-              {/* Section: Booking Information */}
-              <Typography variant="h6" gutterBottom>
-                Thông tin đặt chỗ
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-                <Typography>Mã đặt chỗ: <strong>{selectedBooking.ID}</strong></Typography>
-                <Typography>Mã Tour: <strong>{selectedBooking.IDTOUR}</strong></Typography>
-                <Typography>Tên Người Dùng: <strong>{selectedBooking.FULLNAME}</strong></Typography>
-                <Typography>Ngày đặt: <strong>{new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN')}</strong></Typography>
-              </Box>
+            <Box sx={{ p: 2 }}>
+              {/* Section: Tour Information */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TourIcon /> Thông tin Tour
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Mã Tour</Typography>
+                    <Typography variant="body1" fontWeight="500">{selectedBooking.IDTOUR}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Tình trạng</Typography>
+                    <Chip 
+                      label={selectedBooking.TINHTRANG}
+                      color={selectedBooking.TINHTRANG === 'Đã thanh toán' ? 'success' : 'warning'}
+                      size="small"
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Section: Customer Information */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonIcon /> Thông tin khách hàng
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">Tên khách hàng</Typography>
+                    <Typography variant="body1" fontWeight="500">{selectedBooking.FULLNAME}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Ngày đặt</Typography>
+                    <Typography variant="body1" fontWeight="500">
+                      {new Date(selectedBooking.NGAYDAT).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
 
               {/* Section: Ticket Information */}
-              <Typography variant="h6" gutterBottom>
-                Thông tin vé
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-                <Typography>Số vé: <strong>{selectedBooking.SOVE}</strong></Typography>
-                <Typography>Tình trạng: <strong>{selectedBooking.TINHTRANG}</strong></Typography>
-              </Box>
-
-              {/* Section: Payment Information */}
-              <Typography variant="h6" gutterBottom>
-                Thanh toán
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-                <Typography>
-                  Tổng tiền: <Typography component="span" variant="body1" color="error" fontWeight="bold">
-                    {formatCurrency(selectedBooking.TONGTIEN)}
-                  </Typography>
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ConfirmationNumberIcon /> Thông tin vé
                 </Typography>
-              </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Số vé</Typography>
+                    <Typography variant="body1" fontWeight="500">{selectedBooking.SOVE}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary">Tổng tiền</Typography>
+                    <Typography variant="h6" color="error" fontWeight="bold">
+                      {formatCurrency(selectedBooking.TONGTIEN)}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Additional Information (if any) */}
+              <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <InfoIcon /> Ghi chú
+                </Typography>
+                <Box sx={{ 
+                  p: 2, 
+                  bgcolor: 'background.paper', 
+                  borderRadius: 1,
+                  border: '1px dashed rgba(0, 0, 0, 0.12)'
+                }}>
+                </Box>
+              </Paper>
             </Box>
           </DialogContent>
         </Dialog>

@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, Avatar, Grid, Paper, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import {
+  Person,
+  Email,
+  Phone,
+  Home,
+  Cake,
+  AccountCircle,
+  ArrowBack,
+  Badge,
+  VerifiedUser
+} from '@mui/icons-material';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -56,22 +67,27 @@ const UserManagement = () => {
   // Handle delete button click
   const handleDelete = (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xoá người dùng này không?')) {
-      fetch(`http://localhost:5000/delete-user/${id}`, {
-        method: 'DELETE',
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Error deleting user');
-          }
+        fetch(`http://localhost:5000/delete-user/${id}`, {
+            method: 'DELETE',
         })
-        .then(() => {
-          fetchUsers(); // Refresh the list after deletion
+        .then(async response => {
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Có lỗi xảy ra khi xóa người dùng');
+            }
+            
+            // Nếu thành công
+            fetchUsers(); // Refresh danh sách
+            alert('Xóa người dùng thành công');
         })
-        .catch((err) => console.error('Error deleting user:', err));
-    }   
-  };
+        .catch(err => {
+            // Hiển thị thông báo lỗi
+            alert(err.message);
+            console.error('Error deleting user:', err);
+        });
+    }
+};
 
   // Handle view details button click
   const handleViewDetails = (user) => {
@@ -146,22 +162,131 @@ const UserManagement = () => {
 
       {/* User details dialog */}
       {selectedUser && (
-        <Dialog open={true} onClose={handleCloseDialog}>
-          <DialogTitle>Chi tiết người dùng</DialogTitle>
+        <Dialog 
+          open={true} 
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box display="flex" alignItems="center" gap={1}>
+              <IconButton onClick={handleCloseDialog} size="small">
+                <ArrowBack />
+              </IconButton>
+              <Typography variant="h6">Chi tiết người dùng</Typography>
+            </Box>
+          </DialogTitle>
           <DialogContent>
-            <Box padding={2}>
-              <Typography variant="h6" gutterBottom>
-                Thông tin người dùng
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1} marginBottom={2}>
-                <Typography>ID: <strong>{selectedUser.ID}</strong></Typography>
-                <Typography>Tên đầy đủ: <strong>{selectedUser.FULLNAME}</strong></Typography>
-                <Typography>Số điện thoại: <strong>{selectedUser.PHONENUMBER}</strong></Typography>
-                <Typography>Email: <strong>{selectedUser.EMAIL}</strong></Typography>
-                <Typography>Địa chỉ: <strong>{selectedUser.ADDRESS}</strong></Typography>
-                <Typography>Ngày sinh: <strong>{new Date(selectedUser.DAYOFBIRTH).toLocaleDateString('vi-VN')}</strong></Typography>
-                <Typography>Tên tài khoản: <strong>{selectedUser.ACCOUNTNAME}</strong></Typography>
-              </Box>
+            <Box sx={{ p: 2 }}>
+              {/* Thông tin cá nhân */}
+              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Badge /> Thông tin cá nhân
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Avatar 
+                        sx={{ 
+                          width: 80, 
+                          height: 80, 
+                          bgcolor: 'primary.main',
+                          fontSize: '2rem'
+                        }}
+                      >
+                        {selectedUser.FULLNAME.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold">
+                          {selectedUser.FULLNAME}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ID: {selectedUser.ID}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Email color="primary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Email</Typography>
+                        <Typography variant="body1">{selectedUser.EMAIL}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Phone color="primary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Số điện thoại</Typography>
+                        <Typography variant="body1">{selectedUser.PHONENUMBER}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <Home color="primary" sx={{ mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Địa chỉ</Typography>
+                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                          {selectedUser.ADDRESS}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Cake color="primary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Ngày sinh</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedUser.DAYOFBIRTH).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Thông tin tài khoản */}
+              <Paper elevation={0} sx={{ p: 3, bgcolor: '#f8f9fa' }}>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <VerifiedUser /> Thông tin tài khoản
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AccountCircle color="primary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Tên tài khoản</Typography>
+                        <Typography variant="body1" fontWeight="500">{selectedUser.ACCOUNTNAME}</Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box sx={{ 
+                      p: 2, 
+                      bgcolor: 'background.paper', 
+                      borderRadius: 1,
+                      border: '1px dashed rgba(0, 0, 0, 0.12)'
+                    }}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Thông tin tài khoản được bảo mật theo quy định
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
             </Box>
           </DialogContent>
         </Dialog>

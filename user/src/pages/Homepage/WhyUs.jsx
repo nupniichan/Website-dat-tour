@@ -3,7 +3,7 @@ const WhyUs = () => {
         <section className="py-16">
             <div className="container mx-auto px-4">
                 <h2
-                    className="text-3xl font-bold text-center mb-12"
+                    className="text-3xl font-bold text-center mb-16"
                     data-aos="zoom-out-up"
                     data-aos-duration="500"
                     data-aos-once={false}
@@ -16,7 +16,7 @@ const WhyUs = () => {
                         className="text-center"
                         data-aos="fade-up"
                         data-aos-duration={800}
-                        data-aos-delay={200}
+                        data-aos-delay={400}
                         data-aos-once={false}
                     >
                         <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -48,7 +48,7 @@ const WhyUs = () => {
                         className="text-center"
                         data-aos="fade-up"
                         data-aos-duration={800}
-                        data-aos-delay={400}
+                        data-aos-delay={600}
                         data-aos-once={false}
                     >
                         <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -80,7 +80,7 @@ const WhyUs = () => {
                         className="text-center"
                         data-aos="fade-up"
                         data-aos-duration={800}
-                        data-aos-delay={600}
+                        data-aos-delay={800}
                         data-aos-once={false}
                     >
                         <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -111,7 +111,7 @@ const WhyUs = () => {
                         className="text-center"
                         data-aos="fade-up"
                         data-aos-duration={800}
-                        data-aos-delay={800}
+                        data-aos-delay={1000}
                         data-aos-once={false}
                     >
                         <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">

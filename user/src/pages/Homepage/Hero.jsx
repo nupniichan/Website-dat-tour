@@ -81,15 +81,15 @@ const Hero = () => {
 
             {/* Hero Items */}
             <div className="relative z-10 max-w-screen-xl mx-auto px-4 py-28 md:px-8">
-                <div className="home-search space-y-5 max-w-4xl mx-auto text-center 2xl:mt-40 xl:mt-28 lg:mt-16 no-select">
+                <div className="home-search space-y-5 xl:max-w-xl md:max-w-lg max-w-md mx-auto text-center 2xl:mt-40 xl:mt-28 lg:mt-14 md:-mt-3 -mt-7 no-select">
                     <TextGenerateEffect
-                        duration={4}
+                        duration={3.5}
                         filter={true}
                         words={heroSLogan}
                     />
 
-                    <div className="search-form top-full left-1/2 transform -translate-x-1/2 md:-translate-y-1/2 -translate-y-32 absolute z-30 font-normal xl:w-[928px] lg:w-[650px] md:w-[600px] sm:w-[500px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)] lg:scale-100 md:scale-75 sm:scale-[65%]">
-                        <div className="grid grid-cols-2 py-4 -translate-y-1">
+                    <div className="search-form top-full left-1/2 transform -translate-x-1/2 xl:-translate-y-[5rem] lg:-translate-y-[7rem] md:-translate-y-[6rem] -translate-y-[8.4rem] absolute z-30 font-normal xl:w-[800px] lg:w-[700px] md:w-[700px] sm:w-[700px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%]">
+                        <div className="grid grid-cols-2 py-2 -translate-y-1">
                             <div className="mr-4 flex flex-1 flex-col">
                                 <label className="text-left mb-1 text-sm">
                                     Điểm đến
@@ -141,7 +141,8 @@ const Hero = () => {
                     </div>
                 </div>
             </div>
-            <div
+
+            {/* <div
                 className="absolute inset-0 m-auto max-w-xs h-[357px] blur-[118px] sm:max-w-md md:max-w-lg"
                 style={
                     {
@@ -149,10 +150,11 @@ const Hero = () => {
                         //     "linear-gradient(106.89deg, rgba(192, 132, 252, 0.11) 15.73%, rgba(14, 165, 233, 0.41) 15.74%, rgba(217, 181, 61, 0.26) 56.49%, rgba(244, 109, 42, 0.4) 115.91%)",
                     }
                 }
-            ></div>
+            >
+            </div> */}
             {/* </section> */}
 
-            <AnimatedArrow className='z-50' />
+            <AnimatedArrow className='z-10' />
         </div>
     );
 };
@@ -218,7 +220,7 @@ const StyledWrapper = styled.div`
     strong {
         z-index: 2;
         font-family: "Avalors Personal Use";
-        font-size: 12px;
+        font-size: 13px;
         letter-spacing: 5px;
         color: #ffffff;
         text-shadow: 0 0 4px white;

@@ -89,7 +89,7 @@ const Hero = () => {
                     />
 
                     <div className="search-form top-full left-1/2 transform -translate-x-1/2 md:-translate-y-1/2 -translate-y-32 absolute z-30 font-normal xl:w-[928px] lg:w-[650px] md:w-[600px] sm:w-[500px] bg-white border border-[rgba(239,82,34,0.6)] rounded-xl p-6 outline outline-8 outline-[rgba(170,46,8,0.1)] lg:scale-100 md:scale-75 sm:scale-[65%]">
-                        <div className="grid grid-cols-2 pb-4 pt-4">
+                        <div className="grid grid-cols-2 py-4 -translate-y-1">
                             <div className="mr-4 flex flex-1 flex-col">
                                 <label className="text-left mb-1 text-sm">
                                     Điểm đến

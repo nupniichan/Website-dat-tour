@@ -72,7 +72,7 @@ const Footer = () => {
                 </div>
 
                 {/* Footer's bottom */}
-                <div className="bg-[#f97316] text-white rounded-bl-3xl rounded-br-3xl ">
+                <div className="bg-[#f97316] text-white rounded-bl-3xl rounded-br-3xl">
                     <div className="mt-8 items-center justify-between sm:flex px-6">
                         <div className="mt-4 sm:mt-0">
                             &copy; 2024 Nhóm 1 thứ 4 ca 4.

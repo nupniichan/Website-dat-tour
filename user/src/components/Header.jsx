@@ -122,7 +122,7 @@ const Header = ({ user, onLogout }) => {
         <header
             className={
                 isHomepage
-                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-20"
+                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-20 md:-mt-0 -mt-3"
                     : "sticky bg-gray-800 backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full"
             }
         >

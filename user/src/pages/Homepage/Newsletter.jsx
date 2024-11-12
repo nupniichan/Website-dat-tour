@@ -14,11 +14,11 @@ const Newsletter = () => {
                     <p className="mb-8">
                         Nhận thông tin về các tour mới và ưu đãi hấp dẫn
                     </p>
-                    <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                    <div className="flex flex-row gap-4 justify-center items-center">
                         <input
                             type="email"
                             placeholder="Nhập email của bạn"
-                            className="px-6 py-3 rounded-lg text-gray-900 flex-1 md:max-w-md max-w-xl"
+                            className="px-6 py-3 rounded-lg text-gray-900 flex-1 md:max-w-md max-w-sm"
                         />
                         <Button
                             text={"Đăng ký"}

@@ -123,11 +123,11 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
 
     const handleSubmit = () => {
         if (rating === 0) {
-            message.error("Vui lòng chọn số sao đánh giá.");
+            message.error({ content: "Vui lòng chọn số sao đánh giá." });
             return;
         }
         if (content.trim() === "") {
-            message.error("Vui lòng nhập nội dung đánh giá.");
+            message.error({ content: "Vui lòng nhập nội dung đánh giá." });
             return;
         }
         onSubmit(tour.IDTOUR, rating, content);
@@ -321,7 +321,7 @@ const TourHistory = () => {
                 setTourHistory(ticketsWithDetails);
             } catch (error) {
                 console.error("Error fetching tour history:", error);
-                message.error("Lỗi truy xuất lịch sử đặt tour.");
+                message.error({ content: "Lỗi truy xuất lịch sử đặt tour." });
             }
         };
 
@@ -351,7 +351,7 @@ const TourHistory = () => {
 
     const handleCancelTicket = async () => {
         if (!cancelReason) {
-            message.error("Vui lòng chọn lý do hủy.");
+            message.error({ content: "Vui lòng chọn lý do hủy." });
             return;
         }
 
@@ -437,7 +437,7 @@ const TourHistory = () => {
                 )
             );
 
-            message.success("Đánh giá đã được gửi thành công!");
+            message.success({ content: "Đánh giá đã được gửi thành công!" });
             closeReviewDialog();
         } catch (error) {
             console.error("Error submitting review:", error);
@@ -509,7 +509,7 @@ const TourHistory = () => {
             setIsViewReviewDialogOpen(true);
         } catch (error) {
             console.error("Error fetching review:", error);
-            message.error("Không thể lấy thông tin đánh giá");
+            message.error({ content: "Không thể lấy thông tin đánh giá" });
         }
     };
 

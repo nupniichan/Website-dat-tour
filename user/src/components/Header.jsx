@@ -1,4 +1,4 @@
-import { Modal } from "antd"; // Importing Modal from antd for better styling
+import { message, Modal } from "antd"; // Importing Modal from antd for better styling
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PagesNames from "../Router/PagesNames.js";
@@ -48,7 +48,8 @@ const Header = ({ user, onLogout }) => {
 
     const handleLoginSuccess = () => {
         handleLoginClose();
-        window.location.reload(); // Refreshes page on login success
+        message.success({content: 'Đăng nhập thành công 🎉'})
+        window.location.reload();
     };
 
     const handleMobileMenuToggle = () => {

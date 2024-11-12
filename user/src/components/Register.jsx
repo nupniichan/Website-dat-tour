@@ -68,13 +68,13 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
         });
 
         if (response.ok) {
-            message.success('Đăng ký thành công! 🥳🎊')
+            message.success({content: 'Đăng ký thành công! 🥳🎊'})
             onRegisterSuccess(); // Call the success callback to handle registration success
             onClose(); // Close the modal after registration
         } else {
             const errorData = await response.json();
             setErrors(errorData);
-            message.error('Đăng ký thất bại 🙀')
+            message.error({content: 'Đăng ký thất bại 🙀'})
         }
     };
 

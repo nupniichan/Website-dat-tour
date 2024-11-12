@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import PagesNames from "../../Router/PagesNames";
 
 const PopularTours = () => {
     const [featuredTours, setFeaturedTours] = useState([])
@@ -187,7 +188,7 @@ const PopularTours = () => {
                                 </p>
                                 <button
                                     onClick={() =>
-                                        navigate(`/tour-details/${tour.ID}`)
+                                        navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}`)
                                     }
                                     className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
                                 >

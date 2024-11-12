@@ -1,11 +1,11 @@
-import { useState } from "react";
 import { DatePicker, Select, message } from "antd";
 import dayjs from "dayjs";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import cities from "../../json/cities.json";
-import PagesNames from "../../Router/PagesNames.js";
 import { BackgroundGradientAnimation } from "../../components/ui/background-gradient-animation.jsx";
 import { TextGenerateEffect } from "../../components/ui/text-generate-effect.jsx";
+import cities from "../../json/cities.json";
+import PagesNames from "../../Router/PagesNames.js";
 
 const Hero = () => {
     const [filteredCities, setFilteredCities] = useState(cities);

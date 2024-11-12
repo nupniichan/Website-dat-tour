@@ -54,7 +54,7 @@ const StyledWrapper = styled.div`
         cursor: pointer;
         padding: 1em;
         font-size: 1em;
-        width: 7em;
+        width: 5em;
         aspect-ratio: 1/0.25;
         color: white;
         background: #212121;

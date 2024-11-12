@@ -239,12 +239,12 @@ const Checkout = () => {
 
     const handlePayment = async () => {
         if (!termsAccepted) {
-            message.warning("Bạn cần đồng ý với các điều khoản trước khi tiếp tục!")
+            message.warning({content: "Bạn cần đồng ý với các điều khoản trước khi tiếp tục!"})
             return;
         }
 
         if (!paymentMethod) {
-            message.warning("Vui lòng chọn một phương thức thanh toán");
+            message.warning({content: "Vui lòng chọn một phương thức thanh toán"});
             return;
         }
 
@@ -609,7 +609,7 @@ const Checkout = () => {
                                 readOnly
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    message.error("Bạn không thể thay đổi thông tin này!")
+                                    message.error({content: "Bạn không thể thay đổi thông tin này!"})
                                 }}
                             />
                         </div>

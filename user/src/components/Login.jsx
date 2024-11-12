@@ -27,20 +27,23 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email: formData.email, password: formData.password }),
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                message.success('Đăng nhập thành công 🎉')
+                message.success({ content: "Đăng nhập thành công 🎉" });
                 const { ID, userName } = data;
-                sessionStorage.setItem('userId', ID);
-                sessionStorage.setItem('userName', userName);
+                sessionStorage.setItem("userId", ID);
+                sessionStorage.setItem("userName", userName);
                 onLogin(ID, userName); // Call the onLogin function to handle login state
                 onClose(); // Close the modal after login
-                console.log(ID)
-                console.log(userName)
+                console.log(ID);
+                console.log(userName);
             } else {
                 setErrorMessage(data.message || "Đăng nhập thất bại");
             }
@@ -51,9 +54,10 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
 
     return (
         <div className="auth-container">
-
-            {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>} {/* Display error message */}
-
+            {errorMessage && (
+                <p className="text-red-500 text-center mb-4">{errorMessage}</p>
+            )}{" "}
+            {/* Display error message */}
             <form onSubmit={handleSubmit}>
                 <label htmlFor="email">Email:</label>
                 <input
@@ -77,12 +81,17 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
                     required
                 />
 
-                <button type="submit" className="p-3 mt-5 bg-orange-500 text-white rounded cursor-pointer hover:bg-orange-600">Đăng nhập</button>
+                <button
+                    type="submit"
+                    className="p-3 mt-5 bg-orange-500 text-white rounded cursor-pointer hover:bg-orange-600"
+                >
+                    Đăng nhập
+                </button>
             </form>
-
             <div style={{ textAlign: "center", marginTop: "15px" }}>
                 <button onClick={onOpenRegister} className="button-spacing">
-                    Chưa có tài khoản? <span className="hover:text-orange-500">Đăng ký</span>
+                    Chưa có tài khoản?{" "}
+                    <span className="hover:text-orange-500">Đăng ký</span>
                 </button>
             </div>
         </div>

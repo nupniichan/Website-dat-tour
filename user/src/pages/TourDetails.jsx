@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { message } from "antd";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Calendar from "../assets/svg/Calendar";
 import Clock from "../assets/svg/Clock";
@@ -8,8 +9,10 @@ import Seats from "../assets/svg/Seats";
 import Ticket from "../assets/svg/Ticket";
 import Vehicle from "../assets/svg/Vehicle";
 import "./TourDetails.css";
+import PagesNames from "../Router/PagesNames";
 
 const TourDetails = () => {
+    const userId = sessionStorage.getItem("userId");
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
@@ -43,7 +46,10 @@ const TourDetails = () => {
     };
 
     const handleCheckout = () => {
-        navigate(`/checkout/${tour.ID}`);
+        if (userId) {
+            navigate(`${PagesNames.CHECKOUT}/${tour.ID}`);
+        } else
+        message.warning({ content: "Vui lòng đăng nhập." });
     };
 
     if (!tour) {

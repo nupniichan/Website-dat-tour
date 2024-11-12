@@ -1,6 +1,7 @@
 import PagesNames from "../Router/PagesNames.js";
 import Logo3 from "../assets/images/Logo3.png";
 import { FacebookLink, GithubLink, InstaLink, TwitterLink } from "./shared/SocialLinks.jsx";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
     const footerNavs = [
@@ -28,12 +29,12 @@ const Footer = () => {
 
     return (
         <footer
-            className="border-2 overflow-hidden relative">
+            className="overflow-hidden relative">
 
             {/* Background pattern container */}
             <div className="absolute inset-0 bg-[url('src/assets/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
 
-            <div className="text-gray-500 bg-white xl:max-w-4xl lg:max-w-3xl border-1 mx-auto my-16 rounded-3xl z-50 pt-8">
+            <div className="text-gray-500 bg-white xl:max-w-4xl lg:max-w-3xl md:max-w-2xl sm:max-w-xl border-1 mx-auto my-16 rounded-3xl z-50 pt-8">
                 {/* Footer's top */}
                 <div className="py-2">
                     <div className="max-w-lg sm:mx-auto sm:text-center">

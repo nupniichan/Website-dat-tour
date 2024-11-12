@@ -11,6 +11,7 @@ const PagesNames = {
     PAYMENT_RESULT: "/payment-result",
     PAYMENT_SUCCESS: "/payment-success",
     PAYMENT_FAILED: "/payment-failed",
+    BOOKING_SUCCESS: "/booking-success",
 };
 
 export default PagesNames;

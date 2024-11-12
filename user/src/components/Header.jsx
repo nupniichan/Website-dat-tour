@@ -66,7 +66,7 @@ const Header = ({ user, onLogout }) => {
 
     const BrandLogo = () => (
         <div className="flex items-center justify-between py-2 md:block">
-            <button onClick={handleHomepageClick} className="h-[96px] w-[96px]">
+            <button onClick={handleHomepageClick} className="h-[96px] w-[96px] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%]">
                 <img src={Logo3} alt="La Voyage brand logo" />
             </button>
             <div className="md:hidden">
@@ -133,7 +133,7 @@ const Header = ({ user, onLogout }) => {
                 <BrandLogo />
             </div>
             <nav
-                className={`md:text-sm  ${
+                className={`lg:text-md sm:text-xs  ${
                     isMobileMenuOpen
                         ? "absolute z-20 w-full top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
                         : ""
@@ -150,7 +150,7 @@ const Header = ({ user, onLogout }) => {
                             {pagesNavigation.map((item, index) => (
                                 <li
                                     key={index}
-                                    className="text-gray-300 hover:text-gray-400"
+                                    className="text-gray-300 hover:text-gray-400 "
                                 >
                                     <button
                                         onClick={() =>
@@ -206,9 +206,10 @@ const Header = ({ user, onLogout }) => {
 
             {/* Ant Design Modal for Login */}
             <Modal
-                title="Login"
+                title=<div className="text-3xl mt-10 font-bold text-center">Đăng Nhập</div>
                 open={isLoginModalOpen}
                 onCancel={handleLoginClose}
+                closeIcon={null}
                 footer={null}
             >
                 <Login
@@ -220,9 +221,10 @@ const Header = ({ user, onLogout }) => {
 
             {/* Ant Design Modal for Register */}
             <Modal
-                title="Register"
+                title=<div className="text-3xl my-8 -mb-3 font-bold text-center">Đăng Kí</div>
                 open={isRegisterModalOpen}
                 onCancel={handleRegisterClose}
+                closeIcon={null}
                 footer={null}
             >
                 <Register

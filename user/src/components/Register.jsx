@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import "../App.css";
 import PagesNames from "../Router/PagesNames.js";
 import "../pages/Registration.css"
 
@@ -83,8 +82,7 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
 
     return (
         <div className="auth-container">
-            <h2>Đăng ký</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="mt-3">
                 <label htmlFor="fullname">Họ tên:</label>
                 <input
                     type="text"
@@ -180,7 +178,7 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
                 />
                 {errors.confirmPassword && <p className="error-text">{errors.confirmPassword}</p>}
 
-                <button type="submit">Đăng ký</button>
+                <button type="submit" className="p-3 mt-4 bg-orange-500 text-white rounded cursor-pointer hover:bg-orange-600">Đăng ký</button>
             </form>
             <div style={{ textAlign: "center", marginTop: "15px" }}>
                 <button
@@ -190,7 +188,7 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
                     }}
                     className="button-spacing"
                 >
-                    Đã có tài khoản? Đăng nhập
+                    Đã có tài khoản? <span className="hover:text-orange-500">Đăng nhập</span>
                 </button>
             </div>
         </div>

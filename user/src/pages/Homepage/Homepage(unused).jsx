@@ -1,69 +1,67 @@
 import { useState, useEffect } from "react";
-import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { useNavigate } from "react-router-dom";
-import cities from "../json/cities.json";
-import "../App.css";
-import "./Homepage.css";
+import cities from "../../json/cities.json";
+import "../Homepage.css";
 
 dayjs.locale('vi');
 
 const Homepage = () => {
-    const [filteredCities, setFilteredCities] = useState(cities);
-    const [selectedCity, setSelectedCity] = useState("");
-    const [departureDate, setDepartureDate] = useState("");
+    // const [filteredCities, setFilteredCities] = useState(cities);
+    // const [selectedCity, setSelectedCity] = useState("");
+    // const [departureDate, setDepartureDate] = useState("");
     const [featuredTours, setFeaturedTours] = useState([]);
     const navigate = useNavigate();
 
-    const disablePastDates = (current) => {
-        return current && current < dayjs().endOf('day');
-    };
+    // const disablePastDates = (current) => {
+    //     return current && current < dayjs().endOf('day');
+    // };
 
-    const onCityChange = (value) => {
-        setSelectedCity(value);
-    };
+    // const onCityChange = (value) => {
+    //     setSelectedCity(value);
+    // };
 
-    const onSearch = (value) => {
-        const filtered = value
-            ? cities.filter((city) =>
-                  city.city.toLowerCase().includes(value.toLowerCase())
-              )
-            : cities;
-        setFilteredCities(filtered);
-    };
+    // const onSearch = (value) => {
+    //     const filtered = value
+    //         ? cities.filter((city) =>
+    //               city.city.toLowerCase().includes(value.toLowerCase())
+    //           )
+    //         : cities;
+    //     setFilteredCities(filtered);
+    // };
 
-    const onDateChange = (date, dateString) => {
-        setDepartureDate(dateString);
-    };
+    // const onDateChange = (date, dateString) => {
+    //     setDepartureDate(dateString);
+    // };
 
-    const handleSearch = async () => {
-        if (!selectedCity) {
-            alert("Vui lòng chọn điểm đến.");
-            return;
-        }
+    // const handleSearch = async () => {
+    //     if (!selectedCity) {
+    //         alert("Vui lòng chọn điểm đến.");
+    //         return;
+    //     }
 
-        if (!departureDate) {
-            alert("Vui lòng chọn ngày khởi hành.");
-            return;
-        }
+    //     if (!departureDate) {
+    //         alert("Vui lòng chọn ngày khởi hành.");
+    //         return;
+    //     }
 
-        const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD");
-        const apiUrl = `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`;
+    //     const formattedDate = dayjs(departureDate, "DD-MM-YYYY").format("YYYY-MM-DD");
+    //     const apiUrl = `http://localhost:5000/search/tour-with-date?q=${selectedCity}&date=${formattedDate}`;
 
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error('Lỗi mạng.');
-            }
+    //     try {
+    //         const response = await fetch(apiUrl);
+    //         if (!response.ok) {
+    //             throw new Error('Lỗi mạng.');
+    //         }
 
-            const data = await response.json();
-            const filteredResults = data;
-            navigate(`/search/${selectedCity}/${formattedDate}`, { state: { results: filteredResults } });
-        } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error);
-        }
-    };
+    //         const data = await response.json();
+    //         const filteredResults = data;
+    //         navigate(`/search/${selectedCity}/${formattedDate}`, { state: { results: filteredResults } });
+    //     } catch (error) {
+    //         console.error('Lỗi khi lấy dữ liệu:', error);
+    //     }
+    // };
 
     useEffect(() => {
         const fetchFeaturedTours = async () => {
@@ -103,7 +101,7 @@ const Homepage = () => {
 
     return (
         <>
-            <div id="hero-container" className="bg-gray-900">
+            {/* <div id="hero-container" className="bg-gray-900">
                 <section className="relative">
                     <div className="relative z-10 max-w-screen-xl mx-auto px-4 py-28 md:px-8">
                         <div className="home-search space-y-5 max-w-4xl mx-auto text-center">
@@ -165,7 +163,7 @@ const Homepage = () => {
                         }}
                     ></div>
                 </section>
-            </div>
+            </div> */}
 
             <main className="main mt-[100px]">
                 {/* Popular Destinations */}

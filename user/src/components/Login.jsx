@@ -1,7 +1,6 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../App.css";
 import "../pages/Registration.css";
 
 const Login = ({ onLogin, onClose, onOpenRegister }) => {
@@ -53,7 +52,6 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
 
     return (
         <div className="auth-container">
-            <h2>Đăng nhập</h2>
 
             {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>} {/* Display error message */}
 
@@ -80,12 +78,12 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
                     required
                 />
 
-                <button type="submit">Đăng nhập</button>
+                <button type="submit" className="p-3 mt-5 bg-orange-500 text-white rounded cursor-pointer hover:bg-orange-600">Đăng nhập</button>
             </form>
 
             <div style={{ textAlign: "center", marginTop: "15px" }}>
                 <button onClick={onOpenRegister} className="button-spacing">
-                    Chưa có tài khoản? Đăng ký
+                    Chưa có tài khoản? <span className="hover:text-orange-500">Đăng ký</span>
                 </button>
             </div>
         </div>

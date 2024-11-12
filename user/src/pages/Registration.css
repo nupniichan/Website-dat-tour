@@ -2,10 +2,6 @@
   max-width: 400px;
   margin: auto;
   padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .auth-container h2 {
@@ -31,7 +27,7 @@
   border-radius: 4px;
 }
 
-.auth-container button {
+/* .auth-container button {
   padding: 10px;
   background-color: #ff7e01;
   border: none;
@@ -42,7 +38,7 @@
 
 .auth-container button:hover {
   background-color: #faa935;
-}
+} */
 
 .button-spacing {
   margin-top: 15px; /* Adjust the value as needed */

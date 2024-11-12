@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import PagesNames from "../Router/PagesNames.js";
 import "../pages/Registration.css"
+import { message } from "antd";
 
 const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
-    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         fullname: "",
         phoneNumber: "",
@@ -70,13 +68,13 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
         });
 
         if (response.ok) {
-            alert("Đăng ký thành công!");
+            message.success('Đăng ký thành công! 🥳🎊')
             onRegisterSuccess(); // Call the success callback to handle registration success
             onClose(); // Close the modal after registration
         } else {
             const errorData = await response.json();
             setErrors(errorData);
-            alert("Đăng ký thất bại");
+            message.error('Đăng ký thất bại 🙀')
         }
     };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DatePicker, Select } from "antd";
+import { DatePicker, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import cities from "../../json/cities.json";
@@ -36,12 +36,16 @@ const Hero = () => {
 
     const handleSearch = async () => {
         if (!selectedCity) {
-            alert("Vui lòng chọn điểm đến.");
+            message.error({
+                content: 'Vui lòng chọn điểm đến.',
+            })
             return;
         }
 
         if (!departureDate) {
-            alert("Vui lòng chọn ngày khởi hành.");
+            message.error({
+                content: 'Vui lòng chọn ngày khởi hành.',
+            })
             return;
         }
 

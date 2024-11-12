@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../pages/Registration.css";
+import { message } from "antd";
 
 const Login = ({ onLogin, onClose, onOpenRegister }) => {
-    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -34,7 +33,7 @@ const Login = ({ onLogin, onClose, onOpenRegister }) => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Đăng nhập thành công!");
+                message.success('Đăng nhập thành công 🎉')
                 const { ID, userName } = data;
                 sessionStorage.setItem('userId', ID);
                 sessionStorage.setItem('userName', userName);

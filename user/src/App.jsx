@@ -4,6 +4,7 @@ import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { useNavigate } from "react-router";
+import { message, notification } from "antd";
 function App() {
     const [currentUser, setCurrentUser] = useState(null); // State to hold user info
     const navigate = useNavigate();
@@ -30,6 +31,23 @@ function App() {
         sessionStorage.removeItem("userId"); // Xóa tên người dùng
         navigate(`/`);
     };
+
+    useEffect(() => {
+        message.config({
+            duration: 3,
+            maxCount: 3,
+        });
+    }, []);
+
+    useEffect(() => {
+        notification.config({
+            duration: 3,
+            placement: "bottomRight",
+            pauseOnHover: true,
+            showProgress: true,
+            maxCount: 3
+        });
+    });
 
     return (
         <>

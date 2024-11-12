@@ -1,17 +1,17 @@
 const PagesNames = {
-    HOMEPAGE: '/',
-    ABOUT: '/About',
-    REGISTRATION: '/Register',
-    LOGIN: '/Login',
-    CHECKOUT: '/checkout/:id',
-    SEARCH_RESULTS: '/search/:searchTerm/:departureDate', 
-    TOUR_DETAILS: '/tour-details/:id',
-    SCHEDULE: '/Schedule',
-    CONTACT: '/Contact',
-    TOUR_HISTORY: '/TourHistory',
-    PAYMENTRESULT: '/payment-result',
-    PAYMENTSUCCESS: '/payment-success',
-    PAYMENTFAILED: '/payment-failed'
-}
+    HOMEPAGE: "/",
+    ABOUT: "/about-us",
+    PROFILE: '/profile',
+    SEARCH_RESULTS: "/search-results",
+    TOUR_DETAILS: "/tour-details",
+    CHECKOUT: "/checkout",
+    SCHEDULE: "/schedule",
+    CONTACT: "/contact",
+    TOUR_HISTORY: "/tour-history",
+    PAYMENT_RESULT: "/payment-result",
+    PAYMENT_SUCCESS: "/payment-success",
+    PAYMENT_FAILED: "/payment-failed",
+    BOOKING_SUCCESS: "/booking-success",
+};
 
 export default PagesNames;

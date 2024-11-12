@@ -5,7 +5,6 @@ import { ConfigProvider } from "antd";
 
 import App from "./App.jsx";
 import "./index.css";
-import './pages/Homepage.css';
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
@@ -24,10 +23,9 @@ createRoot(document.getElementById("root")).render(
                         activeBorderColor: "#f97316",
                         hoverBorderColor: "#f97316",
                         optionSelectedBg: "rgba(249, 115, 22, 0.8)",
+                        optionSelectedColor: "#fff",
                     },
-                    Calendar: {
-                        
-                    },
+                    Calendar: {},
                 },
             }}
         >

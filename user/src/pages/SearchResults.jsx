@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import './SearchResult.css';
+import PagesNames from '../Router/PagesNames.js';
+import { message } from 'antd';
 
 const SearchResults = () => {
+    const userId = sessionStorage.getItem("userId");
     const location = useLocation();
     const navigate = useNavigate(); // Khởi tạo navigate
     const { results: initialResults } = location.state || {};
@@ -46,14 +49,15 @@ const SearchResults = () => {
     const nextPage = () => setCurrentPage(prevPage => Math.min(prevPage + 1, Math.ceil(filteredResults.length / toursPerPage)));
     const prevPage = () => setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
 
-    // Hàm chuyển đến trang chi tiết tour
     const goToTourDetails = (tour) => {
-        navigate(`/tour-details/${tour.ID}`); // Điều hướng đến TourDetails với tourId trong URL
+        navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}`);
     };
 
-    // Hàm chuyển đến trang checkout
     const goToCheckout = (tour) => {
-        navigate(`/checkout/${tour.ID}`); // Thay đổi `navigate(/checkout/${tour.ID})` thành `navigate(`/checkout/${tour.ID})` với dấu ngoặc kép
+        if (userId) {
+        navigate(`${PagesNames.CHECKOUT}/${tour.ID}`);
+        } else
+        message.warning({content: 'Vui lòng đăng nhập'})
     };
 
     return (
@@ -93,11 +97,11 @@ const SearchResults = () => {
                     currentTours.map((item, index) => (
                         <div key={index} className="tour-card" onClick={() => goToTourDetails(item)}>
                             <div className="relative">
-                                <img 
-                                    src={`http://localhost:5000/${item.HINHANH}`} 
-                                    alt={item.TENTOUR} 
-                                    className="tour-image" 
-                                    onError={(e) => e.target.src = 'default-image.jpg'} 
+                                <img
+                                    src={`http://localhost:5000/${item.HINHANH}`}
+                                    alt={item.TENTOUR}
+                                    className="tour-image"
+                                    onError={(e) => e.target.src = 'default-image.jpg'}
                                 />
                                 <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm">
                                     {item.LOAITOUR}
@@ -111,7 +115,7 @@ const SearchResults = () => {
 
                             <div className="tour-info p-6">
                                 <h3 className="tour-name text-xl font-bold mb-3">{item.TENTOUR}</h3>
-                                
+
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div className="flex items-center text-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,8 +172,8 @@ const SearchResults = () => {
                                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.MOTA}</p>
 
                                 <div className="flex justify-end">
-                                    <button 
-                                        onClick={(e) => { 
+                                    <button
+                                        onClick={(e) => {
                                             e.stopPropagation();
                                             goToCheckout(item);
                                         }}

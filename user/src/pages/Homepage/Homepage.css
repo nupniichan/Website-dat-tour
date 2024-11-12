@@ -1,0 +1,33 @@
+/* ANT DESIGN CLASSES */
+.ant-radio-checked {
+    .ant-radio-inner {
+        border-color: #f97316 !important;
+    }
+    .ant-radio-inner::after {
+        background-color: #f97316;
+    }
+}
+
+.ant-radio:hover .ant-radio-inner {
+    border-color: #f97316;
+}
+
+.ant-radio-wrapper:hover .ant-radio-inner {
+    border-color: #f97316;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner {
+    background-color: rgba(249, 115, 22, 1) !important;
+}
+
+.ant-picker-now-btn:hover {
+    color: #f97316;
+}
+
+.ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: #f97316 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header-view > button:hover {
+    color: #f97316;
+}

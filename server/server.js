@@ -570,7 +570,7 @@ app.post('/register', (req, res) => {
     }
     
     if (result.length > 0) {
-      return res.status(400).json({ message: 'Email already exists!' });
+      return res.status(400).json({ message: 'Email đã được sử dụng!' });
     }
 
     // Chèn dữ liệu nếu email chưa tồn tại

@@ -35,7 +35,7 @@ const Footer = () => {
     return (
         <footer className="overflow-hidden relative">
             {/* Background pattern container */}
-            <div className="absolute inset-0 bg-[url('src/assets/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
+            <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
 
             <div className="text-gray-500 bg-white xl:max-w-4xl lg:max-w-3xl md:max-w-2xl sm:max-w-xl border-1 mx-auto my-16 rounded-3xl z-50 pt-8">
                 {/* Footer's top */}

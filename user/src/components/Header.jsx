@@ -2,13 +2,13 @@ import { Dropdown, Menu, message, Modal } from "antd"; // Importing Modal from a
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PagesNames from "../Router/PagesNames.js";
+import Logo3 from "../assets/images/Logo3.png";
 import "../components/Header.css";
 import Login from "./Login";
 import Register from "./Register";
-import Logo3 from "../assets/images/Logo3.png";
 
 const Header = ({ user, onLogout }) => {
-    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -143,30 +143,28 @@ const Header = ({ user, onLogout }) => {
 
     return (
         <header
-            className={
-                isHomepage
-                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-20 md:-mt-0 -mt-3"
-                    : "sticky backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full"
-            }
-        >
-            {!isHomepage && (
-                <div className="absolute inset-0 bg-[url('src/assets/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
-            )}
-
-            <div
-                className={`md:hidden ${
-                    isMobileMenuOpen ? "mx-2 pb-5" : "hidden"
-                }`}
-            >
-                <BrandLogo />
-            </div>
-            <nav
-                className={`lg:text-md sm:text-xs  ${
-                    isMobileMenuOpen
-                        ? "absolute z-20 w-full top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
-                        : ""
-                }`}
-            >
+            className={`${
+        isHomepage
+            ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-50 md:-mt-0 -mt-3"
+            : "sticky backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full z-50"
+    }`}
+>
+    {!isHomepage && (
+        <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
+    )}
+    
+    <div
+        className={`md:hidden ${isMobileMenuOpen ? "mx-2 pb-5" : "hidden"}`}
+    >
+        <BrandLogo />
+    </div>
+    <nav
+        className={`lg:text-md sm:text-xs ${
+            isMobileMenuOpen
+                ? "absolute z-50 w-[97vw] top-0 inset-x-0 bg-gray-800 rounded-xl mx-3 mt-3 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
+                : ""
+        }`}
+    >
                 <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex justify-center md:px-8">
                     <BrandLogo />
                     <div
@@ -178,7 +176,11 @@ const Header = ({ user, onLogout }) => {
                             {pagesNavigation.map((item, index) => (
                                 <li
                                     key={index}
-                                    className="text-gray-300 hover:text-white header-menu-item"
+                                    className={`text-gray-300 hover:text-white ${
+                                        isMobileMenuOpen
+                                            ? "header-menu-items"
+                                            : ""
+                                    } `}
                                 >
                                     <button
                                         onClick={() =>
@@ -193,26 +195,6 @@ const Header = ({ user, onLogout }) => {
                             <li>
                                 {userId ? (
                                     <div className="flex items-center">
-                                        {/* <button
-                                            className="username-plate"
-                                            onClick={handleProfileClick}
-                                        >
-                                            {userName}
-                                        </button> */}
-
-                                        {/* <Dropdown
-                                            menu={{ items: UserItems }}
-                                            trigger={["click"]}
-                                            onOpenChange={handleMenuChange}
-                                            className="inline-flex h-[2.8rem] w-[5.05rem] justify-center gap-[0.8rem] border-[1px] border-[#dddddd] rounded-[30px] p-2 m-[2rem] ml-[0.75rem] cursor-pointer transition-shadow duration-150 ease-linear hover:shadow-[0_2px_4px_rgba(0,0,0,0.18)] focus:shadow-[0_2px_4px_rgba(0,0,0,0.18)]"
-                                            overlayStyle={{
-                                                fontSize: "0.875rem",
-                                                lineHeight: "1.43",
-                                            }}
-                                        >
-                                            {userName}
-                                        </Dropdown> */}
-
                                         <Dropdown
                                             overlay={
                                                 <Menu>
@@ -228,17 +210,10 @@ const Header = ({ user, onLogout }) => {
                                             trigger={["click"]}
                                             onOpenChange={handleMenuChange}
                                         >
-                                            <div className="username-plate">
+                                            <div className="username-plate" onClick={(e) => e.stopPropagation()}>
                                                 {userName}
                                             </div>
                                         </Dropdown>
-
-                                        {/* <button
-                                            onClick={onLogout}
-                                            className="ml-2 flex items-center justify-center gap-x-1 py-2 px-4 text-orange-500 font-medium hover:text-white duration-150 rounded-full"
-                                        >
-                                            Đăng xuất
-                                        </button> */}
                                     </div>
                                 ) : (
                                     <button

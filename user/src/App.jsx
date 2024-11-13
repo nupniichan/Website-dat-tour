@@ -30,7 +30,7 @@ function App() {
         sessionStorage.removeItem("token"); // Xóa token khi đăng xuất
         sessionStorage.removeItem("userName"); // Xóa tên người dùng
         sessionStorage.removeItem("userId"); // Xóa tên người dùng
-        navigate(`/`);
+        window.location.reload()
     };
 
     useEffect(() => {

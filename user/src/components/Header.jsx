@@ -17,7 +17,7 @@ const Header = ({ user, onLogout }) => {
     const userName = sessionStorage.getItem("userName");
     const pagesNavigation = [
         { title: "Trang chủ", path: PagesNames.HOMEPAGE },
-        { title: "Tour", path: PagesNames.SCHEDULE },
+        // { title: "Tour", path: PagesNames.SCHEDULE },
         { title: "Về chúng tôi", path: PagesNames.ABOUT },
         { title: "Liên hệ", path: PagesNames.CONTACT },
     ];
@@ -70,7 +70,7 @@ const Header = ({ user, onLogout }) => {
         <div className="flex items-center justify-between py-2 md:block">
             <button
                 onClick={handleHomepageClick}
-                className="h-[96px] w-[96px] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%]"
+                className={`h-[96px] w-[96px] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%] ${isMobileMenuOpen ? "translate-x-2" : ""}`}
             >
                 <img src={Logo3} alt="La Voyage brand logo" />
             </button>
@@ -144,27 +144,29 @@ const Header = ({ user, onLogout }) => {
     return (
         <header
             className={`${
-        isHomepage
-            ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-50 md:-mt-0 -mt-3"
-            : "sticky backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full z-50"
-    }`}
->
-    {!isHomepage && (
-        <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
-    )}
-    
-    <div
-        className={`md:hidden ${isMobileMenuOpen ? "mx-2 pb-5" : "hidden"}`}
-    >
-        <BrandLogo />
-    </div>
-    <nav
-        className={`lg:text-md sm:text-xs ${
-            isMobileMenuOpen
-                ? "absolute z-50 w-[97vw] top-0 inset-x-0 bg-gray-800 rounded-xl mx-3 mt-3 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
-                : ""
-        }`}
-    >
+                isHomepage
+                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-50 md:-mt-0 -mt-3"
+                    : "sticky backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full z-50"
+            }`}
+        >
+            {!isHomepage && (
+                <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
+            )}
+
+            <div
+                className={`md:hidden ${
+                    isMobileMenuOpen ? "mx-2 pb-5" : "hidden"
+                }`}
+            >
+                <BrandLogo />
+            </div>
+            <nav
+                className={`lg:text-md sm:text-xs ${
+                    isMobileMenuOpen
+                        ? "absolute z-50 w-[35vw] scale-[80%] top-0 translate-x-64 inset-x-0 bg-gray-800 rounded-xl mx-3 mt-3 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
+                        : ""
+                }`}
+            >
                 <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex justify-center md:px-8">
                     <BrandLogo />
                     <div
@@ -210,7 +212,12 @@ const Header = ({ user, onLogout }) => {
                                             trigger={["click"]}
                                             onOpenChange={handleMenuChange}
                                         >
-                                            <div className="username-plate" onClick={(e) => e.stopPropagation()}>
+                                            <div
+                                                className="username-plate"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
                                                 {userName}
                                             </div>
                                         </Dropdown>

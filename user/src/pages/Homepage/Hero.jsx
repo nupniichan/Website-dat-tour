@@ -75,7 +75,7 @@ const Hero = () => {
     const heroSLogan = `Your dream vacation, tailored to perfection`;
 
     return (
-        <div id="hero-container" className="h-[106vh] relative">
+        <div id="hero-container" className="h-[106vh] w-100vw relative">
             {/* <section className="relative"> */}
             <BackgroundGradientAnimation />
 

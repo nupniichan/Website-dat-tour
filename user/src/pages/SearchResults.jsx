@@ -48,6 +48,7 @@ const SearchResults = () => {
     const prevPage = () => setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
 
     const goToTourDetails = (tour) => {
+        // route đang ko navigate được
         navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}/${tour.TENTOUR}`);
     };
 

@@ -18,7 +18,7 @@ const BookingSuccess = () => {
             <p className="text-gray-600">Mã đặt tour của bạn: {ticketId}</p>
           </div>
 
-          {paymentMethod === 'cash' ? (
+          {paymentMethod === 'Tiền mặt' ? (
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
               <div className="flex">
                 <div className="ml-3">

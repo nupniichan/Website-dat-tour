@@ -13,6 +13,8 @@ const ReviewManagement = () => {
   const [page, setPage] = useState(0);
   const itemsPerPage = 10;
   const navigate = useNavigate();
+  const [mainTablePage, setMainTablePage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchTourReviews();
@@ -59,6 +61,7 @@ const ReviewManagement = () => {
     } else {
       setFilteredTours(tours);
     }
+    setMainTablePage(1);
   }, [searchTerm, tours]);
 
   const handleViewDetails = (tour) => {
@@ -103,6 +106,14 @@ const ReviewManagement = () => {
     return filteredReviews.slice(startIndex, startIndex + itemsPerPage);
   };
 
+  const totalMainPages = Math.ceil(filteredTours.length / rowsPerPage);
+  const startIndex = (mainTablePage - 1) * rowsPerPage;
+  const currentTours = filteredTours.slice(startIndex, startIndex + rowsPerPage);
+
+  const handleMainPageChange = (event, newPage) => {
+    setMainTablePage(newPage);
+  };
+
   return (
     <Box padding={3}>
       <h3>Quản lý đánh giá tour</h3>
@@ -127,7 +138,7 @@ const ReviewManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredTours.map((tour) => (
+          {currentTours.map((tour) => (
             <TableRow key={tour.tourId}>
               <TableCell>{tour.tourId}</TableCell>
               <TableCell>{tour.tourName}</TableCell>
@@ -153,6 +164,17 @@ const ReviewManagement = () => {
           ))}
         </TableBody>
       </Table>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination 
+          count={totalMainPages}
+          page={mainTablePage}
+          onChange={handleMainPageChange}
+          color="primary"
+          showFirstButton 
+          showLastButton
+        />
+      </Box>
 
       {selectedTour && (
         <Dialog 

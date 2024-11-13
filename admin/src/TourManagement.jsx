@@ -18,6 +18,7 @@ import {
   Paper,
   Grid,
   Chip,
+  Pagination
 } from '@mui/material';
 import { ArrowDropDown, ArrowDropUp, LocationOn, CalendarToday, AttachMoney, ConfirmationNumber, Category, Description, DirectionsBus, Schedule, Image as ImageIcon, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +31,8 @@ const TourManagement = () => {
   const [tours, setTours] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchTours();
@@ -105,6 +108,18 @@ const TourManagement = () => {
 
   console.log('Filtered tours:', filteredTours); // Log filtered tours
 
+  const totalPages = Math.ceil(filteredTours.length / rowsPerPage);
+  const startIndex = (page - 1) * rowsPerPage;
+  const currentTours = filteredTours.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter]);
+
   return (
     <>
       <Box padding={3}>
@@ -152,7 +167,7 @@ const TourManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredTours.map((tour) => (
+            {currentTours.map((tour) => (
               <TableRow key={tour.ID}>
                 <TableCell>{tour.TENTOUR}</TableCell>
                 <TableCell>{tour.SOVE}</TableCell>
@@ -169,6 +184,18 @@ const TourManagement = () => {
             ))}
           </TableBody>
         </Table>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination 
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton 
+            showLastButton
+          />
+        </Box>
+
                 {selectedTour && (
           <Dialog 
             open={true} 

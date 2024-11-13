@@ -116,18 +116,81 @@ const EditUser = () => {
       .catch(err => console.error('Lỗi khi kiểm tra tên tài khoản:', err));
   };
 
+  const isValidVietnamesePhone = (phone) => {
+    const vietnamesePhoneRegex = /^(0)(3|5|7|8|9)[0-9]{8}$/;
+    return vietnamesePhoneRegex.test(phone);
+  };
+
+  const isValidBirthDate = (birthDate) => {
+    const today = new Date();
+    const selectedDate = new Date(birthDate);
+    
+    if (selectedDate > today) {
+      return { isValid: false, message: 'Ngày sinh không thể là ngày trong tương lai' };
+    }
+    
+    let age = today.getFullYear() - selectedDate.getFullYear();
+    const monthDiff = today.getMonth() - selectedDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 18) {
+      return { isValid: false, message: 'Người dùng phải đủ 18 tuổi' };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
+  const calculateMaxDate = () => {
+    const today = new Date();
+    const maxDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+    return maxDate.toISOString().split('T')[0];
+  };
+
   const validateForm = () => {
     const newErrors = {};
+
     if (!user.FULLNAME) {
       newErrors.FULLNAME = 'Tên đầy đủ không được để trống';
     } else if (!/\s/.test(user.FULLNAME)) {
       newErrors.FULLNAME = 'Tên đầy đủ phải có ít nhất một khoảng trắng';
     }
-    if (!user.PHONENUMBER) newErrors.PHONENUMBER = 'Số điện thoại không được để trống';
-    if (!user.EMAIL) newErrors.EMAIL = 'Email không được để trống';
-    else if (!/\S+@\S+\.\S+/.test(user.EMAIL)) newErrors.EMAIL = 'Email không hợp lệ';
-    if (!user.DAYOFBIRTH) newErrors.DAYOFBIRTH = 'Ngày sinh không được để trống';
-    if (!user.ACCOUNTNAME) newErrors.ACCOUNTNAME = 'Tên tài khoản không được để trống';
+
+    if (!user.PHONENUMBER) {
+      newErrors.PHONENUMBER = 'Số điện thoại không được để trống';
+    } else if (!isValidVietnamesePhone(user.PHONENUMBER)) {
+      newErrors.PHONENUMBER = 'Số điện thoại không hợp lệ (phải là số điện thoại Việt Nam)';
+    } else if (phoneExists) {
+      newErrors.PHONENUMBER = 'Số điện thoại đã tồn tại';
+    }
+
+    if (!user.EMAIL) {
+      newErrors.EMAIL = 'Email không được để trống';
+    } else if (!/\S+@\S+\.\S+/.test(user.EMAIL)) {
+      newErrors.EMAIL = 'Email không hợp lệ';
+    } else if (emailExists) {
+      newErrors.EMAIL = 'Email đã tồn tại';
+    }
+
+    if (!user.DAYOFBIRTH) {
+      newErrors.DAYOFBIRTH = 'Ngày sinh không được để trống';
+    } else {
+      const birthDateValidation = isValidBirthDate(user.DAYOFBIRTH);
+      if (!birthDateValidation.isValid) {
+        newErrors.DAYOFBIRTH = birthDateValidation.message;
+      }
+    }
+
+    if (!user.ACCOUNTNAME) {
+      newErrors.ACCOUNTNAME = 'Tên tài khoản không được để trống';
+    } else if (accountNameExists) {
+      newErrors.ACCOUNTNAME = 'Tên tài khoản đã tồn tại';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -279,6 +342,9 @@ const EditUser = () => {
                         error={!!errors.DAYOFBIRTH}
                         helperText={errors.DAYOFBIRTH}
                         InputLabelProps={{ shrink: true }}
+                        inputProps={{
+                          max: calculateMaxDate()
+                        }}
                         sx={{ bgcolor: 'white' }}
                         InputProps={{
                           startAdornment: (

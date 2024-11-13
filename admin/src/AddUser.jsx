@@ -75,30 +75,87 @@ const AddUser = () => {
     setAccountNameExists(data.exists);
   };
 
+  const isValidVietnamesePhone = (phone) => {
+    const vietnamesePhoneRegex = /^(0)(3|5|7|8|9)[0-9]{8}$/;
+    return vietnamesePhoneRegex.test(phone);
+  };
+
+  const isValidBirthDate = (birthDate) => {
+    const today = new Date();
+    const selectedDate = new Date(birthDate);
+    
+    if (selectedDate > today) {
+      return { isValid: false, message: 'Ngày sinh không thể là ngày trong tương lai' };
+    }
+    
+    let age = today.getFullYear() - selectedDate.getFullYear();
+    const monthDiff = today.getMonth() - selectedDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 18) {
+      return { isValid: false, message: 'Người dùng phải đủ 18 tuổi' };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
   const validateForm = () => {
     const newErrors = {};
+
     if (!user.fullName) {
       newErrors.fullName = 'Tên đầy đủ không được để trống';
-    } else if (!/\s/.test(user.fullName)) { // Kiểm tra xem có ít nhất một khoảng trắng không
+    } else if (!/\s/.test(user.fullName)) {
       newErrors.fullName = 'Tên đầy đủ phải có ít nhất một khoảng trắng';
     }
-    if (!user.phone) newErrors.phone = 'Số điện thoại không được để trống';
-    else if (phoneExists) newErrors.phone = 'Số điện thoại đã tồn tại'; // Kiểm tra số điện thoại tồn tại
-    if (!user.email) newErrors.email = 'Email không được để trống';
-    else if (!/\S+@\S+\.\S+/.test(user.email)) newErrors.email = 'Email không hợp lệ';
-    else if (emailExists) newErrors.email = 'Email đã tồn tại'; // Kiểm tra email tồn tại
-    if (!userPassword) newErrors.userPassword = 'Mật khẩu không được để trống';
-    else if (userPassword.length < 6) newErrors.userPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
-    if (!rePassword) newErrors.rePassword = 'Xác nhận mật khẩu không được để trống';
-    else if (userPassword !== rePassword) newErrors.rePassword = 'Mật khẩu xác nhận không khớp';
-    if (!user.dayOfBirth) newErrors.dayOfBirth = 'Ngày sinh không được để trống';
-    if (!user.accountName) newErrors.accountName = 'Tên tài khoản không được để trống';
-    else if (accountNameExists) newErrors.accountName = 'Tên tài khoản đã tồn tại'; // Kiểm tra tên tài khoản tồn tại
-  
+
+    if (!user.phone) {
+      newErrors.phone = 'Số điện thoại không được để trống';
+    } else if (!isValidVietnamesePhone(user.phone)) {
+      newErrors.phone = 'Số điện thoại không hợp lệ (phải là số điện thoại Việt Nam)';
+    } else if (phoneExists) {
+      newErrors.phone = 'Số điện thoại đã tồn tại';
+    }
+
+    if (!user.email) {
+      newErrors.email = 'Email không được để trống';
+    } else if (!/\S+@\S+\.\S+/.test(user.email)) {
+      newErrors.email = 'Email không hợp lệ';
+    } else if (emailExists) {
+      newErrors.email = 'Email đã tồn tại';
+    }
+
+    if (!user.dayOfBirth) {
+      newErrors.dayOfBirth = 'Ngày sinh không được để trống';
+    } else {
+      const birthDateValidation = isValidBirthDate(user.dayOfBirth);
+      if (!birthDateValidation.isValid) {
+        newErrors.dayOfBirth = birthDateValidation.message;
+      }
+    }
+
+    if (!user.accountName) {
+      newErrors.accountName = 'Tên tài khoản không được để trống';
+    } else if (accountNameExists) {
+      newErrors.accountName = 'Tên tài khoản đã tồn tại';
+    }
+
+    if (!userPassword) {
+      newErrors.userPassword = 'Mật khẩu không được để trống';
+    } else if (userPassword.length < 6) {
+      newErrors.userPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+
+    if (!rePassword) {
+      newErrors.rePassword = 'Xác nhận mật khẩu không được để trống';
+    } else if (userPassword !== rePassword) {
+      newErrors.rePassword = 'Mật khẩu xác nhận không khớp';
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Trả về true nếu không có lỗi
+    return Object.keys(newErrors).length === 0;
   };
-  
 
   const handleEmailChange = async (e) => {
     const { value } = e.target;
@@ -161,6 +218,16 @@ const AddUser = () => {
     } catch (err) {
       console.error('Error adding user:', err);
     }
+  };
+
+  const calculateMaxDate = () => {
+    const today = new Date();
+    const maxDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+    return maxDate.toISOString().split('T')[0];
   };
 
   return (
@@ -233,7 +300,7 @@ const AddUser = () => {
                     <Grid item xs={12} md={6}>
                       <TextField
                         label="Số điện thoại"
-                        type="tel"
+                        type="number"
                         fullWidth
                         name="phone"
                         value={user.phone}
@@ -282,6 +349,9 @@ const AddUser = () => {
                         error={!!errors.dayOfBirth}
                         helperText={errors.dayOfBirth}
                         InputLabelProps={{ shrink: true }}
+                        inputProps={{
+                          max: calculateMaxDate()
+                        }}
                         sx={{ bgcolor: 'white' }}
                         InputProps={{
                           startAdornment: (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Paper, Grid, Chip } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Paper, Grid, Chip, Pagination } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import TourIcon from '@mui/icons-material/Tour';
 import PersonIcon from '@mui/icons-material/Person';
@@ -12,6 +12,8 @@ const BookingManagement = () => {
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
   const navigate = useNavigate();
 
   // Fetch bookings from the backend
@@ -41,7 +43,19 @@ const BookingManagement = () => {
     } else {
       setFilteredBookings(bookings);
     }
+    setPage(1); // Reset to first page when search term changes
   }, [searchTerm, bookings]);
+
+  // Calculate pagination values
+  const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+  const startIndex = (page - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentBookings = filteredBookings.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   // Navigate to add booking page
   const handleAddBookingClick = () => {
@@ -124,7 +138,7 @@ const BookingManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredBookings.map((booking) => (
+          {currentBookings.map((booking) => (
             <TableRow key={booking.ID}>
               <TableCell>{booking.ID}</TableCell>
               <TableCell>{booking.IDTOUR}</TableCell>
@@ -148,6 +162,18 @@ const BookingManagement = () => {
           ))}
         </TableBody>
       </Table>
+
+      {/* Add pagination component */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination 
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+          showFirstButton 
+          showLastButton
+        />
+      </Box>
 
       {/* Booking details dialog */}
       {selectedBooking && (

@@ -8,6 +8,7 @@ import PopularDestinations from "./PopularDestinations.jsx";
 import PopularTours from "./PopularTours.jsx";
 import WhyUs from "./WhyUs.jsx";
 import { useEffect } from "react";
+import { FloatButton } from "antd";
 
 const Homepage = () => {
     useEffect(() => {
@@ -33,6 +34,8 @@ const Homepage = () => {
             <PopularTours />
 
             <Newsletter />
+
+            <FloatButton.BackTop tooltip='Back to top' duration={2000} />
         </>
     );
 };

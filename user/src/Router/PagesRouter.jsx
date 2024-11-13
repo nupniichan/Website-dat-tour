@@ -20,7 +20,7 @@ const PageRouter = () => {
             <Route path={PagesNames.HOMEPAGE} element={<Homepage />} />
             <Route path={PagesNames.ABOUT} element={<About />} />
             <Route path={PagesNames.SEARCH_RESULTS} element={<SearchResults />} />
-            <Route path={`${PagesNames.TOUR_DETAILS}/:id`} element={<TourDetails />} />
+            <Route path={`${PagesNames.TOUR_DETAILS}/:id/:tentour`} element={<TourDetails />} />
             <Route path={`${PagesNames.CHECKOUT}/:id`} element={<Checkout />} />
             <Route path={PagesNames.TOUR_HISTORY} element={<TourHistory />} />
             <Route path={PagesNames.SCHEDULE} element={<Schedule />} />

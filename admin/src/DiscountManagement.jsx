@@ -6,7 +6,8 @@ import {
   Grid,
   IconButton,
   Chip,
-  Divider
+  Divider,
+  Pagination
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -26,6 +27,9 @@ const DiscountManagement = () => {
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const navigate = useNavigate();
   const [errors, setError] = useState({}); // State for validation errors
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
+
   // Fetch discounts from the backend
   useEffect(() => {
     fetchDiscounts();
@@ -54,7 +58,19 @@ const DiscountManagement = () => {
     } else {
       setFilteredDiscounts(discounts);
     }
+    setPage(1); // Reset về trang 1 khi tìm kiếm
   }, [searchTerm, discounts]);
+
+  // Tính toán các giá trị cho phân trang
+  const totalPages = Math.ceil(filteredDiscounts.length / rowsPerPage);
+  const startIndex = (page - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentDiscounts = filteredDiscounts.slice(startIndex, endIndex);
+
+  // Xử lý khi thay đổi trang
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   // Navigate to add discount page
   const handleAddDiscountClick = () => {
@@ -127,7 +143,7 @@ const DiscountManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredDiscounts.map((discount) => (
+          {currentDiscounts.map((discount) => (
             <TableRow key={discount.IDMAGIAMGIA}>
               <TableCell>{discount.IDMAGIAMGIA}</TableCell>
               <TableCell>{discount.TENMGG}</TableCell>
@@ -149,6 +165,18 @@ const DiscountManagement = () => {
           ))}
         </TableBody>
       </Table>
+
+      {/* Thêm component phân trang */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination 
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+          showFirstButton 
+          showLastButton
+        />
+      </Box>
 
       {/* Discount details dialog */}
       {selectedDiscount && (

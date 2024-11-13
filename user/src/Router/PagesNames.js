@@ -3,7 +3,7 @@ const PagesNames = {
     ABOUT: "/about-us",
     PROFILE: '/profile',
     SEARCH_RESULTS: "/search-results",
-    TOUR_DETAILS: "/tour-details",
+    TOUR_DETAILS: "/tour-details", // đang bị sai phần này
     CHECKOUT: "/checkout",
     SCHEDULE: "/schedule",
     CONTACT: "/contact",

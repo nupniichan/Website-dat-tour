@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Grid, Paper } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, IconButton, Grid, Paper, Pagination } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   Timeline,
@@ -24,6 +24,8 @@ const ScheduleManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   // Fetch schedules from the backend
   useEffect(() => {
@@ -49,7 +51,18 @@ const ScheduleManagement = () => {
     } else {
       setFilteredSchedules(schedules);
     }
+    setPage(1); // Reset về trang 1 khi tìm kiếm
   }, [searchTerm, schedules]);
+
+  // Tính toán các giá trị cho phân trang
+  const totalPages = Math.ceil(filteredSchedules.length / rowsPerPage);
+  const startIndex = (page - 1) * rowsPerPage;
+  const currentSchedules = filteredSchedules.slice(startIndex, startIndex + rowsPerPage);
+
+  // Xử lý khi thay đổi trang
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   // Navigate to add schedule page
   const handleAddScheduleClick = () => {
@@ -132,7 +145,7 @@ const ScheduleManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredSchedules.map((schedule) => (
+          {currentSchedules.map((schedule) => (
             <TableRow key={schedule.ID}>
               <TableCell>{schedule.ID}</TableCell>
               <TableCell>{schedule.tenlichtrinh}</TableCell>
@@ -164,6 +177,18 @@ const ScheduleManagement = () => {
           ))}
         </TableBody>
       </Table>
+
+      {/* Thêm component phân trang */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination 
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+          showFirstButton 
+          showLastButton
+        />
+      </Box>
 
       {selectedSchedule && (
         <Dialog 

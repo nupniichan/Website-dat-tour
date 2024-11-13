@@ -95,6 +95,7 @@ app.get('/api/tour-history/:userId', (req, res) => {
 // Hủy vé
 app.post('/api/tour-history/cancel/:id', (req, res) => {
   const ticketId = req.params.id;
+  const { reason } = req.body;
 
   const getTicketQuery = `
     SELECT v.*, t.IDLICHTRINH, l.NGAYDI 
@@ -116,42 +117,44 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
     const ticket = ticketResults[0];
     
     // Kiểm tra trạng thái vé
-    if (ticket.TINHTRANG === 'Chưa thanh toán') {
-      return res.status(400).json({ error: 'Không thể hủy vé chưa thanh toán' });
-    }
-
     if (ticket.TINHTRANG === 'Đã hủy') {
       return res.status(400).json({ error: 'Vé đã được hủy trước đó' });
     }
 
-    if (ticket.TINHTRANG === 'Đ hoàn tiền') {
+    if (ticket.TINHTRANG === 'Đã hoàn tiền') {
       return res.status(400).json({ error: 'Vé đã được hoàn tiền trước đó' });
     }
-    // Kiểm tra thời gian
-    const departureDate = new Date(ticket.NGAYDI);
-    const now = new Date();
-    const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
 
-    if (hoursDifference < 24) {
-      return res.status(400).json({ 
-        error: 'Không thể hủy vé trong vòng 24 giờ trước khi tour khởi hành',
-        remainingHours: Math.floor(hoursDifference)
-      });
+    // Cho phép hủy vé nếu trạng thái là "Chưa thanh toán" hoặc kiểm tra điều kiện 24h
+    if (ticket.TINHTRANG !== 'Chưa thanh toán') {
+      const departureDate = new Date(ticket.NGAYDI);
+      const now = new Date();
+      const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
+
+      if (hoursDifference < 24) {
+        return res.status(400).json({ 
+          error: 'Không thể hủy vé trong vòng 24 giờ trước khi tour khởi hành',
+          remainingHours: Math.floor(hoursDifference)
+        });
+      }
     }
 
-    // Nếu đủ điều kiện thì mới cho hủy
-    const totalTickets = ticket.SOVE_NGUOILON + ticket.SOVE_TREM + ticket.SOVE_EMBE;
-    const tourId = ticket.IDTOUR;
+    // Tính tổng số vé
+    const totalTickets = parseInt(ticket.SOVE_NGUOILON || 0) + 
+                        parseInt(ticket.SOVE_TREM || 0) + 
+                        parseInt(ticket.SOVE_EMBE || 0);
 
-    const updateTicketQuery = 'UPDATE ve SET TINHTRANG = ? WHERE ID = ?';
-    db.query(updateTicketQuery, ['Đã hủy', ticketId], (error, results) => {
+    // Cập nhật trạng thái vé
+    const updateTicketQuery = 'UPDATE ve SET TINHTRANG = ?, GHICHU = ? WHERE ID = ?';
+    db.query(updateTicketQuery, ['Đã hủy', reason, ticketId], (error, results) => {
       if (error) {
         console.error('Lỗi khi cập nhật trạng thái vé:', error);
         return res.status(500).json({ error: 'Hủy vé thất bại' });
       }
 
-      const updateTourQuery = 'UPDATE Tour SET SOVE = SOVE + ? WHERE ID = ?';
-      db.query(updateTourQuery, [totalTickets, tourId], (err, result) => {
+      // Cập nhật số vé có sẵn trong tour
+      const updateTourQuery = 'UPDATE tour SET SOVE = SOVE + ? WHERE ID = ?';
+      db.query(updateTourQuery, [totalTickets, ticket.IDTOUR], (err, result) => {
         if (err) {
           console.error('Lỗi khi cập nhật SOVE trong Tour:', err);
           return res.status(500).json({ error: 'Lỗi khi cập nhật số vé trong tour' });
@@ -159,8 +162,8 @@ app.post('/api/tour-history/cancel/:id', (req, res) => {
 
         res.json({ 
           message: 'Hủy vé thành công',
-          cancelTime: now,
-          departureTime: departureDate
+          cancelTime: new Date(),
+          departureTime: ticket.NGAYDI
         });
       });
     });
@@ -1069,7 +1072,7 @@ app.put('/edit-user/:id', (req, res) => {
 app.delete('/delete-user/:id', (req, res) => {
   const userId = req.params.id;
 
-  // Kiểm tra xem người dùng có đặt tour nào trong 12 thng gần đây không
+  // Kiểm tra xem người dùng có đặt tour nào trong 12 tháng gần đây không
   const checkBookingQuery = `
     SELECT COUNT(*) as count 
     FROM ve 
@@ -1086,12 +1089,12 @@ app.delete('/delete-user/:id', (req, res) => {
 
     if (results[0].count > 0) {
       return res.status(400).json({ 
-        error: 'Không thể xóa người dùng này vì họ có ặt tour trong 12 tháng gần đây' 
+        error: 'Không thể xóa người dùng này vì họ có đặt tour trong 12 tháng gần đây' 
       });
     }
 
-    // Nếu không có vé nào trong 12 tháng gần đây, tiến hành xóa người dùng
-    const deleteUserQuery = 'DELETE FROM nguoidung WHERE ID = ?';
+    // Sửa tên bảng từ 'nguoidung' thành 'user'
+    const deleteUserQuery = 'DELETE FROM user WHERE ID = ?';
     db.query(deleteUserQuery, [userId], (err) => {
       if (err) {
         console.error('Lỗi xóa người dùng:', err);

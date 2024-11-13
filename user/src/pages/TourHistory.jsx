@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./TourHistory.css";
-import { message, notification } from "antd";
+import { message, notification, DatePicker, Input, Pagination } from "antd";
+const { Search } = Input;
 
 const formatDate = (isoDateString) => {
     const date = new Date(isoDateString);
@@ -61,48 +62,65 @@ const CancelDialog = ({
 const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
     if (!isOpen || !ticket) return null;
 
+    const detailSections = [
+        {
+            title: "Thông tin vé",
+            items: [
+                { label: "Mã vé", value: ticket.ID },
+                { label: "Ngày đặt", value: formatDate(ticket.NGAYDAT) },
+                { label: "Tình trạng", value: ticket.TINHTRANG },
+            ]
+        },
+        {
+            title: "Chi tiết số lượng",
+            items: [
+                { label: "Tổng số vé", value: ticket.SOVE },
+                { label: "Số vé người lớn", value: ticket.SOVE_NGUOILON },
+                { label: "Số vé trẻ em", value: ticket.SOVE_TREM },
+                { label: "Số vé em bé", value: ticket.SOVE_EMBE },
+            ]
+        },
+        {
+            title: "Thông tin thanh toán",
+            items: [
+                { label: "Tổng tiền", value: formatCurrency(ticket.TONGTIEN) },
+                { label: "Phương thức thanh toán", value: ticket.PHUONGTHUCTHANHTOAN },
+            ]
+        },
+        {
+            title: "Ghi chú",
+            items: [
+                { label: "Nội dung", value: ticket.GHICHU || "Không có ghi chú" },
+            ]
+        }
+    ];
+
     return (
         <div className="dialog-overlay" onClick={onClose}>
-            <div
-                className="ticket-details-dialog"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2>Chi tiết vé</h2>
-                <p>
-                    <strong>Mã vé:</strong> {ticket.ID}
-                </p>
-                <p>
-                    <strong>Ngày đặt:</strong> {formatDate(ticket.NGAYDAT)}
-                </p>
-                <p>
-                    <strong>Tổng số vé:</strong> {ticket.SOVE}
-                </p>
-                <p>
-                    <strong>Số vé người lớn:</strong> {ticket.SOVE_NGUOILON}
-                </p>
-                <p>
-                    <strong>Số vé trẻ em:</strong> {ticket.SOVE_TREM}
-                </p>
-                <p>
-                    <strong>Số vé em bé:</strong> {ticket.SOVE_EMBE}
-                </p>
-                <p>
-                    <strong>Tình trạng:</strong> {ticket.TINHTRANG}
-                </p>
-                <p>
-                    <strong>Tổng tiền:</strong>{" "}
-                    {formatCurrency(ticket.TONGTIEN)}
-                </p>
-                <p>
-                    <strong>Phương thức thanh toán:</strong>{" "}
-                    {ticket.PHUONGTHUCTHANHTOAN}
-                </p>
-                <p>
-                    <strong>Ghi chú:</strong>{" "}
-                    {ticket.GHICHU || "Không có ghi chú"}
-                </p>
-                <div className="dialog-actions">
-                    <button className="dialog-cancel" onClick={onClose}>
+            <div className="ticket-details-dialog" onClick={(e) => e.stopPropagation()}>
+                <div className="dialog-header">
+                    <h2>Chi tiết vé</h2>
+                    <button className="close-button" onClick={onClose}>&times;</button>
+                </div>
+                
+                <div className="dialog-content scrollable">
+                    {detailSections.map((section, index) => (
+                        <div key={index} className="detail-section">
+                            <h3>{section.title}</h3>
+                            <div className="detail-grid">
+                                {section.items.map((item, itemIndex) => (
+                                    <div key={itemIndex} className="detail-item">
+                                        <span className="detail-label">{item.label}:</span>
+                                        <span className="detail-value">{item.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="dialog-footer">
+                    <button className="dialog-button" onClick={onClose}>
                         Đóng
                     </button>
                 </div>
@@ -113,6 +131,7 @@ const TicketDetailsDialog = ({ isOpen, onClose, ticket }) => {
 
 const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
     const [rating, setRating] = useState(0);
+    const [hoveredRating, setHoveredRating] = useState(0);
     const [content, setContent] = useState("");
 
     if (!isOpen || !tour) return null;
@@ -121,21 +140,17 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
         setRating(selectedRating);
     };
 
-    const handleSubmit = () => {
-        if (rating === 0) {
-            message.error({ content: "Vui lòng chọn số sao đánh giá." });
-            return;
-        }
-        if (content.trim() === "") {
-            message.error({ content: "Vui lòng nhập nội dung đánh giá." });
-            return;
-        }
-        onSubmit(tour.IDTOUR, rating, content);
+    const handleStarHover = (hoveredValue) => {
+        setHoveredRating(hoveredValue);
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredRating(0);
     };
 
     return (
-        <div className="dialog-overlay">
-            <div className="review-dialog">
+        <div className="dialog-overlay" onClick={onClose}>
+            <div className="review-dialog" onClick={(e) => e.stopPropagation()}>
                 <h2>Đánh giá tour</h2>
                 <div className="tour-details">
                     <p>
@@ -175,12 +190,18 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
                         {tour.GHICHU || "Không có ghi chú"}
                     </p>
                 </div>
-                <div className="star-rating">
-                    {[1, 2, 3, 4, 5].map((star) => (
+                <div 
+                    className="star-rating"
+                    onMouseLeave={handleMouseLeave}
+                >
+                    {[5, 4, 3, 2, 1].map((star) => (
                         <span
                             key={star}
-                            className={`star ${star <= rating ? "active" : ""}`}
+                            className={`star ${
+                                (hoveredRating || rating) >= star ? "active" : ""
+                            }`}
                             onClick={() => handleStarClick(star)}
+                            onMouseEnter={() => handleStarHover(star)}
                         >
                             ★
                         </span>
@@ -192,7 +213,10 @@ const ReviewDialog = ({ isOpen, onClose, onSubmit, tour }) => {
                     placeholder="Nhập nội dung đánh giá..."
                 />
                 <div className="dialog-actions">
-                    <button className="dialog-confirm" onClick={handleSubmit}>
+                    <button 
+                        className="dialog-confirm" 
+                        onClick={() => onSubmit(tour.IDTOUR, rating, content)}
+                    >
                         Gửi đánh giá
                     </button>
                     <button className="dialog-cancel" onClick={onClose}>
@@ -260,12 +284,29 @@ const TourHistory = () => {
     const [selectedTourForReview, setSelectedTourForReview] = useState(null);
     const [isViewReviewDialogOpen, setIsViewReviewDialogOpen] = useState(false);
     const [selectedReview, setSelectedReview] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTicketId, setSearchTicketId] = useState('');
+    const [filterDate, setFilterDate] = useState(null);
+    const [filteredHistory, setFilteredHistory] = useState([]);
+    const itemsPerPage = 10;
 
-    const canCancelTicket = (ticket, tourDate) => {
-        const departureDate = new Date(tourDate);
-        const now = new Date();
-        const hoursDifference = (departureDate - now) / (1000 * 60 * 60);
-        return hoursDifference >= 24;
+    const canCancelTicket = (ticket, departureDate) => {
+        if (!ticket || !departureDate) return false;
+        
+        // Cho phép hủy nếu vé chưa thanh toán
+        if (ticket.TINHTRANG === "Chưa thanh toán") {
+            return true;
+        }
+
+        // Kiểm tra các điều kiện khác cho vé đã thanh toán
+        if (ticket.TINHTRANG === "Đã thanh toán" || ticket.TINHTRANG === "Đã xác nhận") {
+            const departure = new Date(departureDate);
+            const now = new Date();
+            const hoursDifference = (departure - now) / (1000 * 60 * 60);
+            return hoursDifference >= 24;
+        }
+
+        return false;
     };
 
     useEffect(() => {
@@ -327,6 +368,49 @@ const TourHistory = () => {
 
         fetchTourHistory();
     }, []);
+
+    useEffect(() => {
+        let filtered = [...tourHistory];
+        
+        // Lọc theo ID vé
+        if (searchTicketId) {
+            filtered = filtered.filter(item => 
+                item.ID.toString().toLowerCase().includes(searchTicketId.toLowerCase())
+            );
+        }
+
+        // Lọc theo ngày
+        if (filterDate) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.NGAYDAT).toDateString();
+                const filterDateString = new Date(filterDate).toDateString();
+                return itemDate === filterDateString;
+            });
+        }
+
+        setFilteredHistory(filtered);
+        setCurrentPage(1); // Reset về trang 1 khi filter
+    }, [tourHistory, searchTicketId, filterDate]);
+
+    // Tính toán dữ liệu cho trang hiện tại
+    const getCurrentPageData = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredHistory.slice(startIndex, endIndex);
+    };
+
+    // Thêm handlers
+    const handleSearch = (value) => {
+        setSearchTicketId(value);
+    };
+
+    const handleDateChange = (date) => {
+        setFilterDate(date);
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
 
     const openCancelDialog = (ticket) => {
         setSelectedTicket(ticket);
@@ -456,35 +540,30 @@ const TourHistory = () => {
             return false;
         }
 
-        const tourStartDate = new Date(ticket.NGAYDI);
         const tourEndDate = new Date(ticket.NGAYVE);
         const now = new Date();
 
+        // Đặt thời gian về cuối ngày để so sánh chính xác
+        tourEndDate.setHours(23, 59, 59, 999);
+        
         // Log chi tiết để debug
         console.log("Tour Details:", {
             tourId: ticket.IDTOUR,
-            startDate: tourStartDate.toISOString(),
             endDate: tourEndDate.toISOString(),
             currentDate: now.toISOString(),
             status: ticket.TINHTRANG,
             hasReviewed: ticket.hasReviewed,
-        });
-
-        console.log("Conditions:", {
-            isValidStatus:
-                ticket.TINHTRANG === "Đã thanh toán" ||
-                ticket.TINHTRANG === "Đã xác nhận",
-            isTourEnded: now > tourEndDate,
-            notReviewed: !ticket.hasReviewed,
-            notRefunded: ticket.TINHTRANG !== "Đã hoàn tiền",
-            notCancelled: ticket.TINHTRANG !== "Đã hủy",
+            canReviewByDate: now > tourEndDate
         });
 
         return (
-            (ticket.TINHTRANG === "Đã thanh toán" ||
-                ticket.TINHTRANG === "Đã xác nhận") &&
+            // Kiểm tra trạng thái vé
+            (ticket.TINHTRANG === "Đã thanh toán" || ticket.TINHTRANG === "Đã xác nhận") &&
+            // Kiểm tra ngày hiện tại phải sau ngày kết thúc tour
             now > tourEndDate &&
+            // Kiểm tra chưa đánh giá
             !ticket.hasReviewed &&
+            // Kiểm tra không phải vé đã hoàn tiền hoặc hủy
             ticket.TINHTRANG !== "Đã hoàn tiền" &&
             ticket.TINHTRANG !== "Đã hủy"
         );
@@ -518,28 +597,33 @@ const TourHistory = () => {
         setSelectedReview(null);
     };
 
-    // Thêm hàm để lấy message thông báo
+    // Cập nhật hàm getReviewMessage để hiển thị thông báo chi tiết hơn
     const getReviewMessage = (ticket) => {
         if (!ticket.NGAYDI || !ticket.NGAYVE)
             return "Không tìm thấy thông tin ngày tour";
-        if (ticket.hasReviewed) return "Bạn đã đánh giá tour này";
+        if (ticket.hasReviewed) 
+            return "Bạn đã đánh giá tour này";
         if (ticket.TINHTRANG === "Đã hủy")
             return "Không thể đánh giá tour đã hủy";
         if (ticket.TINHTRANG === "Đã hoàn tiền")
             return "Không thể đánh giá tour đã hoàn tiền";
-        if (
-            ticket.TINHTRANG !== "Đã thanh toán" &&
-            ticket.TINHTRANG !== "Đã xác nhận"
-        )
+        if (ticket.TINHTRANG !== "Đã thanh toán" && ticket.TINHTRANG !== "Đã xác nhận")
             return "Chỉ có thể đánh giá tour đã thanh toán";
 
         const tourEndDate = new Date(ticket.NGAYVE);
+        tourEndDate.setHours(23, 59, 59, 999);
         const now = new Date();
-        if (now < tourEndDate) {
-            const remainingDays = Math.ceil(
-                (tourEndDate - now) / (1000 * 60 * 60 * 24)
-            );
-            return `Chỉ có thể đánh giá sau khi tour kết thúc (còn ${remainingDays} ngày)`;
+
+        if (now <= tourEndDate) {
+            // Tính số ngày còn lại
+            const remainingTime = tourEndDate.getTime() - now.getTime();
+            const remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+            
+            if (remainingDays === 0) {
+                return "Bạn có thể đánh giá tour từ ngày mai";
+            } else {
+                return `Chỉ có thể đánh giá sau khi tour kết thúc (còn ${remainingDays} ngày)`;
+            }
         }
 
         return "";
@@ -548,6 +632,23 @@ const TourHistory = () => {
     return (
         <div className="tour-history-container">
             <h1 className="tour-history-title">Lịch sử đặt tour</h1>
+            
+            {/* Thêm phần filter */}
+            <div className="filter-section" style={{ marginBottom: '20px', display: 'flex', gap: '20px' }}>
+                <Search
+                    placeholder="Tìm theo ID vé"
+                    allowClear
+                    onSearch={handleSearch}
+                    style={{ width: 200 }}
+                />
+                <DatePicker
+                    placeholder="Lọc theo ngày đặt"
+                    onChange={handleDateChange}
+                    format="DD/MM/YYYY"
+                    style={{ width: 200 }}
+                />
+            </div>
+
             <table className="tour-history-table">
                 <thead>
                     <tr>
@@ -563,8 +664,8 @@ const TourHistory = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {tourHistory.length > 0 ? (
-                        tourHistory.map((item) => (
+                    {getCurrentPageData().length > 0 ? (
+                        getCurrentPageData().map((item) => (
                             <tr key={item.ID}>
                                 <td>{item.ID}</td>
                                 <td>{formatDate(item.NGAYDAT)}</td>
@@ -660,6 +761,17 @@ const TourHistory = () => {
                     )}
                 </tbody>
             </table>
+
+            {/* Thêm phân trang */}
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                <Pagination
+                    current={currentPage}
+                    total={filteredHistory.length}
+                    pageSize={itemsPerPage}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                />
+            </div>
 
             <CancelDialog
                 isOpen={isDialogOpen}

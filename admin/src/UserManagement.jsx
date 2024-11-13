@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, Avatar, Grid, Paper, IconButton } from '@mui/material';
+import { Box, Button, Table, TableHead, TableRow, TableCell, TableBody, Dialog, DialogTitle, DialogContent, Typography, TextField, Avatar, Grid, Paper, IconButton, Pagination } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   Person,
@@ -19,6 +19,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   // Fetch users from the backend
   useEffect(() => {
@@ -52,7 +54,18 @@ const UserManagement = () => {
     } else {
       setFilteredUsers(users);
     }
+    setPage(1); // Reset về trang 1 khi tìm kiếm
   }, [searchTerm, users]);
+
+  // Tính toán các giá trị cho phân trang
+  const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+  const startIndex = (page - 1) * rowsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, startIndex + rowsPerPage);
+
+  // Xử lý khi thay đổi trang
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   // Navigate to add user page
   const handleAddUserClick = () => {
@@ -135,7 +148,7 @@ const UserManagement = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredUsers.map((user) => (
+          {currentUsers.map((user) => (
             <TableRow key={user.ID}>
               <TableCell>{user.ID}</TableCell>
               <TableCell>{user.FULLNAME}</TableCell>
@@ -159,6 +172,18 @@ const UserManagement = () => {
           ))}
         </TableBody>
       </Table>
+
+      {/* Thêm component phân trang */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Pagination 
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
+          color="primary"
+          showFirstButton 
+          showLastButton
+        />
+      </Box>
 
       {/* User details dialog */}
       {selectedUser && (

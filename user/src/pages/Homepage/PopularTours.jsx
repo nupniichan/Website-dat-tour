@@ -28,11 +28,11 @@ const PopularTours = () => {
                 <h2 className="text-3xl font-bold text-center mb-12">
                     Tour Du Lịch Nổi Bật
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 py-14">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-[24rem] sm:gap-[12rem] py-14 w-[85vw] overflow-x-auto">
                     {featuredTours.map((tour, index) => (
                         <div
                             key={tour.ID}
-                            className="bg-white rounded-xl shadow-lg overflow-hidden"
+                            className="bg-white rounded-xl shadow-lg overflow-hidden w-[22rem]"
                         >
                             <div className="relative">
                                 <img

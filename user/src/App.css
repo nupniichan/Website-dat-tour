@@ -14,3 +14,26 @@
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none;
 }
+
+.header-menu-item {
+    position: relative;
+    transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-duration: 400ms;
+}
+.header-menu-item:hover:after {
+    width: 80%;
+    left: 12%;
+}
+.header-menu-item:after {
+    content: "";
+    pointer-events: none;
+    bottom: -0.8em;
+    left: 50%;
+    position: absolute;
+    width: 0%;
+    height: 2px;
+    background-color: #f97316;
+    transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-duration: 400ms;
+    transition-property: width, left;
+}

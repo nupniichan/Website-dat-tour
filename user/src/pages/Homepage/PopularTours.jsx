@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import PagesNames from "../../Router/PagesNames";
+import PagesNames from "../../Router/PagesNames.js";
 
 const PopularTours = () => {
     const [featuredTours, setFeaturedTours] = useState([])

@@ -30,7 +30,7 @@
 /* Các phần còn lại của CSS của bạn */
 .tour-history-container {
   padding: 20px;
-  max-width: auto;
+  max-width: 70vw;
   margin: auto;
   font-family: Arial, sans-serif;
 }

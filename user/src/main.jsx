@@ -25,7 +25,9 @@ createRoot(document.getElementById("root")).render(
                         optionSelectedBg: "rgba(249, 115, 22, 0.8)",
                         optionSelectedColor: "#fff",
                     },
-                    Calendar: {},
+                    Breadcrumb: {
+                        linkHoverColor: '#f97316',
+                    }
                 },
             }}
         >

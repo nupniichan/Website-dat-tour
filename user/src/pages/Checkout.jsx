@@ -481,7 +481,7 @@ const Checkout = () => {
     );
 
     return (
-        <div className="container mx-auto px-4 py-8 grid grid-cols-12 gap-6">
+        <div className="container mx-auto px-4 py-8 grid grid-cols-12 gap-6 mb-20">
             {/* Tóm tắt chuyến đi */}
             <div className="col-span-12 md:col-span-4 bg-white shadow-lg rounded-lg p-6">
                 <h3 className="text-2xl font-bold mb-4">Tóm tắt chuyến đi</h3>

@@ -1,13 +1,14 @@
-import { message, Modal } from "antd"; // Importing Modal from antd for better styling
+import { Dropdown, Menu, message, Modal } from "antd"; // Importing Modal from antd for better styling
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PagesNames from "../Router/PagesNames.js";
+import Logo3 from "../assets/images/Logo3.png";
 import "../components/Header.css";
 import Login from "./Login";
 import Register from "./Register";
-import Logo3 from "../assets/images/Logo3.png";
 
 const Header = ({ user, onLogout }) => {
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -48,7 +49,7 @@ const Header = ({ user, onLogout }) => {
 
     const handleLoginSuccess = () => {
         handleLoginClose();
-        message.success({content: 'Đăng nhập thành công 🎉'})
+        message.success({ content: "Đăng nhập thành công 🎉" });
         window.location.reload();
     };
 
@@ -67,7 +68,10 @@ const Header = ({ user, onLogout }) => {
 
     const BrandLogo = () => (
         <div className="flex items-center justify-between py-2 md:block">
-            <button onClick={handleHomepageClick} className="h-[96px] w-[96px] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%]">
+            <button
+                onClick={handleHomepageClick}
+                className="h-[96px] w-[96px] xl:scale-100 lg:scale-90 md:scale-75 sm:scale-[60%]"
+            >
                 <img src={Logo3} alt="La Voyage brand logo" />
             </button>
             <div className="md:hidden">
@@ -118,28 +122,49 @@ const Header = ({ user, onLogout }) => {
         setIsHomepage(location.pathname === PagesNames.HOMEPAGE);
     }, [location.pathname]);
 
+    const UserItems = [
+        {
+            label: <Link to={PagesNames.PROFILE}>Profile</Link>,
+            key: "0",
+        },
+        {
+            label: <Link to={PagesNames.TOUR_HISTORY}>Lịch sử</Link>,
+            key: "1",
+        },
+        {
+            label: <p onClick={onLogout}>Đăng xuất</p>,
+            key: "2",
+        },
+    ];
+
+    const handleMenuChange = (isOpen) => {
+        setIsUserMenuOpen(isOpen);
+    };
+
     return (
         <header
-            className={
-                isHomepage
-                    ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-20 md:-mt-0 -mt-3"
-                    : "sticky bg-gray-800 backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full"
-            }
-        >
-            <div
-                className={`md:hidden ${
-                    isMobileMenuOpen ? "mx-2 pb-5" : "hidden"
-                }`}
-            >
-                <BrandLogo />
-            </div>
-            <nav
-                className={`lg:text-md sm:text-xs  ${
-                    isMobileMenuOpen
-                        ? "absolute z-20 w-full top-0 inset-x-0 bg-gray-800 rounded-xl mx-2 mt-2 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
-                        : ""
-                }`}
-            >
+            className={`${
+        isHomepage
+            ? "absolute w-[70%] right-0 left-1/2 translate-x-[-50%] z-50 md:-mt-0 -mt-3"
+            : "sticky backdrop-blur-0 rounded-br-3xl rounded-bl-3xl shadow-md hover:shadow-lg transition-shadow transform w-full z-50"
+    }`}
+>
+    {!isHomepage && (
+        <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover bg-center bg-no-repeat -z-50" />
+    )}
+    
+    <div
+        className={`md:hidden ${isMobileMenuOpen ? "mx-2 pb-5" : "hidden"}`}
+    >
+        <BrandLogo />
+    </div>
+    <nav
+        className={`lg:text-md sm:text-xs ${
+            isMobileMenuOpen
+                ? "absolute z-50 w-[97vw] top-0 inset-x-0 bg-gray-800 rounded-xl mx-3 mt-3 md:mx-0 md:mt-0 md:relative md:bg-transparent pb-4"
+                : ""
+        }`}
+    >
                 <div className="gap-x-14 items-center max-w-screen-xl mx-auto px-4 md:flex justify-center md:px-8">
                     <BrandLogo />
                     <div
@@ -151,7 +176,11 @@ const Header = ({ user, onLogout }) => {
                             {pagesNavigation.map((item, index) => (
                                 <li
                                     key={index}
-                                    className="text-gray-300 hover:text-gray-400 "
+                                    className={`text-gray-300 hover:text-white ${
+                                        isMobileMenuOpen
+                                            ? "header-menu-items"
+                                            : ""
+                                    } `}
                                 >
                                     <button
                                         onClick={() =>
@@ -166,18 +195,25 @@ const Header = ({ user, onLogout }) => {
                             <li>
                                 {userId ? (
                                     <div className="flex items-center">
-                                        <button
-                                            className="username-plate"
-                                            onClick={handleProfileClick}
+                                        <Dropdown
+                                            overlay={
+                                                <Menu>
+                                                    {UserItems.map((item) => (
+                                                        <Menu.Item
+                                                            key={item.key}
+                                                        >
+                                                            {item.label}
+                                                        </Menu.Item>
+                                                    ))}
+                                                </Menu>
+                                            }
+                                            trigger={["click"]}
+                                            onOpenChange={handleMenuChange}
                                         >
-                                            {userName}
-                                        </button>
-                                        <button
-                                            onClick={onLogout}
-                                            className="ml-2 flex items-center justify-center gap-x-1 py-2 px-4 text-orange-500 font-medium hover:text-white duration-150 rounded-full"
-                                        >
-                                            Đăng xuất
-                                        </button>
+                                            <div className="username-plate" onClick={(e) => e.stopPropagation()}>
+                                                {userName}
+                                            </div>
+                                        </Dropdown>
                                     </div>
                                 ) : (
                                     <button
@@ -207,7 +243,9 @@ const Header = ({ user, onLogout }) => {
 
             {/* Ant Design Modal for Login */}
             <Modal
-                title=<div className="text-3xl mt-10 font-bold text-center">Đăng Nhập</div>
+                title=<div className="text-3xl mt-10 font-bold text-center">
+                    Đăng Nhập
+                </div>
                 open={isLoginModalOpen}
                 onCancel={handleLoginClose}
                 closeIcon={null}
@@ -222,7 +260,9 @@ const Header = ({ user, onLogout }) => {
 
             {/* Ant Design Modal for Register */}
             <Modal
-                title=<div className="text-3xl my-8 -mb-3 font-bold text-center">Đăng Kí</div>
+                title=<div className="text-3xl my-8 -mb-3 font-bold text-center">
+                    Đăng Kí
+                </div>
                 open={isRegisterModalOpen}
                 onCancel={handleRegisterClose}
                 closeIcon={null}

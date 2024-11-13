@@ -7,6 +7,10 @@ const {
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    // corePlugins: {
+    //     preflight: false,
+    // },
+
     mode: "jit",
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
@@ -54,7 +58,7 @@ export default {
                 },
                 backgroundImages: {
                     pattern: "url('./src/assets/pattern.png')",
-                }
+                },
             },
             plugins: [addVariablesForColors],
         },

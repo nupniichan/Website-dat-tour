@@ -9,7 +9,7 @@ import Seats from "../assets/svg/Seats";
 import Ticket from "../assets/svg/Ticket";
 import Vehicle from "../assets/svg/Vehicle";
 import "./TourDetails.css";
-import PagesNames from "../Router/PagesNames";
+import PagesNames from "../Router/PagesNames.js";
 
 const TourDetails = () => {
     const userId = sessionStorage.getItem("userId");

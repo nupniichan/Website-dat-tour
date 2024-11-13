@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import cities from "../../json/cities.json";
 import dayjs from "dayjs";
-import PagesNames from "../../Router/PagesNames";
+import PagesNames from "../../Router/PagesNames.js";
 
 dayjs.locale("vi");
 

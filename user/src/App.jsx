@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { useNavigate } from "react-router";
 import { message, notification } from "antd";
+import Breadcrumbs from "./Router/Breadcrumbs";
 function App() {
     const [currentUser, setCurrentUser] = useState(null); // State to hold user info
     const navigate = useNavigate();
@@ -29,7 +30,7 @@ function App() {
         sessionStorage.removeItem("token"); // Xóa token khi đăng xuất
         sessionStorage.removeItem("userName"); // Xóa tên người dùng
         sessionStorage.removeItem("userId"); // Xóa tên người dùng
-        navigate(`/`);
+        window.location.reload()
     };
 
     useEffect(() => {
@@ -52,6 +53,7 @@ function App() {
     return (
         <>
             <Header user={currentUser} onLogout={handleLogout} />
+            <Breadcrumbs />
             <PageRouter onLogin={handleLogin} user={currentUser} />{" "}
             {/* Truyền user nếu cần */}
             <Footer />

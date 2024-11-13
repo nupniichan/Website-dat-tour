@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { message } from "antd";
+import { TbPlaneArrival, TbPlaneDeparture, TbTrain } from "react-icons/tb";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Calendar from "../assets/svg/Calendar";
 import Clock from "../assets/svg/Clock";
@@ -48,8 +49,7 @@ const TourDetails = () => {
     const handleCheckout = () => {
         if (userId) {
             navigate(`${PagesNames.CHECKOUT}/${tour.ID}`);
-        } else
-        message.warning({ content: "Vui lòng đăng nhập." });
+        } else message.warning({ content: "Vui lòng đăng nhập." });
     };
 
     if (!tour) {
@@ -138,7 +138,7 @@ const TourDetails = () => {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
                             <div>
@@ -160,7 +160,7 @@ const TourDetails = () => {
                             </div>
                         </div>
                         <div className="flex items-center">
-                            <svg
+                            {/* <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-5 w-5 mr-3 text-orange-500"
                                 fill="none"
@@ -173,7 +173,8 @@ const TourDetails = () => {
                                     strokeWidth={2}
                                     d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
                                 />
-                            </svg>
+                            </svg> */}
+                            <TbTrain className='h-5 w-5 mr-3 text-orange-500' />
                             <div>
                                 <div className="text-sm text-gray-500">
                                     Phương tiện
@@ -307,7 +308,7 @@ const TourDetails = () => {
                     <h2 className="text-xl font-semibold mb-4">Lịch trình</h2>
                     <div className="space-y-4">
                         <div className="flex items-center">
-                            <svg
+                            {/* <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-5 w-5 mr-3 text-orange-500"
                                 fill="none"
@@ -320,7 +321,8 @@ const TourDetails = () => {
                                     strokeWidth={2}
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
-                            </svg>
+                            </svg> */}
+                            <TbPlaneDeparture className="h-5 w-5 mr-3 text-orange-500" />
                             <div>
                                 <div className="text-sm text-gray-500">
                                     Ngày khởi hành
@@ -331,7 +333,7 @@ const TourDetails = () => {
                             </div>
                         </div>
                         <div className="flex items-center">
-                            <svg
+                            {/* <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-5 w-5 mr-3 text-orange-500"
                                 fill="none"
@@ -344,7 +346,8 @@ const TourDetails = () => {
                                     strokeWidth={2}
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
-                            </svg>
+                            </svg> */}
+                            <TbPlaneArrival className="h-5 w-5 mr-3 text-orange-500" />
                             <div>
                                 <div className="text-sm text-gray-500">
                                     Ngày kết thúc

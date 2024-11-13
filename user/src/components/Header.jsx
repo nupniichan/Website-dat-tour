@@ -178,17 +178,15 @@ const Header = ({ user, onLogout }) => {
                             {pagesNavigation.map((item, index) => (
                                 <li
                                     key={index}
-                                    className={`text-gray-300 hover:text-white ${
-                                        isMobileMenuOpen
-                                            ? "header-menu-items"
-                                            : ""
-                                    } `}
+                                    className={`text-gray-300 hover:text-white
+                                        ${isMobileMenuOpen ? "" : ""}
+                                    `}
                                 >
                                     <button
                                         onClick={() =>
                                             handleNavigation(item.path)
                                         }
-                                        className="block"
+                                        className="block header-menu-item"
                                     >
                                         {item.title}
                                     </button>

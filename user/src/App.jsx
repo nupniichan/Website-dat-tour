@@ -53,8 +53,10 @@ function App() {
     return (
         <>
             <Header user={currentUser} onLogout={handleLogout} />
+            <div className="overflow-x-hidden">
             <Breadcrumbs />
             <PageRouter onLogin={handleLogin} user={currentUser} />{" "}
+            </div>
             {/* Truyền user nếu cần */}
             <Footer />
         </>

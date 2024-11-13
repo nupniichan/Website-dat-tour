@@ -188,7 +188,7 @@ const PopularTours = () => {
                                 </p>
                                 <button
                                     onClick={() =>
-                                        navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}`)
+                                        navigate(`${PagesNames.TOUR_DETAILS}/${tour.ID}/${tour.TENTOUR}`)
                                     }
                                     className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
                                 >

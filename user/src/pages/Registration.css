@@ -65,4 +65,8 @@
   width: 90%;
   max-width: 400px;
 }
-
+.error-text {
+  color: red;
+  font-size: 0.9em;
+  margin-top: 5px;
+}

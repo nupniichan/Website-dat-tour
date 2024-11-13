@@ -101,6 +101,11 @@ const AddUser = () => {
     return { isValid: true, message: '' };
   };
 
+  const isValidFullName = (name) => {
+    const nameRegex = /^[a-zA-ZÀ-ỹ\s]+$/;
+    return nameRegex.test(name);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -108,6 +113,8 @@ const AddUser = () => {
       newErrors.fullName = 'Tên đầy đủ không được để trống';
     } else if (!/\s/.test(user.fullName)) {
       newErrors.fullName = 'Tên đầy đủ phải có ít nhất một khoảng trắng';
+    } else if (!isValidFullName(user.fullName)) {
+      newErrors.fullName = 'Tên không được chứa số hoặc ký tự đặc biệt';
     }
 
     if (!user.phone) {
@@ -230,6 +237,16 @@ const AddUser = () => {
     return maxDate.toISOString().split('T')[0];
   };
 
+  const handleNameChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (value && !isValidFullName(value)) {
+      return; // Không cập nhật state nếu có ký tự không hợp lệ
+    }
+    
+    setUser(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
       <Card elevation={3}>
@@ -260,7 +277,7 @@ const AddUser = () => {
                         fullWidth
                         name="fullName"
                         value={user.fullName}
-                        onChange={handleChange}
+                        onChange={handleNameChange}
                         required
                         error={!!errors.fullName}
                         helperText={errors.fullName}

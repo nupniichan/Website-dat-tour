@@ -25,11 +25,20 @@ const Register = ({ onRegisterSuccess, onClose, onOpenLogin }) => {
 
     const validate = () => {
         let validationErrors = {};
-        const currentYear = new Date().getFullYear();
-        const birthYear = new Date(formData.dayOfBirth).getFullYear();
+        const currentDate = new Date();
+        const birthDate = new Date(formData.dayOfBirth);
+
+        // Kiểm tra ngày sinh không được nằm trong tương lai
+        if (birthDate > currentDate) {
+            validationErrors.dayOfBirth = "Ngày sinh không được nằm trong tương lai";
+            return validationErrors;
+        }
+
+        // Kiểm tra tuổi
+        const currentYear = currentDate.getFullYear();
+        const birthYear = birthDate.getFullYear();
         const age = currentYear - birthYear;
 
-        // Check if the user is at least 16 years old
         if (age < 16) {
             validationErrors.dayOfBirth = "Bạn phải lớn hơn 16 tuổi";
         }

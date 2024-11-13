@@ -289,7 +289,7 @@ const DiscountManagement = () => {
                   <Grid item xs={12}>
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Điều kiện áp dụng
+                        Nội dung mã giảm giá
                       </Typography>
                       <Paper 
                         variant="outlined" 
@@ -300,7 +300,7 @@ const DiscountManagement = () => {
                         }}
                       >
                         <Typography variant="body1">
-                          {selectedDiscount.DIEUKIEN || 'Không có điều kiện đặc biệt'}
+                          {selectedDiscount.DIEUKIEN || 'Không có nội dung mã giảm giá'}
                         </Typography>
                       </Paper>
                     </Box>

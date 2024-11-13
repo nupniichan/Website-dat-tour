@@ -51,18 +51,6 @@ const Sidebar = ({ selectedContent, onLogout }) => {
           <span>Quản lý thu nhập</span>
         </li>
       </ul>
-      <div className="sidebar-footer">
-        <ul className="sidebar-footer-menu">
-          <li className="menu-item">
-            <img className="menu-icon" src="src/img/icon/settings.png" alt="Settings" />
-            <span>Settings</span>
-          </li>
-          <li className="menu-item" onClick={handleLogout}>
-            <img className="menu-icon" src="src/img/icon/logout.png" alt="Logout" />
-            <span>Logout</span>
-          </li>
-        </ul>
-      </div>
     </div>
   );
 };

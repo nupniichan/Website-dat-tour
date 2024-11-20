@@ -124,7 +124,7 @@ const Header = ({ user, onLogout }) => {
 
     const UserItems = [
         {
-            label: <Link to={PagesNames.PROFILE}>Profile</Link>,
+            label: <Link to={PagesNames.PROFILE}>Hồ sơ</Link>,
             key: "0",
         },
         {

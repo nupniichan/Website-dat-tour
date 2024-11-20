@@ -160,7 +160,7 @@ const EditTour = () => {
 
     const validateSove = (value) => {
         const isNumber = /^[0-9]+$/.test(value);
-        if (!isNumber || !value.trim()) {
+        if (!isNumber || !value.trim) {
             return "Số vé phải là một số hợp lệ và không chứa ký tự đặc biệt";
         } else if (parseInt(value, 10) <= 0) {
             return "Số vé phải lớn hơn 0";

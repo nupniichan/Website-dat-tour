@@ -36,6 +36,9 @@ const Checkout = () => {
     const [page, setPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
+    // Thêm state để theo dõi trạng thái đã áp dụng mã giảm giá
+    const [isPromoApplied, setIsPromoApplied] = useState(false);
+
     useEffect(() => {
         fetchTourDetails(id);
         fetchCustomerInfo(customerId);
@@ -144,13 +147,8 @@ const Checkout = () => {
         setPromoCode(e.target.value); // Cập nhật mã giảm giá khi nhập
     };
 
-    // Sửa lại hàm applyPromoCode để thêm validate
+    // Sửa lại hàm applyPromoCode
     const applyPromoCode = async () => {
-        // if (!selectedPromo) {
-        //     alert("Vui lòng chọn mã giảm giá!");
-        //     return;
-        // }
-
         try {
             // Kiểm tra trạng thái
             if (selectedPromo.status === "Hết hiệu lực") {
@@ -183,15 +181,15 @@ const Checkout = () => {
             }
 
             // Tính toán giá sau khi giảm
-            const discountAmount =
-                (finalPrice * selectedPromo.discount_value) / 100;
+            const discountAmount = (finalPrice * selectedPromo.discount_value) / 100;
             const newPrice = finalPrice - discountAmount;
 
             setFinalPrice(newPrice);
+            setIsPromoApplied(true); // Đánh dấu đã áp dụng mã giảm giá
             notification.success({
                 message: "Áp dụng mã giảm giá thành công!",
                 description: `Bạn được giảm ${selectedPromo.discount_value}%`,
-            })
+            });
         } catch (error) {
             console.error("Error applying promotion:", error);
             notification.error({
@@ -329,10 +327,9 @@ const Checkout = () => {
         }
     };
 
-    // Thêm function để xóa mã giảm giá
+    // Sửa lại hàm removePromoCode
     const removePromoCode = () => {
         if (selectedPromo) {
-            // Khôi phục lại giá ban đầu
             const originalPrice =
                 tourDetails.GIA * adultCount +
                 tourDetails.GIA * 0.8 * childCount +
@@ -340,7 +337,7 @@ const Checkout = () => {
             setFinalPrice(originalPrice);
             setSelectedPromo(null);
             setPromoCode("");
-            // alert("Đã xóa mã giảm giá");
+            setIsPromoApplied(false); // Reset trạng thái áp dụng mã giảm giá
         }
     };
 
@@ -548,10 +545,10 @@ const Checkout = () => {
                         <button
                             onClick={applyPromoCode}
                             className={`flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition
-                ${!selectedPromo ? "opacity-50 cursor-not-allowed" : ""}`}
-                            disabled={!selectedPromo}
+                ${(!selectedPromo || isPromoApplied) ? "opacity-50 cursor-not-allowed" : ""}`}
+                            disabled={!selectedPromo || isPromoApplied}
                         >
-                            Áp dụng
+                            {isPromoApplied ? "Đã áp dụng" : "Áp dụng"}
                         </button>
                         {selectedPromo && (
                             <button

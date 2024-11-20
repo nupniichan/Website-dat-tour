@@ -69,10 +69,20 @@ const EditDiscount = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setDiscount((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === 'TILECHIETKHAU') {
+      const intValue = parseInt(value);
+      if (!isNaN(intValue)) {
+        setDiscount(prev => ({
+          ...prev,
+          [name]: intValue
+        }));
+      }
+    } else {
+      setDiscount(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const validateForm = () => {

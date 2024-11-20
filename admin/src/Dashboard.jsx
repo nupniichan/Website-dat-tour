@@ -10,13 +10,14 @@ import axios from 'axios';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const StatCard = ({ title, value, change, icon: Icon, changeType }) => (
-  <Card style={{ flex: 1, margin: '0 8px' }}>
+  <Card style={{ flex: 1, margin: '0 8px', height: '100%' }}>
     <CardContent>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
         <Box>
-          <Typography variant="subtitle2" color="text.secondary">{title}</Typography>
-          <Typography variant="h4">{value}</Typography>
-          <Typography variant="body2" color={changeType === 'up' ? 'success.main' : 'error.main'}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>{title}</Typography>
+          <Typography variant="h4" sx={{ mb: 1 }}>{value}</Typography>
+          <Typography variant="body2" color={changeType === 'up' ? 'success.main' : 'error.main'} 
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {changeType === 'up' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
             {change}
           </Typography>
@@ -188,9 +189,9 @@ const Dashboard = () => {
             <StatCard 
               title="Tổng người dùng" 
               value={stats.totalUsers?.toLocaleString() || '0'} 
-              change="" 
+              change={`${stats.userChangePercent.toFixed(1)}% so với tuần trước`} 
               icon={Users} 
-              changeType="up" 
+              changeType={stats.userChangePercent >= 0 ? 'up' : 'down'} 
             />
           </div>
           <div className="col-12 col-md-6 col-lg-3">
@@ -245,11 +246,16 @@ const Dashboard = () => {
               </Box>
             </Box>
 
-            <ButtonGroup variant="outlined">
-              <Button style={{ textTransform: 'none', backgroundColor: '#f5f5f5', borderColor: '#FFA500', color: '#FFA500' }}>Ngày</Button>
-              <Button style={{ textTransform: 'none', backgroundColor: '#f5f5f5', borderColor: '#FFA500', color: '#FFA500' }}>Tuần</Button>
-              <Button style={{ textTransform: 'none', backgroundColor: '#FFA500', color: 'white' }}>Thường niên</Button>
-            </ButtonGroup>
+            <Button 
+              variant="contained" 
+              style={{ 
+                textTransform: 'none', 
+                backgroundColor: '#FFA500', 
+                color: 'white' 
+              }}
+            >
+              Thường niên
+            </Button>
           </Box>
           <div className='dashboard-chart' style={{ height: '400px' }}>
             <Line ref={chartRef} data={data} options={options} />
@@ -276,7 +282,7 @@ const Dashboard = () => {
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{booking.ID}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{booking.FULLNAME}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                      {new Date(booking.NGAYDAT).toLocaleString('vi-VN')}
+                      {new Date(booking.NGAYDAT).toLocaleDateString('vi-VN')}
                     </td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{booking.SOVE}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>
